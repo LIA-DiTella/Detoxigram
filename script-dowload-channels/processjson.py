@@ -41,4 +41,4 @@ def process_json(input_file, output_file):
 
     # Write transformed data to a new JSON file
     with open(output_file, 'w') as file:
-        json.dump(transformed_data, file, indent=4)
+        json.dump(transformed_data, file, indent=4)  # Use json.dump directly for list of dictionaries
