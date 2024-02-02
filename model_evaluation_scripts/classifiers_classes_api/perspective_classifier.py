@@ -6,8 +6,10 @@ import contextlib
 
 from googleapiclient import discovery
 from time import sleep
+from .generic_classifier import Classifier
 
-class perspective_classificator():
+
+class perspective_classifier(Classifier):
 
 	def __init__(self, API_KEY, attributes = ["TOXICITY"], verbosity = False):
 		self.key = API_KEY
@@ -23,6 +25,8 @@ class perspective_classificator():
 		self.verbosity = verbosity
 
 	def predictToxicity(self, input_message):
+
+		sleep(1) 	#no quiero pasarme de los requests necesarios si le pegamos mucho
 		attributes_dicc = {}
 		for attribute in self.attributes:
 			attributes_dicc[attribute] = {}
@@ -74,7 +78,6 @@ class perspective_classificator():
 			predicted_toxicity_scores = 0
 
 			for m in telegram_data["train"]:
-				sleep(1) 	#no quiero pasarme de los requests necesarios
 				message = m["message"] if len(m["message"]) > 0 else None
 				if message is None: break
 
