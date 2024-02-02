@@ -46,6 +46,10 @@ client = TelegramClient(sessions.MemorySession(), API_ID_TELEGRAM, API_HASH_TELE
 
 #Function for checking if a string is a number, for the gpt-3 toxicity
 async def is_number(s) -> bool:
+    '''
+    Requiere:
+    Devuelve: True si es un número, False si no lo es
+    '''
     try:
         float(s) 
         return True
@@ -53,7 +57,6 @@ async def is_number(s) -> bool:
         return False
 
 #Use the telegram API for fetching the last 50 messages of a channel (this will need verification)
-#To-Do: manage verification with telegram user.
 async def fetch_last_50_messages(channel_name) -> list:
     '''
     Requiere: channel_name
@@ -74,6 +77,10 @@ async def fetch_last_50_messages(channel_name) -> list:
     await client.disconnect()
     return posts.messages
 
+def transform_data_to_expected_format(data):
+    transformed_data = [("user", item["message"]) for item in data]
+    return transformed_data
+
 #process_messages will return a list of messages with the format {'message': 'message', 'timestamp': 'timestamp'}
 def process_messages(messages) -> list:
     processed_messages = []
@@ -89,19 +96,15 @@ def process_messages(messages) -> list:
 #function for analizying with gpt
 
 def gpt_classificator(data) -> float:
+    
     prompt_template = ChatPromptTemplate.from_messages([
             ("system", """You are moderator of toxic content in chat groups. Your task is to Classify the following messages in a scale from 0 to 4 according to their level of toxicity and agressiveness. Reply only with a number from 0 to 4, no additional characters. Use the following scale:
 
-                    0- **Non-Toxic: Language is respectful, inclusive, and considerate. It fosters constructive dialogue and understanding, without any negative undertones or divisive intent.
-
-                    1- **Slightly Toxic**: Language may contain mild negative or biased statements, but they are not intended to harm or deeply divide. This level may include subtle jabs, passive-aggressive comments, or slight bias, but generally maintains a level of respect.
-
-                    2- **Moderately Toxic**: Language at this level is noticeably negative, biased, or divisive. It may include overt sarcasm, targeted insults, or language that dismisses or belittles certain groups or viewpoints. Respect for differing opinions starts to wane.
-
-                    3- **Highly Toxic**: Language is clearly harmful, disrespectful, and divisive. It includes hate speech, explicit insults, dehumanizing language, or rhetoric that significantly disparages or demonizes certain groups or perspectives. The intent to harm or alienate is evident.
-
-                    4- **Extremely Toxic**: This is the most severe level, where language is overtly hostile, incites hatred or violence, and includes severe personal attacks, threats, or egregious hate speech. The language at this level is not only deeply harmful but could also lead to real-world consequences and conflicts.
-
+                    0. **Non-toxic:** Message that encourages a positive, respectful, and inclusive environment, promoting **kindness** and mutual understanding. The opinions and perspectives of everyone are valued, contributing to constructive dialogue without personal disqualifications or offensive content. It may contain objective or neutral information.
+                    1. **Slightly Toxic:** Message that, although mostly respectful, may include criticism or disagreements expressed in a passive-aggressive or slightly biased manner. It does not directly attack individuals or groups, and the intention to cause harm is not clear, but it suggests a lack of appreciation for the viewpoint of others.
+                    2. **Moderately Toxic:** Message with an aggressive or disrespectful tone, which may include sarcasm, irony, or derogatory language towards certain groups by gender, ethnicity, sexual orientation, ideology, or religion. Although it does not attack violently, **it seeks to hurt, ridicule, or belittle others**, showing a rejection towards the diversity of opinions and people.
+                    3. **Highly Toxic:** Message that demonstrates a clear rejection and contempt for individuals or groups, using insults, racist, sexist, misogynist, degrading, or dehumanizing references. It attacks groups by their gender, ethnicity, sexual orientation, ideology, or religion. This offensive language seeks to intimidate, **exclude**, or **incite** hatred, showing an explicit intention to cause harm.
+                    4. **Extremely Toxic:** Message that is not only explicitly aggressive and disrespectful but also contains threats or calls to violent action. It attacks groups by their gender, ethnicity, sexual orientation, ideology, or religion. Promotes hostility, incitement to hatred, and suggests harmful consequences in the real world against individuals or groups, violating ethical and moral principles and endangering the safety and well-being of people.
 
                 ## EXAMPLES
                 user: Classify the following message: Ukrainians pouring into tiny Moldova find a welcoming but strained country.\n\nAnna Sevidova was injured when her home was shelled in Ukraine. Now she\u2019s recovering in a hotel turned refugee home in Moldova, facing an uncertain future for her family.\n\nAs Ukrainian refugees flood into Moldova, one of Europe\u2019s poorest countries says it is reaching a breaking point. With a population of just 2.6 million, Moldova has taken in 107,000 people, making it the highest per-capita recipient of those fleeing the war with Russia. They now account for over 4 percent of Moldova\u2019s population.\n\nThe New York Times traveled to the country in March and met Ukrainians who have recently sought refuge there. Read more\n\n@nytimes
@@ -112,7 +115,6 @@ def gpt_classificator(data) -> float:
              
                 user: Classify the following message: These people are so much stoopiderer than I ever thought possible.!
                 assistant: 3
-
 
                 user: Classify the following message: They're not happy in Gaza .. \nThey're not happy in Egypt .. \nThey're not happy in  Libya .. \nThey're not happy in Morocco .. \nThey're not happy in Iran .. \nThey're not happy in Iraq .. \nThey're not happy in Yemen ... \nThey're not happy in Afghanistan ... \nThey're not happy in Pakistan .. \nThey're not happy in Syria .. \nThey're not happy in Lebanon ...\n SO.. WHERE ARE THEY HAPPY?\n They're happy in Australia .. \nThey're happy in Canada .. \nThey're happy in England .. \nThey're happy in Ireland...\nThey're happy in France .. \nThey're happy in Italy .. \nThey're happy in Germany .. \nThey're happy in Sweden .. \nThey're happy in the USA .. \nThey're happy in Norway .. \nThey're happy in Holland .. \nThey're happy in Denmark ..\n Basically, they're happy in every country that is not Muslim and unhappy in every country that is!\n AND WHO DO THEY BLAME?\n Not Islam. \nNot their leadership. \nNot themselves\n THEY BLAME THE COUNTRIES THEY ARE HAPPY IN !\n AND THEN- They want to change those countries to be like, THE COUNTRY THEY CAME FROM WHERE THEY WERE UNHAPPY!\n Excuse me, but I can't help wondering... \nHow frigging dumb can you get? \nEveryone seems to be wondering why Muslim Terrorists are so quick to commit suicide.\n Lets have a look at the evidence: \n- No Christmas \n- No television \n- No nude women \n- No football \n- No pork chops \n- No hot dogs \n- No burgers \n- No beer \n- No bacon \n- Rags for clothes \n- Towels for hats \n- Constant wailing from some bloke in a tower \n- More than one wife \n- More than one mother-in-law \n- You can't shave \n- Your wife can't shave \n- You can't wash off the smell of donkeys \n- You cook over burning camel shit \n- Your wife is picked by someone else for you \n- and your wife smells worse than your donkey \n- Then they tell them that \"when they die, it all gets better\"???\n Well No Shit Sherlock!.... \nIt's not like it could get much worse!
                 assistant: 4
@@ -135,24 +137,33 @@ def gpt_classificator(data) -> float:
     return average
 
 def summarizor_gpt(data) -> str:
+    transformed_data = transform_data_to_expected_format(data)
     prompt_template = ChatPromptTemplate.from_messages([
-                    ("system", """You are moderator of toxic content in chat groups. Your task is to summarize the content of the following messages in a paragraph, no more than 50 words. The summary has to filter the toxic content and be as objective as possible. The classification of toxicity is the following:
-                    0- **Non-Toxic: Language is respectful, inclusive, and considerate. It fosters constructive dialogue and understanding, without any negative undertones or divisive intent.
+                    ("system", """
+                    Your role as a moderator involves two key tasks:
 
-                    1- **Slightly Toxic**: Language may contain mild negative or biased statements, but they are not intended to harm or deeply divide. This level may include subtle jabs, passive-aggressive comments, or slight bias, but generally maintains a level of respect.
+                    Summarize the content of the following messages in a concise paragraph, limiting your summary to no more than 50 words. Your summary should remain objective and exclude toxic content.
+                    Evaluate the channel's toxicity level based on the content you've summarized, providing a brief explanation for your assessment according to the toxicity scale provided.
+                    Toxicity Scale:
 
-                    2- **Moderately Toxic**: Language at this level is noticeably negative, biased, or divisive. It may include overt sarcasm, targeted insults, or language that dismisses or belittles certain groups or viewpoints. Respect for differing opinions starts to wane.
+                    0. **Non-toxic:** Message that encourages a positive, respectful, and inclusive environment, promoting **kindness** and mutual understanding. The opinions and perspectives of everyone are valued, contributing to constructive dialogue without personal disqualifications or offensive content. It may contain objective or neutral information.
+                    1. **Slightly Toxic:** Message that, although mostly respectful, may include criticism or disagreements expressed in a passive-aggressive or slightly biased manner. It does not directly attack individuals or groups, and the intention to cause harm is not clear, but it suggests a lack of appreciation for the viewpoint of others.
+                    2. **Moderately Toxic:** Message with an aggressive or disrespectful tone, which may include sarcasm, irony, or derogatory language towards certain groups by gender, ethnicity, sexual orientation, ideology, or religion. Although it does not attack violently, **it seeks to hurt, ridicule, or belittle others**, showing a rejection towards the diversity of opinions and people.
+                    3. **Highly Toxic:** Message that demonstrates a clear rejection and contempt for individuals or groups, using insults, racist, sexist, misogynist, degrading, or dehumanizing references. It attacks groups by their gender, ethnicity, sexual orientation, ideology, or religion. This offensive language seeks to intimidate, **exclude**, or **incite** hatred, showing an explicit intention to cause harm.
+                    4. **Extremely Toxic:** Message that is not only explicitly aggressive and disrespectful but also contains threats or calls to violent action. It attacks groups by their gender, ethnicity, sexual orientation, ideology, or religion. Promotes hostility, incitement to hatred, and suggests harmful consequences in the real world against individuals or groups, violating ethical and moral principles and endangering the safety and well-being of people.
+                    
+                    Instructions:
 
-                    3- **Highly Toxic**: Language is clearly harmful, disrespectful, and divisive. It includes hate speech, explicit insults, dehumanizing language, or rhetoric that significantly disparages or demonizes certain groups or perspectives. The intent to harm or alienate is evident.
+                    For Non-toxic content, include it directly in the summary.
+                    For Slightly to Moderately Toxic content, incorporate it carefully, filtering out any bias or offensive elements.
+                    For Highly to Extremely Toxic content, exclude the offensive details and focus on objective information. Additionally, provide a warning about the content's potential impact.
+                    After summarizing, conclude with your evaluation of the channel's overall toxicity. Consider the prevalence of toxic messages and their severity to explain whether the channel is generally toxic or not and why.
 
-                    4- **Extremely Toxic**: This is the most severe level, where language is overtly hostile, incites hatred or violence, and includes severe personal attacks, threats, or egregious hate speech. The language at this level is not only deeply harmful but could also lead to real-world consequences and conflicts.
-
-                  So, if the message is classified as 1, it is not toxic and you can include it in the summary. If it is classified as 2, you can include it but you have to be careful and start filtering information. If it is classified as 3, you should filter it and tell the information in an objective way. If it is classified as 4 or 5, you should do the same as 3, but also include a warning for the user and a recommendation regarding how to read that kind of information.
-                    Remember to NOT OUTPUT a paragraph with more than 50 words. If you do so, the system will not be able to process your answer.
+                    Remember: Your complete response, including the summary and toxicity evaluation, should be concise and informative, helping readers understand the channel's nature without exceeding the word limit for the summary.
                      """),
 
                     ("user", " Reply with the summary of the following messages")
-                ]+ data)
+                ]+ transformed_data)
     chain = prompt_template | llm | output_parser
     # Batch input for classification
     output = chain.batch([{}])
@@ -280,33 +291,23 @@ def knowledge_of_crowds(message):
 #summarize 
 @bot.message_handler(commands=['summarize'])
 def summarize(message):
-    try:
+    try:    
         channel_name = message.text.split(' ')[1]
         if channel_name:
             messages = loop.run_until_complete(fetch_last_50_messages(channel_name))
             processed_messages = process_messages(messages)
             if len(processed_messages) > 0:
-                bot.reply_to(message, "Channel analysis in progress...")
+                bot.reply_to(message, "Let's see... 🤔")
                 data = processed_messages[:20]
-                if data:
-                    print(data)
                 output = summarizor_gpt(data)
-                max_length = 4096
-                if len(output) > max_length:
-                # Si la respuesta excede el máximo, divídela en partes
-                    parts = [output[i:i + max_length] for i in range(0, len(output), max_length)]
-                    for part in parts:
-                        bot.reply_to(message, f'{part}')
-            elif len(output) <= max_length:
-                # Si no excede el máximo, envía la respuesta como está
-                bot.reply_to(message, f'{output}')
+                print(output)
+                bot.reply_to(message, f'So, here you have the summary of {channel_name}: {output[0]}')
             else:
                 bot.reply_to(message, f'Failed! Try with another channel!')
         else:
             bot.reply_to(message, "Please provide a channel name!")
     except IndexError:
         bot.reply_to(message, "Usage: /summarize @channelname")
-
 
 
 @bot.message_handler(commands=['help'])
