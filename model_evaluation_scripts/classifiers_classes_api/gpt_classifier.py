@@ -29,10 +29,10 @@ class gpt_classifier(Classifier):
 
         chain = prompt | llm | output_parser
         
-        toxicity_score = chain.batch([{"message": input_message}])[0]
+        toxicity_score = int(chain.batch([{"message": input_message}])[0])
 
         isToxic = False
-        if (output >= 2) isToxic = True
+        if (toxicity_score >= 2): isToxic = True
 
         return  isToxic, toxicity_score
         
