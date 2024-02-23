@@ -57,17 +57,20 @@ class llama_cpp_classifier(Classifier):
 
                 ## EXAMPLES
                 user: Classify the following message: Ukrainians pouring into tiny Moldova find a welcoming but strained country.\n\nAnna Sevidova was injured when her home was shelled in Ukraine. Now she\u2019s recovering in a hotel turned refugee home in Moldova, facing an uncertain future for her family.\n\nAs Ukrainian refugees flood into Moldova, one of Europe\u2019s poorest countries says it is reaching a breaking point. With a population of just 2.6 million, Moldova has taken in 107,000 people, making it the highest per-capita recipient of those fleeing the war with Russia. They now account for over 4 percent of Moldova\u2019s population.\n\nThe New York Times traveled to the country in March and met Ukrainians who have recently sought refuge there. Read more\n\n@nytimes
-                assistant: 0
+                assistant: - REASONING - This message reports on the situation of Ukrainian refugees in Moldova, focusing on the humanitarian aspects and challenges both the refugees and Moldova face due to the war in Ukraine. The language used is informative, respectful, and aims to raise awareness without any negative or divisive intent. It encourages understanding and empathy towards the plight of refugees and the receiving country's efforts to help them. Thus, it aligns with Non-Toxic criteria, fostering constructive dialogue and understanding.
+                - CLASSIFICATION - 0
 
                 user: Classify the following message: With #LloydAustin out of commission, Joe Biden for several days had no idea who his Secretary of Defense was. But then Americans right now don’t know who their President is. The country is being run by an unelected junta operating through a complicit semi-retarded figurehead 
-                assistant: 3
+                assistant: - REASONING - This message uses disrespectful language and derogatory terms to criticize the leadership of the United States, specifically targeting President Joe Biden with an offensive term. It implies a lack of legitimate governance and uses language intended to demean and spread disrespect towards elected officials. The use of such terms indicates a clear intent to harm and alienate, aligning with Highly Toxic criteria due to its harmful, disrespectful, and divisive language.
+                - CLASSIFICATION - 3
              
-                user: Classify the following message: These people are so much stoopiderer than I ever thought possible.!
-                assistant: 3
-
+                user: Classify the following message: These people are so much stoopiderer than I ever thought possible!
+                assistant: - REASONING - This message employs derogatory language in a mocking tone, implying a significant level of disrespect towards the intelligence of an unspecified group. Such language is negative, biased, and divisive, fitting the Moderately Toxic category as it shows disrespect towards others.
+                - CLASSIFICATION - 2
 
                 user: Classify the following message:  The JEWS ARE THE ONES RUINING THIS COUNTRY they are stealing our money, from the top down, and WE ARE LETTING IT HAPPEN. This is a war and we will fight!
-                assistant: 4 
+                assistant: - REASONING - This message contains overtly hostile language, incites hatred, and includes severe personal attacks against a specific religious or ethnic group. It propagates harmful stereotypes and calls for action against them, indicating a clear intent to incite violence and spread hate speech. Such content is not only deeply harmful but could lead to real-world consequences and conflicts, squarely fitting the Extremely Toxic category.
+                - CLASSIFICATION - 4 
 ,
 
                 user: Classify the following message: {message}[/INST]"""
