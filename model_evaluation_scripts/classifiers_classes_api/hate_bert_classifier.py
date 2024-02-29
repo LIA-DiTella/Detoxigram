@@ -32,7 +32,7 @@ class hate_bert_classifier(Classifier):
 		isToxic = False
 		if (predicted_class == 1): isToxic = True
 	
-		return  isToxic, (toxicity_score/2)*10 #normalizo todo a un score sobre 5
+		return  isToxic, (toxicity_score *4) #normalizo todo a un score sobre 4
 
 
 
