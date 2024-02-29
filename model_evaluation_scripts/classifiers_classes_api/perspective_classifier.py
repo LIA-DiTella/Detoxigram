@@ -61,7 +61,7 @@ class perspective_classifier(Classifier):
 		if (self.multiple_attributes):
 			return False, values
 		else: 
-			return  isToxic, (toxicity_score/2)*10 #normalizo todo a un score sobre 5
+			return  isToxic, (toxicity_score *4) #normalizo todo a un score sobre 5
 
 	
 
