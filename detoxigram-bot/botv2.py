@@ -10,6 +10,7 @@ sys.path.append('..')
 import os
 from dotenv import load_dotenv
 import telebot
+from telebot import types
 from telethon import TelegramClient, sessions
 from telethon.tl.functions.messages import GetHistoryRequest
 import asyncio
@@ -92,9 +93,8 @@ def process_messages(messages) -> list:
 def summarizor_gpt(data, channelname) -> str:
     transformed_data = transform_data_to_expected_format(data)
     print(transformed_data)
-    channel_name = channelname.text.split(' ')[1]
-    if channel_name:
-            messages = loop.run_until_complete(fetch_last_50_messages(channel_name))
+    if channelname:
+            messages = loop.run_until_complete(fetch_last_50_messages(channelname))
             processed_messages = process_messages(messages)
             if len(processed_messages) > 0:
                 data = processed_messages[:20]
@@ -210,61 +210,19 @@ def summarizor_gpt(data, channelname) -> str:
     # Batch input for classification
     output = chain.batch([{}])
     return output
-
-#start is the command used for saying hi to the user and giving him/her instructions
-@bot.message_handler(commands=['start'])
-def send_welcome(message):
-    username = message.from_user.first_name
-    bot.reply_to(message, f'''Hello {username} and welcome to Detoxigram! 👋 \n
-I\'m here to help you to identify toxicity in your telegram channels, so you can make an informed choice in the content you consume and share 🤖\n 
-You can use the following commands: \n
-                 - /analyze_p, *_b, *_gpt or *_crowd @ChannelName: to analyze the toxicity of a channel using Perspective API\n
-                 - /summarize @ChannelName: to summarize the content of a channel and understand if it is toxic and why\n
-                 - /help: to get more information about the commands available 📚\n
-Watch out! This bot is still in development, so if you find any bugs or have any suggestions, please let us know! 🐛🔍
-''')
-               
-#analyze_p will analyze the toxicity of a channel using the perspective API
-@bot.message_handler(commands=['analyze_p'])
-def analyze_channel_perspective(message):
-    try:
-            channel_name = message.text.split(' ')[1]
-            if channel_name:
-                messages = loop.run_until_complete(fetch_last_50_messages(channel_name))
-                processed_messages = process_messages(messages)
-                if len(processed_messages) > 0:
-                    total_toxicity_score = 0
-                    data = processed_messages[:20]
-                    for msg in data:
-                        toxicity_result = perspective.predictToxicity(msg['message'])
-                        toxicity_score, numeric_toxicity = toxicity_result
-                        total_toxicity_score += numeric_toxicity
-                    average_toxicity_score = total_toxicity_score / len(messages)
-                    if 0 <= average_toxicity_score < 0.99:
-                        bot.reply_to(message, f'''🟢 Well, {channel_name} doesn't seem to be toxic at all! \n In order to summarize it's content, you can use the command /summarize @channelname 🤓''')
-                    elif 0.99 <= average_toxicity_score < 2.1:
-                        bot.reply_to(message, f'''🟡 Watch out! {channel_name} seems to have a moderately toxic content. \n In order to summarize it's content, you can use the command /summarize @channelname 🤓''')
-                    elif 2.1 <= average_toxicity_score < 4.1:
-                        bot.reply_to(message, f'''🔴 You should be careful... {channel_name} seems to have a highly toxic content. \n In order to summarize it's content, you can use the command /summarize @channelname 🤓''')
-                else:
-                    bot.reply_to(message, "No messages found in the specified channel.")
-            else:
-                bot.reply_to(message, "Ups! That is not a valid channel name. Try again!🫣")
-    except IndexError:
-        bot.reply_to(message, "Ups! That is not a valid channel name. Try again! 🫣")
-    except Exception as e:
-        bot.reply_to(message, f"Oh no! An error occurred: {str(e)}")
-
-#analyze w/bert
-@bot.message_handler(commands=['analyze_b'])
+def helper(message):
+    bot.reply_to(message, "Helping!")
 def analyze_channel_bert(message): 
     try:
-        channel_name = message.text.split(' ')[1]
+        channel_name = message.text
         if channel_name:
             messages = loop.run_until_complete(fetch_last_50_messages(channel_name))
             processed_messages = process_messages(messages)
+            markup = types.InlineKeyboardMarkup(row_width=1)
+            summarize = types.InlineKeyboardButton('Summarize a group chat 📝', callback_data='summarize')
+            explainer = types.InlineKeyboardButton('Explain me toxicity levels 👀', callback_data='explain')
             if len(processed_messages) > 0:
-                data = processed_messages[:20]
+                data = processed_messages[:50]
                 total_toxicity_score=0
                 for msg in data:
                     toxicity_result = bert.predictToxicity(msg['message'])
@@ -272,112 +230,26 @@ def analyze_channel_bert(message):
                     total_toxicity_score += numeric_toxicity
                 average_toxicity_score = total_toxicity_score / len(messages)
                 if 0 <= average_toxicity_score < 0.99:
-                        bot.reply_to(message, f'''🟢 Well, {channel_name} doesn't seem to be toxic at all! \nIn order to summarize it's content, you can use the command /summarize @channelname 🤓''')
+                        markup.add(explainer, summarize)
+                        bot.send_message(message.chat.id, f'''🟢 Well, {channel_name} doesn't seem to be toxic at all!''', reply_markup=markup)
                 elif 0.99 <= average_toxicity_score < 2.1:
-                        bot.reply_to(message, f'''🟡 Watch out! {channel_name} seems to have a moderately toxic content. \nIn order to summarize it's content, you can use the command /summarize @channelname 🤓''')
+                        markup.add(explainer, summarize)
+                        bot.send_message(message.chat.id, f'''🟡 Watch out! {channel_name} seems to have a moderately toxic content''', reply_markup=markup)
                 elif 2.1 <= average_toxicity_score < 4.1:
-                        bot.reply_to(message, f'''🔴 You should be careful... {channel_name} seems to have a highly toxic content. \nIn order to summarize it's content, you can use the command /summarize @channelname 🤓''')
-
+                        markup.add(explainer, summarize)
+                        bot.send_message(message.chat.id, f'''🔴 Be careful... {channel_name} seems to have a highly toxic content''', reply_markup=markup)
             else:
-                bot.reply_to(message, "No messages found in the specified channel.")
+                bot.reply_to(message, "No messages found in the specified channel! Why don't we try again with another channel? Type /start and we will start all over again :)", reply_markup=markup)
         else:
             bot.reply_to(message, "Ups! That is not a valid channel name. Try again!🫣")
     except IndexError:
         bot.reply_to(message, "Ups! That is not a valid channel name. Try again! 🫣")
     except Exception as e:
         bot.reply_to(message, f"Oh no! An error occurred: {str(e)}")
-    
 
-#analyze w/gpt
-@bot.message_handler(commands=['analyze_gpt'])
-def analyze_channel_gpt(message):
-    try:
-        channel_name = message.text.split(' ')[1]
-        if channel_name:
-            messages = loop.run_until_complete(fetch_last_50_messages(channel_name))
-            processed_messages = process_messages(messages)
-            if len(processed_messages) > 0:
-                data = processed_messages[:20]
-                total_toxicity_score=0
-                for msg in data:
-                    toxicity_result = gpt.predictToxicity(msg['message'])
-                    toxicity_score, numeric_toxicity = toxicity_result
-                    total_toxicity_score += numeric_toxicity
-                average_toxicity_score = total_toxicity_score / len(messages)
-                if 0 <= average_toxicity_score < 0.99:
-                        bot.reply_to(message, f'''🟢 Well, {channel_name} doesn't seem to be toxic at all! \n
-In order to summarize it's content, you can use the command /summarize @channelname 🤓''')
-                elif 0.99 <= average_toxicity_score < 2.1:
-                        bot.reply_to(message, f'''🟡 Watch out! {channel_name} seems to have a moderately toxic content. \n
-In order to summarize it's content, you can use the command /summarize @channelname 🤓''')
-                elif 2.1 <= average_toxicity_score < 4.1:
-                        bot.reply_to(message, f'''🔴 You should be careful... {channel_name} seems to have a highly toxic content. \n
-In order to summarize it's content, you can use the command /summarize @channelname 🤓''')
-            else:
-                bot.reply_to(message, "No messages found in the specified channel.")
-        else:
-            bot.reply_to(message, "Ups! That is not a valid channel name. Try again!🫣")
-    except IndexError:
-        bot.reply_to(message, "Ups! That is not a valid channel name. Try again! 🫣")
-    except Exception as e:
-        bot.reply_to(message, f"Oh no! An error occurred: {str(e)}")
-    
-
-# To-Do: analyze w/knowledge of crowds
-@bot.message_handler(commands=['analyze_crowd'])
-def knowledge_of_crowds(message):
-    try:
-        channel_name = message.text.split(' ')[1]
-        if channel_name:
-            messages = loop.run_until_complete(fetch_last_50_messages(channel_name))
-            processed_messages = process_messages(messages)
-            if len(processed_messages) > 0:
-                data = processed_messages[:20]
-                message_gpt = 0
-                message_perspective = 0
-                message_bert = 0
-                for msg in data:
-                    toxicity_result = gpt.predictToxicity(msg['message'])
-                    _, numeric_toxicity = toxicity_result
-                    message_gpt += numeric_toxicity
-                average_gpt = message_gpt / len(data)
-                print(average_gpt)
-                for msg in data:
-                    toxicity_result = perspective.predictToxicity(msg['message'])
-                    _, numeric_toxicity = toxicity_result
-                    message_perspective += numeric_toxicity
-                average_perspective = message_perspective / len(data)
-                print(average_perspective)
-                for msg in data:
-                    toxicity_result = bert.predictToxicity(msg['message'])
-                    _, numeric_toxicity = toxicity_result
-                    message_bert += numeric_toxicity
-                average_bert = message_bert / len(data)
-                print(average_bert)
-                average_crowd = (average_gpt + average_perspective + average_bert) / 3
-                if 0 <= average_crowd < 0.99:
-                        bot.reply_to(message, f'''🟢 Well, {channel_name} doesn't seem to be toxic at all! \n
-In order to summarize it's content, you can use the command /summarize @channelname 🤓''')
-                elif 0.99 <= average_crowd < 2.1:
-                        bot.reply_to(message, f'''🟡 Watch out! {channel_name} seems to have a moderately toxic content. \n
-In order to summarize it's content, you can use the command /summarize @channelname 🤓''')
-                elif 2.1 <= average_crowd < 4.1:
-                        bot.reply_to(message, f'''🔴 You should be careful... {channel_name} seems to have a highly toxic content. \n
-In order to summarize it's content, you can use the command /summarize @channelname 🤓''')
-
-            else:
-                bot.reply_to(message, 'No messages to process...')
-        else:
-            bot.reply_to(message, f'Failed! Try with another channel')
-    except IndexError:
-        bot.reply_to(message, "Ups, try again")
-    except Exception as e:
-        bot.reply_to(message, f"An error occurred: {str(e)}")
-#summarize 
-@bot.message_handler(commands=['summarize'])
 def summarize(message):
     try:    
-        channel_name = message.text.split(' ')[1]
+        channel_name = message.text
         if channel_name:
             messages = loop.run_until_complete(fetch_last_50_messages(channel_name))
             processed_messages = process_messages(messages)
@@ -394,12 +266,44 @@ def summarize(message):
     except IndexError:
         bot.reply_to(message, "Usage: /summarize @channelname")
 
+#start is the command used for saying hi to the user and giving him/her instructions
+@bot.message_handler(commands=['start'])
+def send_welcome(message):
+    username = message.from_user.first_name
+    markup = types.InlineKeyboardMarkup(row_width=1)
+    analyze = types.InlineKeyboardButton('Analyze a group chat 🔍', callback_data='analyze')
+    summarize = types.InlineKeyboardButton('Summarize a group chat 📝', callback_data='summarize')
+    help = types.InlineKeyboardButton('Help, please! 🛟', callback_data='help' )
+    markup.add(analyze, summarize, help)
+    bot.send_message(message.chat.id, f'''Hello {username} and welcome to Detoxigram! 👋 \n
+I\'m here to help you to identify toxicity in your telegram channels, so you can make an informed choice in the content you consume and share 🤖\n''', reply_markup=markup)
 
-@bot.message_handler(commands=['help'])
-def helper(message):
-    bot.reply_to(message, "You are a curious one! 🤓 This is our list of commands:\n - /start: This command will say hi to you and start the bot!\n -/analyze: When you want to analyze the toxicity of a channel, you should write /analyze @\n -/learn: Did you get interested in how is this bot made? Write this command and obtain information about toxicity!")
+@bot.callback_query_handler(func=lambda call: True)
+def answer(callback):
+    if callback.message:
+        if callback.data == 'analyze':
+            bot.send_message(callback.message.chat.id, "Great! Please provide the @ChannelName you would like to analyze 🤓")
+            bot.register_next_step_handler(callback.message, analyze_channel_bert)
+        elif callback.data == 'summarize':
+            bot.send_message(callback.message.chat.id, "Great! Please provide the @ChannelName you would like to summarize 🤓")
+            bot.register_next_step_handler(callback.message, summarize)
+        elif callback.data == 'help':
+            helper(callback.message)
+        elif callback.data == 'end':
+            bot.send_message(callback.message.chat.id, "Goodbye! 👋 If you need anything else, just type /start")
+        elif callback.data == 'explain':
+            bot.send_message(callback.message.chat.id, '''🚫 Understanding Toxicity Levels:\n
 
+Non-toxic: Messages that foster a positive, respectful, and inclusive atmosphere, promoting kindness and mutual understanding. They value diverse opinions and contribute to constructive dialogue without offensive content. ✨\n
+Slightly Toxic: Messages that, while mostly respectful, may include criticism or disagreements in a passive-aggressive manner. They lack full appreciation for differing viewpoints but don't directly attack individuals or groups. 🤔\n
 
+Moderately Toxic: Messages with an aggressive or disrespectful tone, often containing sarcasm, irony, or derogatory language towards specific groups. They seek to hurt, ridicule, or belittle others, showing a rejection of diversity. 😠\n
+
+Highly Toxic: Messages demonstrating clear rejection and contempt for individuals or groups, using insults, degrading language, or references based on gender, ethnicity, etc. They aim to intimidate, exclude, or incite hatred, with explicit intent to cause harm. 😡\n
+
+Extremely Toxic: Messages explicitly aggressive and disrespectful, containing threats or calls to violent action. They promote hostility, incite hatred, and suggest harmful consequences, endangering the safety and well-being of others. ⚠️ \n
+
+Understanding these levels helps maintain a healthy and respectful online environment. Let's strive for constructive dialogue and mutual respect. 🌐💬
+
+''')
 bot.infinity_polling()
-
-
