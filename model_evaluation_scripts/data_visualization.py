@@ -64,13 +64,13 @@ def main():
     columnas_18_hasta_final= df.iloc[:, 18:-1]  # Remember, indexing starts from 0
 
     #cargo clasificadores
-    gpt = gpt_classifier("gpt-3.5-turbo", os.environ["OPENAI_API_KEY"])
-    bert = hate_bert_classifier("../model_evaluation_scripts/classifiers_classes_api/toxigen_hatebert")
-    perspective = perspective_classifier("AIzaSyBLcQ87gA8wc_960mNzT6uCiDkUWRoz6mE" ,attributes=["TOXICITY"])
+    gpt = gpt_classifier("gpt-3.5-turbo", os.environ["OPENAI_API_KEY"], templatetype= "prompt_template_COT")
+    # bert = hate_bert_classifier("../model_evaluation_scripts/classifiers_classes_api/toxigen_hatebert")
+    # perspective = perspective_classifier("AIzaSyBLcQ87gA8wc_960mNzT6uCiDkUWRoz6mE" ,attributes=["TOXICITY"])
 
     gpt_predictions = []
-    bert_predictions = []
-    perspective_predictions = []
+    # bert_predictions = []
+    # perspective_predictions = []
     user_labels = []
 
     for column in columnas_18_hasta_final:
@@ -94,19 +94,19 @@ def main():
         real_toxicity = toxicity_message_users/valid_responses
         print(real_toxicity)
         print(gpt.predictToxicity(column))
-        print(bert.predictToxicity(column))
-        print(perspective.predictToxicity(column))
+        # print(bert.predictToxicity(column))
+        # print(perspective.predictToxicity(column))
 
         gpt_predictions.append(gpt.predictToxicity(column)[1])
-        bert_predictions.append(bert.predictToxicity(column)[1])
-        perspective_predictions.append(perspective.predictToxicity(column)[1])
+        # bert_predictions.append(bert.predictToxicity(column)[1])
+        # perspective_predictions.append(perspective.predictToxicity(column)[1])
         user_labels.append(real_toxicity)
     
     createPlot(gpt_predictions, user_labels, "GPT 3.5")
-    createPlot(bert_predictions, user_labels,"BERT")
-    createPlot(perspective_predictions, user_labels, "perspective")
+    # createPlot(bert_predictions, user_labels,"BERT")
+    # createPlot(perspective_predictions, user_labels, "perspective")
 
-    plot_toxicity_comparison(user_labels, {'GPT 3.5': gpt_predictions, 'Perspective': perspective_predictions, 'BERT': bert_predictions})
+    plot_toxicity_comparison(user_labels, {'GPT 3.5': gpt_predictions})
 
     
 if __name__ == "__main__":
