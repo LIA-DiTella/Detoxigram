@@ -16,16 +16,17 @@ from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 
 class gpt_classifier(Classifier):
-    def __init__(self, model, open_ai_key, verbosity = False):
+    def __init__(self, model, open_ai_key, templatetype, verbosity = False):
         self.model = model
         self.open_ai_key = open_ai_key
         self.verbosity = verbosity
+        self.templatetype = templatetype
         
 
     def predictToxicity(self, input_message):
         llm = ChatOpenAI(model = self.model, temperature = 0)
         output_parser = StrOutputParser()
-        prompt = self.createPrompt()
+        prompt = self.createPrompt(self.templatetype)
 
         chain = prompt | llm | output_parser
         
@@ -110,8 +111,44 @@ class gpt_classifier(Classifier):
                 ])
             elif template_type == 'prompt_template_CARP':
                 prompt_template = ChatPromptTemplate.from_messages([
-                    # Include your third template definition here.
-                ])
+                ("system", """You are moderator of polarizing and toxic content in chat groups. Your task is to Classify the following messages in a scale from 0 to 4 according to their level of toxicity and aggressiveness. Think of the problem step by step. First reason on the content of the message and its relation with the provided categories. After that, Reply with a number from 0 to 4 according to the selected category. Use the following scale:
+
+                0- **Non-Toxic and Non-Polarizing**: Language is respectful, inclusive, and considerate. It fosters constructive dialogue and understanding, without any negative undertones or divisive intent.
+
+                1- **Slightly Toxic or Polarizing**: Language may contain mild negative or biased statements, but they are not intended to harm or deeply divide. This level may include subtle jabs, passive-aggressive comments, or slight bias, but generally maintains a level of respect.
+
+                2- **Moderately Toxic or Polarizing**: Language at this level is noticeably negative, biased, or divisive. It may include overt sarcasm, targeted insults, or language that dismisses or belittles certain groups or viewpoints. Respect for differing opinions starts to wane.
+
+                3- **Highly Toxic or Polarizing**: Language is clearly harmful, disrespectful, and divisive. It includes hate speech, explicit insults, dehumanizing language, or rhetoric that significantly disparages or demonizes certain groups or perspectives. The intent to harm or alienate is evident.
+
+                4- **Extremely Toxic and Polarizing**: This is the most severe level, where language is overtly hostile, incites hatred or violence, and includes severe personal attacks, threats, or egregious hate speech. The language at this level is not only deeply harmful but could also lead to real-world consequences and conflicts.
+
+                ## EXAMPLES
+
+                {{user: Classify the following message: Ukrainians pouring into tiny Moldova find a welcoming but strained country.
+
+                Anna Sevidova was injured when her home was shelled in Ukraine. Now she’s recovering in a hotel turned refugee home in Moldova, facing an uncertain future for her family.
+
+                As Ukrainian refugees flood into Moldova, one of Europe’s poorest countries says it is reaching a breaking point. With a population of just 2.6 million, Moldova has taken in 107,000 people, making it the highest per-capita recipient of those fleeing the war with Russia. They now account for over 4 percent of Moldova’s population.
+
+                The New York Times traveled to the country in March and met Ukrainians who have recently sought refuge there. Read more
+
+                @nytimes
+                assistant: - REASONING - This message discusses the situation of Ukrainian refugees in Moldova in a factual and neutral tone. It mentions the strain on Moldova due to the influx of refugees but does so without any negative undertones or divisive intent. The message aims to inform and provide insight into the challenges faced by both refugees and the host country. Based on the given scale, this message is **Non-Toxic and Non-Polarizing** because it promotes understanding and awareness without any disrespect or harmful intent.
+                - CLASSIFICATION - 0}}
+
+
+                {{user: Classify the following message: These people are so much stoopiderer than I ever thought possible.!
+                assistant: - REASONING - The message uses a derogatory term "stoopiderer" to describe a group of people, which indicates a negative and biased viewpoint. The language is disrespectful and dismissive, showing a clear lack of respect for the individuals being referred to. However, it does not contain explicit hate speech, threats, or severe personal attacks. Thus, it falls under **Moderately Toxic or Polarizing** because it includes targeted insults and language that dismisses certain groups, but it doesn't reach the level of hate speech or inciting violence.
+                - CLASSIFICATION - 2}}
+
+
+                {{user: Classify the following message: They're not happy in Gaza .. \nThey're not happy in Egypt .. \nThey're not happy in  Libya .. \nThey're not happy in Morocco .. \nThey're not happy in Iran .. \nThey're not happy in Iraq .. \nThey're not happy in Yemen ... \nThey're not happy in Afghanistan ... \nThey're not happy in Pakistan .. \nThey're not happy in Syria .. \nThey're not happy in Lebanon ...\n SO.. WHERE ARE THEY HAPPY?\n They're happy in Australia .. \nThey're happy in Canada .. \nThey're happy in England .. \nThey're happy in Ireland...\nThey're happy in France .. \nThey're happy in Italy .. \nThey're happy in Germany .. \nThey're happy in Sweden .. \nThey're happy in the USA .. \nThey're happy in Norway .. \nThey're happy in Holland .. \nThey're happy in Denmark ..\n Basically, they're happy in every country that is not Muslim and unhappy in every country that is!\n AND WHO DO THEY BLAME?\n Not Islam. \nNot their leadership. \nNot themselves\n THEY BLAME THE COUNTRIES THEY ARE HAPPY IN !\n AND THEN- They want to change those countries to be like, THE COUNTRY THEY CAME FROM WHERE THEY WERE UNHAPPY!\n Excuse me, but I can't help wondering... \nHow frigging dumb can you get? \nEveryone seems to be wondering why Muslim Terrorists are so quick to commit suicide.\n Lets have a look at the evidence: \n- No Christmas \n- No television \n- No nude women \n- No football \n- No pork chops \n- No hot dogs \n- No burgers \n- No beer \n- No bacon \n- Rags for clothes \n- Towels for hats \n- Constant wailing from some bloke in a tower \n- More than one wife \n- More than one mother-in-law \n- You can't shave \n- Your wife can't shave \n- You can't wash off the smell of donkeys \n- You cook over burning camel shit \n- Your wife is picked by someone else for you \n- and your wife smells worse than your donkey \n- Then they tell them that \"when they die, it all gets better\"???\n Well No Shit Sherlock!.... \nIt's not like it could get much worse!
+                assistant: - REASONING - This message leverages stereotypes and derogatory assumptions about Muslim-majority countries, using a narrative that is highly offensive and polarizing. It mocks cultural and religious practices and promotes bias and xenophobia. By trivializing serious issues such as suicide and terrorism and promoting division, the message surpasses mere toxicity, aiming to foster hostility and misunderstanding between different groups. Given its explicit intent to incite division and its use of offensive language, the content is classified as Extremely Toxic and Polarizing.
+                - CLASSIFICATION -  4}}
+                    """),
+
+                    ("user", "Classify the following message: {message}")                ])
             else:
                 raise ValueError("Invalid template type provided.")
 
