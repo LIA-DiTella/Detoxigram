@@ -12,7 +12,7 @@ import sys
 import time
 sys.path.append('..')
 import os
-from dotenv import load_dotenv
+from dotenv import main
 import telebot
 from telebot import types
 from telethon import TelegramClient, sessions
@@ -29,38 +29,39 @@ from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 import numpy as np
 
-# Load environment variables
+main.load_dotenv()
 print(os.getcwd())
-load_dotenv()
+
+'''Load enviroment variables'''
 BOT_TOKEN = os.environ.get('BOT_TOKEN')
 API_ID_TELEGRAM = os.environ.get('API_ID')
 API_HASH_TELEGRAM = os.environ.get('API_HASH')
-#OpenAI
 OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
 GOOGLE_CLOUD_API_KEY = os.environ['GOOGLE_CLOUD_API_KEY']
 llm = ChatOpenAI(model="gpt-3.5-turbo", temperature = 0)
 output_parser = StrOutputParser()
 
-#Initialize classifiers
-# perspective = perspective_classifier(GOOGLE_CLOUD_API_KEY ,attributes=["TOXICITY"], verbosity=True)
+'''Initialize the classifiers'''
+perspective = perspective_classifier(GOOGLE_CLOUD_API_KEY ,attributes=["TOXICITY"], verbosity=True)
 bert = hate_bert_classifier("../model_evaluation_scripts/classifiers_classes_api/toxigen_hatebert", verbosity = True)
-# gpt = gpt_classifier("gpt-3.5-turbo", OPENAI_API_KEY, verbosity = True)
-#Check the token
-print("Token:", BOT_TOKEN)
+gpt = gpt_classifier("gpt-3.5-turbo", OPENAI_API_KEY, verbosity = True, templatetype='prompt_template_few_shot' )
 
-# Initialize the bot
+'''Initialize the bot'''
 bot = telebot.TeleBot(BOT_TOKEN)
 
-# Initialize event loop
-loop = asyncio.new_event_loop()
+if bot: #Check if the bot is running
+    print("Bot token loaded, Detoxigram is live 🚀")
 
-# Initialize the Telethon client with MemorySession
-client = TelegramClient(sessions.MemorySession(), API_ID_TELEGRAM, API_HASH_TELEGRAM)
+loop = asyncio.new_event_loop() #Create a new event loop 
 
-#Some global variables
+client = TelegramClient(sessions.MemorySession(), API_ID_TELEGRAM, API_HASH_TELEGRAM) #Create a new TelegramClient
+
+'''Global variables'''
+
 last_analyzed_toxicity = {}
+last_channel_analyzed = None
 
-#Use the telegram API for fetching the last 50 messages of a channel (this will need verification)
+'''Functions'''
 async def fetch_last_50_messages(channel_name) -> list:
     '''
     Requiere: channel_name
@@ -85,7 +86,6 @@ def transform_data_to_expected_format(data):
     transformed_data = [("user", item["message"]) for item in data]
     return transformed_data
 
-#process_messages will return a list of messages with the format {'message': 'message', 'timestamp': 'timestamp'}
 def process_messages(messages) -> list:
     processed_messages = []
     for msg in messages:
@@ -96,6 +96,7 @@ def process_messages(messages) -> list:
             }
             processed_messages.append(processed_message)
     return processed_messages
+
 def summarizor_gpt(data, channelname) -> str:
     transformed_data = transform_data_to_expected_format(data)
     print(transformed_data)
@@ -107,9 +108,8 @@ def summarizor_gpt(data, channelname) -> str:
             bot.reply_to(channelname, "I've got the messages! Now give me one second to summarize them... 🕣")
             processed_messages = process_messages(messages)
             if len(processed_messages) > 0:
-                data = processed_messages[:20]
+                data = processed_messages[:50]
                 message_gpt = 0
-                message_perspective = 0
                 message_bert = 0
                 for msg in data:
                     toxicity_result = gpt.predictToxicity(msg['message'])
@@ -118,18 +118,12 @@ def summarizor_gpt(data, channelname) -> str:
                 average_gpt = message_gpt / len(data)
                 print(average_gpt)
                 for msg in data:
-                    toxicity_result = perspective.predictToxicity(msg['message'])
-                    _, numeric_toxicity = toxicity_result
-                    message_perspective += numeric_toxicity
-                average_perspective = message_perspective / len(data)
-                print(average_perspective)
-                for msg in data:
                     toxicity_result = bert.predictToxicity(msg['message'])
                     _, numeric_toxicity = toxicity_result
                     message_bert += numeric_toxicity
                 average_bert = message_bert / len(data)
                 print(average_bert)
-                toxicity = (average_gpt + average_perspective + average_bert) / 3
+                toxicity = (average_gpt + average_bert) / 2
     prompt_template = ChatPromptTemplate.from_messages([
                     ("system", """
                     Your role as a moderator involves two key tasks:
@@ -220,16 +214,17 @@ def summarizor_gpt(data, channelname) -> str:
     # Batch input for classification
     output = chain.batch([{}])
     return output
+
 def helper(message):
     markup = types.InlineKeyboardMarkup(row_width=1)
-    summarize = types.InlineKeyboardButton('Summarize a group chat 📝', callback_data='summarize')
+    summarize = types.InlineKeyboardButton('Summarize a Channel 📝', callback_data='summarize')
     explainer = types.InlineKeyboardButton('Explain me the toxicity levels 👀', callback_data='explain')
-    analyze = types.InlineKeyboardButton('Analyze a group chat 🔍', callback_data='analyze')
+    analyze = types.InlineKeyboardButton('Analyze a Channel 🔍', callback_data='analyze')
     go_back = types.InlineKeyboardButton('Start again! 🔄', callback_data='restart')
     help_text = (
         "Here's how you can use Detoxigram:\n\n"
-        "1. **Analyze a Group Chat:** Tap the 'Analyze a group chat 🔍' button and provide the @ChannelName to analyze the toxicity of the channel's messages.\n\n"
-        "2. **Summarize a Group Chat:** Tap the 'Summarize a group chat 📝' button and provide the @ChannelName to get a summary of the channel's messages and an evaluation of its toxicity level.\n\n"
+        "1. **Analyze a Channel:** Tap the 'Analyze a Channel 🔍' button and provide the @ChannelName to analyze the toxicity of the channel's messages.\n\n"
+        "2. **Summarize a Channel:** Tap the 'Summarize a Channel 📝' button and provide the @ChannelName to get a summary of the channel's messages and an evaluation of its toxicity level.\n\n"
         "3. **Understanding Toxicity Levels:** Tap the 'Explain me toxicity levels 👀' button to learn more about the different levels of toxicity.\n\n"
         "If you have any questions or need further assistance, feel free to ask!"
         "You can reach us out at malbaposse@mail.utdt.edu\n\n"
@@ -240,6 +235,7 @@ def helper(message):
 def analyze_channel_bert(message): 
     try:
         channel_name = message.text
+        last_channel_analyzed = channel_name
         if channel_name:
             bot.reply_to(message, f"Got it! We will analyze {channel_name}... Please wait a moment 🙏")
             start = time.time()
@@ -253,10 +249,10 @@ def analyze_channel_bert(message):
                 else:
                     bot.reply_to(message, "I've got the messages! Now give me some seconds to predict the toxicity of the channel... 🕣")
             markup = types.InlineKeyboardMarkup(row_width=1)
-            summarize = types.InlineKeyboardButton('Summarize a group chat 📝', callback_data='summarize')
+            summarize = types.InlineKeyboardButton('Summarize a Channel 📝', callback_data='summarize')
             explainer = types.InlineKeyboardButton('Explain me the toxicity levels 👀', callback_data='explain')
             go_back = types.InlineKeyboardButton('Start again! 🔄', callback_data='restart')
-            new_analyze = types.InlineKeyboardButton('Analyze another group chat 🔍', callback_data='analyze')
+            new_analyze = types.InlineKeyboardButton('Analyze another Channel 🔍', callback_data='analyze')
             if len(processed_messages) > 0:
                 data = processed_messages[:50]
                 total_toxicity_score=0
@@ -285,7 +281,22 @@ def analyze_channel_bert(message):
         bot.reply_to(message, f"Oh no! An error occurred: {str(e)}")
 
 def summarize(message):
-    try:    
+    global last_channel_analyzed
+    if last_channel_analyzed:
+        bot.reply_to(message, f"Got it! I'll summarize {last_channel_analyzed}... Please wait a moment 🙏")
+        channel_name = last_channel_analyzed
+        messages = loop.run_until_complete(fetch_last_50_messages(channel_name))
+        processed_messages = process_messages(messages)
+        if len(processed_messages) > 0:
+                bot.reply_to(message, "Give me one sec... 🤔")
+                data = processed_messages[:20]
+                output = summarizor_gpt(data, channel_name)
+                print(output)
+                bot.reply_to(message, f'{output[0]}')
+        else:
+                bot.reply_to(message, f'Failed! Try with another channel!')
+    else:
+        bot.reply_to(message, "Which channel would you like to summarize? 🤔")
         channel_name = message.text
         if channel_name:
             messages = loop.run_until_complete(fetch_last_50_messages(channel_name))
@@ -301,15 +312,13 @@ def summarize(message):
         else:
             bot.reply_to(message, "Please provide a channel name!")
 
-    except:
-        bot.reply_to(message, "An error occurred! Please try again!")
-#start is the command used for saying hi to the user and giving him/her instructions
+'''Handlers'''
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
     username = message.from_user.first_name
     markup = types.InlineKeyboardMarkup(row_width=1)
-    analyze = types.InlineKeyboardButton('Analyze a group chat 🔍', callback_data='analyze')
-    summarize = types.InlineKeyboardButton('Summarize a group chat 📝', callback_data='summarize')
+    analyze = types.InlineKeyboardButton('Analyze a Channel 🔍', callback_data='analyze')
+    summarize = types.InlineKeyboardButton('Summarize a Channel 📝', callback_data='summarize')
     help = types.InlineKeyboardButton('Help, please! 🛟', callback_data='help' )
     markup.add(analyze, summarize, help)
     bot.send_message(message.chat.id, f'''Hello {username} and welcome to Detoxigram! 👋 \n
@@ -318,25 +327,23 @@ I\'m here to help you to identify toxicity in your telegram channels, so you can
 @bot.callback_query_handler(func=lambda call: True)
 def answer(callback):
     markup = types.InlineKeyboardMarkup(row_width=1)
-    summarize = types.InlineKeyboardButton('Summarize a group chat 📝', callback_data='summarize')
+    summarize = types.InlineKeyboardButton('Summarize a Channel 📝', callback_data='summarize')
     explainer = types.InlineKeyboardButton('Explain me the toxicity levels 👀', callback_data='explain')
-    analyze = types.InlineKeyboardButton('Analyze a group chat 🔍', callback_data='analyze')
+    analyze = types.InlineKeyboardButton('Analyze a Channel 🔍', callback_data='analyze')
     go_back = types.InlineKeyboardButton('Start again! 🔄', callback_data='restart')
-    new_analyze = types.InlineKeyboardButton('Analyze another group chat 🔍', callback_data='analyze')
+    new_analyze = types.InlineKeyboardButton('Analyze another Channel 🔍', callback_data='analyze')
             
     if callback.message:
         if callback.data == 'analyze':
             bot.send_message(callback.message.chat.id, "Great! Just for you to know, when we evaluate the toxicity, we'll only consider the last 50 messages of the channel ⚠️ Now, please provide the @ChannelName you would like to analyze 🤓")
             bot.register_next_step_handler(callback.message, analyze_channel_bert)
         elif callback.data == 'summarize':
-            bot.send_message(callback.message.chat.id, "Let's do this! Please provide the @ChannelName you would like to summarize 🤓")
             bot.register_next_step_handler(callback.message, summarize)
         elif callback.data == 'help':
             helper(callback.message)
         elif callback.data == 'end':
             bot.send_message(callback.message.chat.id, "Goodbye! 👋 If you need anything else, just type /start")
         elif callback.data == 'restart':
-
             markup.add(analyze, summarize, explainer)
             bot.send_message(callback.message.chat.id, "Ok! Let's see, what would you like to do now? 🤔")
         elif callback.data == 'explain':
@@ -358,4 +365,5 @@ def answer(callback):
                 bot.send_message(callback.message.chat.id, message_text)
             else:
                 bot.send_message(callback.message.chat.id, "No toxicity level has been analyzed yet for this chat! ")
+
 bot.infinity_polling()
