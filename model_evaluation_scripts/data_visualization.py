@@ -36,6 +36,7 @@ def createPlot(ai_labels, user_labels, ai_name):
     plt.grid(True)
     plt.savefig(f'{ai_name}.png')
 
+
 def plot_toxicity_comparison(human_toxicity_scores, ai_toxicity_scores):
 
     plt.figure(figsize=(8, 6))
@@ -45,45 +46,62 @@ def plot_toxicity_comparison(human_toxicity_scores, ai_toxicity_scores):
 
     # Plot AI toxicity scores
     for ai_model, scores in ai_toxicity_scores.items():
-        sns.scatterplot(x=scores, y=human_toxicity_scores, label=ai_model)
+        sns.scatterplot(x=human_toxicity_scores, y=scores, label=ai_model)
 
     plt.title('Human vs. AI Toxicity Scores')
-    plt.xlabel('Toxicity Scores')
-    plt.ylabel('Human Toxicity Scores')
+    plt.xlabel('Toxicidad promedio humanos')
+    plt.ylabel('Toxicidad AI')
     plt.grid(True)
     plt.legend()
-    plt.show()
+    plt.savefig("comparacion.png")
 
 
-def main():
-    #leo el archivo
-    script_dir = os.path.dirname(os.path.realpath(__file__))
-    relative_path = os.path.join('..', 'dataset/')
-    file_path = "Detoxigram - Surveys - Final.csv"
-    df = pd.read_csv(relative_path + file_path)
-    columnas_18_hasta_final= df.iloc[:, 18:-1]  # Remember, indexing starts from 0
-
-    #cargo clasificadores
-    gpt = gpt_classifier("gpt-3.5-turbo", os.environ["OPENAI_API_KEY"], templatetype= "prompt_template_COT")
-    # bert = hate_bert_classifier("../model_evaluation_scripts/classifiers_classes_api/toxigen_hatebert")
-    # perspective = perspective_classifier("AIzaSyBLcQ87gA8wc_960mNzT6uCiDkUWRoz6mE" ,attributes=["TOXICITY"])
-
-    gpt_predictions = []
-    # bert_predictions = []
-    # perspective_predictions = []
+def plot_toxicity_models_scatter_plot(model, model_name, file, columns):
     user_labels = []
+    model_predictions = []
 
-    for column in columnas_18_hasta_final:
-        #print(column)
+    for column in columns:
         if (isAttentionCheck(column)): continue #me salteo la columna
 
-        print("Mensaje:", column)
+        #print("Mensaje:", column)
         message = column
         valid_responses = 0
         toxicity_message_users = 0
         first_value_column = True #la primer fila tiene basura
 
-        for value in df[column]:
+        for value in file[column]:
+            if (first_value_column): 
+                first_value_column = False
+                continue
+            if pd.notna(value):
+                column_toxicity = convert_toxicity_to_int(value)
+                toxicity_message_users += column_toxicity
+                valid_responses += 1
+        
+        real_toxicity = toxicity_message_users/valid_responses
+        predicted_toxicity = model.predictToxicity(column)
+        #print(real_toxicity)
+        #print(predicted_toxicity)
+
+        user_labels.append(real_toxicity)
+        model_predictions.append(predicted_toxicity[1])
+
+    createPlot(model_predictions, user_labels, model_name)
+    return model_predictions, user_labels
+
+
+def binary_toxicity_evaluation(model, file, columns):
+    correct_predictions = []
+
+    for column in columns:
+        if (isAttentionCheck(column)): continue #me salteo la columna
+        #print("Mensaje:", column)
+        message = column
+        valid_responses = 0
+        toxicity_message_users = 0
+        first_value_column = True #la primer fila tiene basura
+
+        for value in file[column]:
             if (first_value_column): 
                 first_value_column = False
                 continue
@@ -92,21 +110,46 @@ def main():
                 toxicity_message_users += column_toxicity
                 valid_responses += 1
         real_toxicity = toxicity_message_users/valid_responses
-        print(real_toxicity)
-        print(gpt.predictToxicity(column))
-        # print(bert.predictToxicity(column))
-        # print(perspective.predictToxicity(column))
+        predicted_toxicity = model.predictToxicity(column)
+        #print(real_toxicity)
+        #print(predicted_toxicity)
 
-        gpt_predictions.append(gpt.predictToxicity(column)[1])
-        # bert_predictions.append(bert.predictToxicity(column)[1])
-        # perspective_predictions.append(perspective.predictToxicity(column)[1])
-        user_labels.append(real_toxicity)
+        if (real_toxicity >= 2 and predicted_toxicity[1]) or (real_toxicity < 2 and predicted_toxicity[0]):
+            correct_predictions.append(1) 
+        else: correct_predictions.append(0)
+
+    percentage_correct_classifications = sum(correct_predictions) / len(correct_predictions)
+    return percentage_correct_classifications
+
+
+def main():
+    #leo el archivo
+    script_dir = os.path.dirname(os.path.realpath(__file__))
+    relative_path = os.path.join('..', 'dataset/')
+    file_path = "Detoxigram - Surveys - Final.csv"
+    df = pd.read_csv(relative_path + file_path)
+    columnas_18_hasta_final= df.iloc[:, 18:-1] 
+
+    #cargo clasificadores
+    gpt = gpt_classifier("gpt-3.5-turbo", os.environ["OPENAI_API_KEY"], templatetype= "prompt_template_few_shot")
+    toxigen_bert = hate_bert_classifier("../model_evaluation_scripts/classifiers_classes_api/toxigen_hatebert")
+    perspective = perspective_classifier("AIzaSyBLcQ87gA8wc_960mNzT6uCiDkUWRoz6mE" ,attributes=["TOXICITY"])
+    mistral = llama_cpp_classifier("../model_evaluation_scripts/classifiers_classes_api/minstral/mistral-7b-instruct-v0.1.Q5_K_M.gguf")
     
-    createPlot(gpt_predictions, user_labels, "GPT 3.5")
-    # createPlot(bert_predictions, user_labels,"BERT")
-    # createPlot(perspective_predictions, user_labels, "perspective")
+    #plot_toxicity_models(gpt, "GPT 3.5", df,  columnas_18_hasta_final)
+    mistral_scores, user_scores = plot_toxicity_models_scatter_plot(mistral, "Mistral 7B", df, columnas_18_hasta_final)
+    bert_scores, user_scores = plot_toxicity_models_scatter_plot(toxigen_bert, "Hate Bert - Toxi Gen", df, columnas_18_hasta_final)
+    gpt_scores, user_scores = plot_toxicity_models_scatter_plot(gpt, "GPT 3.5", df, columnas_18_hasta_final)
+    perspective_scores, user_scores = plot_toxicity_models_scatter_plot(perspective, "Perspective", df, columnas_18_hasta_final)
 
-    plot_toxicity_comparison(user_labels, {'GPT 3.5': gpt_predictions})
+    plot_toxicity_comparison(user_scores, {"GPT 3.5": gpt_scores, "HateBert": bert_scores, "Perspective": perspective_scores, "Mistral 7B": mistral_scores})
+
+    print(f"Puntaje binario Perspective {binary_toxicity_evaluation(perspective, df, columnas_18_hasta_final)}")
+    print(f"Puntaje binario Mistral {binary_toxicity_evaluation(mistral_scores, df, columnas_18_hasta_final)})")
+    print(f"Puntaje binario ToxigenBert {binary_toxicity_evaluation(toxigen_bert, df, columnas_18_hasta_final)}")
+    print(f"Puntaje binario GPT {binary_toxicity_evaluation(gpt, df, columnas_18_hasta_final)}")
+
+    # plot_toxicity_comparison(user_labels, {'GPT 3.5': gpt_predictions})
 
     
 if __name__ == "__main__":
