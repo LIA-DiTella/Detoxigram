@@ -215,23 +215,6 @@ def summarizor_gpt(data, channelname) -> str:
     output = chain.batch([{}])
     return output
 
-def helper(message):
-    markup = types.InlineKeyboardMarkup(row_width=1)
-    summarize = types.InlineKeyboardButton('Summarize a Channel 📝', callback_data='summarize')
-    explainer = types.InlineKeyboardButton('Explain me the toxicity levels 👀', callback_data='explain')
-    analyze = types.InlineKeyboardButton('Analyze a Channel 🔍', callback_data='analyze')
-    go_back = types.InlineKeyboardButton('Start again! 🔄', callback_data='restart')
-    help_text = (
-        "Here's how you can use Detoxigram:\n\n"
-        "1. **Analyze a Channel:** Tap the 'Analyze a Channel 🔍' button and provide the @ChannelName to analyze the toxicity of the channel's messages.\n\n"
-        "2. **Summarize a Channel:** Tap the 'Summarize a Channel 📝' button and provide the @ChannelName to get a summary of the channel's messages and an evaluation of its toxicity level.\n\n"
-        "3. **Understanding Toxicity Levels:** Tap the 'Explain me toxicity levels 👀' button to learn more about the different levels of toxicity.\n\n"
-        "If you have any questions or need further assistance, feel free to ask!"
-        "You can reach us out at malbaposse@mail.utdt.edu\n\n"
-    )
-    markup.add(analyze, summarize, explainer, go_back)
-    bot.reply_to(message, help_text)
-
 def analyze_channel_bert(message): 
     try:
         channel_name = message.text
@@ -311,6 +294,23 @@ def summarize(message):
                 bot.reply_to(message, f'Failed! Try with another channel!')
         else:
             bot.reply_to(message, "Please provide a channel name!")
+
+def helper(message):
+    markup = types.InlineKeyboardMarkup(row_width=1)
+    summarize = types.InlineKeyboardButton('Summarize a Channel 📝', callback_data='summarize')
+    explainer = types.InlineKeyboardButton('Explain me the toxicity levels 👀', callback_data='explain')
+    analyze = types.InlineKeyboardButton('Analyze a Channel 🔍', callback_data='analyze')
+    go_back = types.InlineKeyboardButton('Start again! 🔄', callback_data='restart')
+    help_text = (
+        "Here's how you can use Detoxigram:\n\n"
+        "1. **Analyze a Channel:** Tap the 'Analyze a Channel 🔍' button and provide the @ChannelName to analyze the toxicity of the channel's messages.\n\n"
+        "2. **Summarize a Channel:** Tap the 'Summarize a Channel 📝' button and provide the @ChannelName to get a summary of the channel's messages and an evaluation of its toxicity level.\n\n"
+        "3. **Understanding Toxicity Levels:** Tap the 'Explain me toxicity levels 👀' button to learn more about the different levels of toxicity.\n\n"
+        "If you have any questions or need further assistance, feel free to ask!"
+        "You can reach us out at malbaposse@mail.utdt.edu\n\n"
+    )
+    markup.add(analyze, summarize, explainer, go_back)
+    bot.reply_to(message, help_text)
 
 '''Handlers'''
 @bot.message_handler(commands=['start'])
