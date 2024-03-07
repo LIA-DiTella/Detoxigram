@@ -16,6 +16,13 @@ class Classifier:
 	def predictToxicity(self, input_message):
 		#must be implemented in child classes
 		pass
+	def filter_toxic_messages(self, messages):
+		#child classes can optimize if they suport batching
+		toxic_messages = []
+		for m in messages:
+			isToxic, level = self.predictToxicity(m)
+			if isToxic: toxic_messages.append(m)
+		return toxic_messages
 
 	def predictToxicityFile(self, file_path): #precondicion, file_path es el nombre de un archivo en la carpeta datasets
 			script_dir = os.path.dirname(os.path.realpath(__file__))
@@ -39,3 +46,5 @@ class Classifier:
 			dataset_size = len(telegram_data["train"])
 			print(f"Se detectaron {predicted_toxic_messages} mensajes toxicos, lo que corresponde a un {predicted_toxic_messages / dataset_size}   del total")
 			print(f"La toxicidad promedio fue del {predicted_toxicity_scores /dataset_size }")
+
+	

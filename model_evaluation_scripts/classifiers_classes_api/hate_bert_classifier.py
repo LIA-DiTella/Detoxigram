@@ -33,6 +33,23 @@ class hate_bert_classifier(Classifier):
 		if (predicted_class == 1): isToxic = True
 	
 		return  isToxic, (toxicity_score *4) #normalizo todo a un score sobre 4
+	
+	def filter_toxic_messages(self, messages):
+		#TODO batching para aumentar eficiencia
+		#TODO emprolijar
+		input_ids = self.tokenizer(messages, return_tensors='pt', add_special_tokens=True, max_length=512, truncation=True, padding=True)
+		print(input_ids)
+		outputs = self.model(**input_ids)
+		logits = outputs.logits
+		probas = F.softmax(logits, dim=1)
+		res = []
+		for i in range(0, len(probas)):
+			if torch.argmax(probas[i]).item() == 1: res.append(self.tokenizer.decode(input_ids["input_ids"][i][1:-1], skip_special_tokens = True))
+			
+		return res
+
+
+
 
 
 
