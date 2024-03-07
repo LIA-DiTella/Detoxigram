@@ -14,14 +14,13 @@ class llama_cpp_classifier(Classifier):
     def __init__(self, model_path, verbosity = False):
         self.model_path = model_path
         self.verbosity = verbosity
+        self.model = Llama(model_path = self.model_path, verbose=False, n_ctx=1024) #se puede mover la ventana de contexto
         
 
     def predictToxicity(self, input_message):
-        llm = Llama(model_path = self.model_path, verbose=False, n_ctx=1024) #se puede mover la ventana de contexto
-        #input_message = input("Message to classify")
+        llm = self.model
         prompt = self.createPrompt(input_message)
         output = self.generate_text_from_prompt(llm, prompt, echo = False, max_tokens = 5000)["choices"][0]["text"]
-        print(input_message)
         try:
             toxicity_score = int(output)
         except:
@@ -58,7 +57,9 @@ class llama_cpp_classifier(Classifier):
                     4- **Extremely Toxic**: This is the most severe level, where language is overtly hostile, incites hatred or violence, and includes severe personal attacks, threats, or egregious hate speech. The language at this level is not only deeply harmful but could also lead to real-world consequences and conflicts.
 
                 Again, answer with only one number, no other characters.
-                ## EXAMPLES
+
+                ###
+                EXAMPLES
                 user: Classify the following message: Ukrainians pouring into tiny Moldova find a welcoming but strained country.\n\nAnna Sevidova was injured when her home was shelled in Ukraine. Now she\u2019s recovering in a hotel turned refugee home in Moldova, facing an uncertain future for her family.\n\nAs Ukrainian refugees flood into Moldova, one of Europe\u2019s poorest countries says it is reaching a breaking point. With a population of just 2.6 million, Moldova has taken in 107,000 people, making it the highest per-capita recipient of those fleeing the war with Russia. They now account for over 4 percent of Moldova\u2019s population.\n\nThe New York Times traveled to the country in March and met Ukrainians who have recently sought refuge there. Read more\n\n@nytimes
                 assistant: 0
 
@@ -70,7 +71,8 @@ class llama_cpp_classifier(Classifier):
 
                 user: Classify the following message:  The JEWS ARE THE ONES RUINING THIS COUNTRY they are stealing our money, from the top down, and WE ARE LETTING IT HAPPEN. This is a war and we will fight!
                 assistant: 4 
-
-                Please Classify the following message: {message}[/INST]"""
+                ###
+                Inquiry:
+                Classify the following message: {message}[/INST]"""
 
         return prompt_template

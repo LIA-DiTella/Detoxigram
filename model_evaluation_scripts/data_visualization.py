@@ -134,23 +134,19 @@ def main():
     gpt = gpt_classifier("gpt-3.5-turbo", os.environ["OPENAI_API_KEY"], templatetype= "prompt_template_few_shot")
     toxigen_bert = hate_bert_classifier("../model_evaluation_scripts/classifiers_classes_api/toxigen_hatebert")
     perspective = perspective_classifier("AIzaSyBLcQ87gA8wc_960mNzT6uCiDkUWRoz6mE" ,attributes=["TOXICITY"])
-    mistral = llama_cpp_classifier("../model_evaluation_scripts/classifiers_classes_api/minstral/mistral-7b-instruct-v0.1.Q5_K_M.gguf")
+    mistral = llama_cpp_classifier("../model_evaluation_scripts/classifiers_classes_api/modelos/Mistral-7B-Instruct-v0.1-GGUF/mistral-7b-instruct-v0.1.Q5_K_M.gguf")
     
-    #plot_toxicity_models(gpt, "GPT 3.5", df,  columnas_18_hasta_final)
-    mistral_scores, user_scores = plot_toxicity_models_scatter_plot(mistral, "Mistral 7B", df, columnas_18_hasta_final)
-    bert_scores, user_scores = plot_toxicity_models_scatter_plot(toxigen_bert, "Hate Bert - Toxi Gen", df, columnas_18_hasta_final)
-    gpt_scores, user_scores = plot_toxicity_models_scatter_plot(gpt, "GPT 3.5", df, columnas_18_hasta_final)
-    perspective_scores, user_scores = plot_toxicity_models_scatter_plot(perspective, "Perspective", df, columnas_18_hasta_final)
+    #mistral_scores, user_scores = plot_toxicity_models_scatter_plot(mistral, "Mistral 7B", df, columnas_18_hasta_final)
+    #bert_scores, user_scores = plot_toxicity_models_scatter_plot(toxigen_bert, "Hate Bert - Toxi Gen", df, columnas_18_hasta_final)
+    #gpt_scores, user_scores = plot_toxicity_models_scatter_plot(gpt, "GPT 3.5", df, columnas_18_hasta_final)
+    #perspective_scores, user_scores = plot_toxicity_models_scatter_plot(perspective, "Perspective", df, columnas_18_hasta_final)
 
-    plot_toxicity_comparison(user_scores, {"GPT 3.5": gpt_scores, "HateBert": bert_scores, "Perspective": perspective_scores, "Mistral 7B": mistral_scores})
+    #plot_toxicity_comparison(user_scores, {"HateBert": bert_scores, "Perspective": perspective_scores, "Mistral 7B": mistral_scores})
 
-    print(f"Puntaje binario Perspective {binary_toxicity_evaluation(perspective, df, columnas_18_hasta_final)}")
-    print(f"Puntaje binario Mistral {binary_toxicity_evaluation(mistral_scores, df, columnas_18_hasta_final)})")
-    print(f"Puntaje binario ToxigenBert {binary_toxicity_evaluation(toxigen_bert, df, columnas_18_hasta_final)}")
-    print(f"Puntaje binario GPT {binary_toxicity_evaluation(gpt, df, columnas_18_hasta_final)}")
+    #print(f"Puntaje binario Perspective {binary_toxicity_evaluation(perspective, df, columnas_18_hasta_final)}")
+    print(f"Puntaje binario Mistral {binary_toxicity_evaluation(mistral, df, columnas_18_hasta_final)})")
+    #print(f"Puntaje binario ToxigenBert {binary_toxicity_evaluation(toxigen_bert, df, columnas_18_hasta_final)}")
+    #print(f"Puntaje binario GPT {binary_toxicity_evaluation(gpt, df, columnas_18_hasta_final)}")
 
-    # plot_toxicity_comparison(user_labels, {'GPT 3.5': gpt_predictions})
-
-    
 if __name__ == "__main__":
     main()
