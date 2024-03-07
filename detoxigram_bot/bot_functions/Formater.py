@@ -6,7 +6,7 @@ class Formatter:
     def __init__(self, client):
         self.client = client
 
-    async def fetch_last_50_messages(self, channel_name) -> list:
+    async def fetch(self, channel_name) -> list:
         '''
         Requires: channel_name
         Returns: list of messages
@@ -15,7 +15,7 @@ class Formatter:
         channel_entity = await self.client.get_entity(channel_name)
         posts = await self.client(GetHistoryRequest(
             peer=channel_entity,
-            limit=50,
+            limit=100,
             offset_date=None,
             offset_id=0,
             max_id=0,

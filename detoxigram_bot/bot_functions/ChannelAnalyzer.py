@@ -16,7 +16,7 @@ class ChannelAnalyzer:
             if channel_name:
                 self.bot.reply_to(message, f"Got it! We will analyze {channel_name}... Please wait a moment 🙏")
                 start = time.time()
-                messages = self.loop.run_until_complete(self.formatter.fetch_last_50_messages(channel_name))
+                messages = self.loop.run_until_complete(self.formatter.fetch(channel_name))
                 processed_messages = self.formatter.process_messages(messages)
                 end = time.time()
 
@@ -31,7 +31,7 @@ class ChannelAnalyzer:
                 go_back = types.InlineKeyboardButton('Start again! 🔄', callback_data='restart')
                 new_analyze = types.InlineKeyboardButton('Analyze another Channel 🔍', callback_data='analyze')
                 if len(processed_messages) > 0:
-                    data = processed_messages[:50]
+                    data = processed_messages[:100]
                     total_toxicity_score = 0
                     for msg in data:
                         toxicity_result = self.bert.predictToxicity(msg['message'])

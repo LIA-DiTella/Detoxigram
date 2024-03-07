@@ -338,7 +338,7 @@ def answer(callback):
             bot.send_message(callback.message.chat.id, "Great! Just for you to know, when we evaluate the toxicity, we'll only consider the last 50 messages of the channel ⚠️ Now, please provide the @ChannelName you would like to analyze 🤓")
             bot.register_next_step_handler(callback.message, analyze_channel_bert)
         elif callback.data == 'summarize':
-            bot.register_next_step_handler(callback.message, summarize)
+            bot.register_next_step_handler(callback.message, summarizer.summarize) 
         elif callback.data == 'help':
             helper(callback.message)
         elif callback.data == 'end':
