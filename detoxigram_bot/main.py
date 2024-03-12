@@ -11,9 +11,9 @@ from telethon.tl.functions.messages import GetHistoryRequest
 from model_evaluation_scripts.classifiers_classes_api.perspective_classifier import perspective_classifier
 from model_evaluation_scripts.classifiers_classes_api.hate_bert_classifier import hate_bert_classifier
 from model_evaluation_scripts.classifiers_classes_api.gpt_classifier import gpt_classifier
-from bot_classes.Formater import Formatter
-from bot_classes.Summarizer import Summarizer
-from bot_classes.ChannelAnalyzer import ChannelAnalyzer
+from bot_functions.Formater import Formatter
+from bot_functions.Summarizer import Summarizer
+from bot_functions.ChannelAnalyzer import ChannelAnalyzer
 from langchain_openai import ChatOpenAI
 from langchain_core.output_parsers import StrOutputParser
 import numpy as np
@@ -95,9 +95,9 @@ def answer(callback):
     if callback.message:
         if callback.data == 'analyze':
             bot.send_message(callback.message.chat.id, "Great! Just for you to know, when we evaluate the toxicity, we'll only consider the last 50 messages of the channel ⚠️ Now, please provide the @ChannelName you would like to analyze 🤓")
-            bot.register_next_step_handler(callback.message, channel_analyzer.analyze_channel_bert)  # Use the instance of ChannelAnalyzer
+            bot.register_next_step_handler(callback.message, channel_analyzer.analyze_channel_bert) 
         elif callback.data == 'summarize':
-            bot.register_next_step_handler(callback.message, summarizer.summarize)  # Use the instance of Summarizer
+            bot.register_next_step_handler(callback.message, summarizer.summarize) 
         elif callback.data == 'help':
             helper(callback.message)
         elif callback.data == 'end':
