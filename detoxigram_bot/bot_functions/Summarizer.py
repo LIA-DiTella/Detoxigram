@@ -1,9 +1,11 @@
 import time
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
+from telebot import types
+
 
 class Summarizer:
-    def __init__(self, bot, loop, formatter, gpt, bert, llm, output_parser):
+    def __init__(self, bot, loop, formatter, gpt, bert, llm, output_parser, last_channel_analyzed):
         self.bot = bot
         self.loop = loop
         self.formatter = formatter
@@ -11,18 +13,22 @@ class Summarizer:
         self.bert = bert
         self.llm = llm
         self.output_parser = output_parser
+        self.last_channel_analyzed = last_channel_analyzed
 
     def summarize(self, message):
-        global last_channel_analyzed
-        if last_channel_analyzed:
+        markup = types.InlineKeyboardMarkup(row_width=1)
+        summarize = types.InlineKeyboardButton('Summarize 📝', callback_data='summarize')
+        go_back = types.InlineKeyboardButton('Restart! 🔄', callback_data='restart')
+        new_analyze = types.InlineKeyboardButton('Analyze 🔍', callback_data='analyze')
+                
+        if self.last_channel_analyzed:
             channel_name = last_channel_analyzed
         else:
             channel_name = message.text
             last_channel_analyzed = channel_name
-
         if channel_name:
             self.bot.reply_to(message, f"Got it! I'll summarize {channel_name}... Please wait a moment 🙏")
-            messages = self.loop.run_until_complete(self.formatter.fetch_last_50_messages(channel_name))
+            messages = self.loop.run_until_complete(self.formatter.fetch(channel_name))
             processed_messages = self.formatter.process_messages(messages)
             if len(processed_messages) > 0:
                 self.bot.reply_to(message, "Give me one sec... 🤔")
@@ -44,6 +50,7 @@ class Summarizer:
                 average_gpt = message_gpt / len(data)
                 average_bert = message_bert / len(data)
                 toxicity = (average_gpt + average_bert) / 2
+                toxicity = str(toxicity)
 
                 prompt_template = ChatPromptTemplate.from_messages([
                     ("system", """
@@ -61,10 +68,10 @@ class Summarizer:
                     4. **Extremely Toxic:** Messages are aggressively disrespectful, with threats or calls to violent action.
 
                     **Note:** For Non-toxic content, include it directly in the summary. For Slightly to Moderately Toxic content, incorporate it carefully, filtering out any bias or offensive elements. For Highly to Extremely Toxic content, exclude the offensive details and focus on objective information. Additionally, provide a warning about the content's potential impact. After summarizing, conclude with your evaluation of the channel's overall toxicity. Consider the prevalence of toxic messages and their severity to explain whether the channel is generally toxic or not and why.
-
+                    **Note:** It should sound like a message from a human moderator, not a machine.
                     Your complete response, including the summary and toxicity evaluation, should be concise and informative, helping readers understand the channel's nature without exceeding the word limit for the summary.
 
-                    ### EXAMPLES
+                    EXAMPLES:
                     1. **Non-toxic:**
                     - Conversation:
                         ```
@@ -72,7 +79,8 @@ class Summarizer:
                         User2: I agree, it's a sustainable solution.
                         User3: Absolutely, and it can create new jobs in the green sector.
                         ```
-                    - Output: Summary: Discussion on the benefits of renewable energy for climate change and job creation. Toxicity Level: 🟢 Non-toxic. The conversation is respectful and constructive.
+                    - Output: 
+                    The channel involve a discussion on the benefits of renewable energy for climate change and job creation. This seems to be 🟢 Non-toxic. The conversation is respectful and constructive.
 
                     2. **Slightly Toxic:**
                     - Conversation:
@@ -82,7 +90,8 @@ class Summarizer:
                         User3: Maybe, but they seem to favor the wealthy right now.
                         User4: That's a typical leftist argument, always blaming the rich.
                         ```
-                    - Output: Summary: Debate over the government's economic policies and their impact on the middle class. Toxicity Level: 🟡 Slightly Toxic. The conversation includes some bias and a subtle lack of appreciation for differing viewpoints.
+                    - Output: 
+                    The channel involve a debate over the government's economic policies and their impact on the middle class. This seems to be 🟡 Slightly Toxic. The conversation includes some bias and a subtle lack of appreciation for differing viewpoints.
 
                     3. **Moderately Toxic:**
                     - Conversation:
@@ -92,7 +101,8 @@ class Summarizer:
                         User3: That's just socialist nonsense. Private healthcare is more efficient.
                         User4: You're so ignorant. Public healthcare is a basic right.
                         ```
-                    - Output: Summary: Discussion on public vs. private healthcare investment. Toxicity Level: 🟡 Moderately Toxic. The conversation shows disrespect and aggression between differing opinions.
+                    - Output: 
+                     The channel involve a discussion on public vs. private healthcare investment. This seems to be 🟡 Moderately Toxic. The conversation shows disrespect and aggression between differing opinions.
 
                     4. **Highly Toxic:**
                     - Conversation:
@@ -102,7 +112,8 @@ class Summarizer:
                         User3: Inclusive? More like inviting criminals and freeloaders.
                         User4: Watch your language! That's xenophobic and offensive.
                         ```
-                    - Output: Summary: Conversation on immigration policies met with xenophobic remarks. Toxicity Level: 🔴 Highly Toxic. The conversation includes offensive language and clear contempt for inclusive views.
+                    - Output: 
+                     The channel involve a conversation on immigration policies met with xenophobic remarks. This seems to be 🔴 Highly Toxic. The conversation includes offensive language and clear contempt for inclusive views.
 
                     5. **Extremely Toxic:**
                     - Conversation:
@@ -112,7 +123,8 @@ class Summarizer:
                         User3: Oh please, stop with the class warfare. You're just envious of the successful.
                         User4: People like you are the problem, promoting greed and division!
                         ```
-                    - Output: Summary: Discussion on income inequality met with accusations of envy and greed. Toxicity Level: 🔴 Extremely Toxic. The conversation contains explicit aggression and personal attacks.
+                    - Output: 
+                     The channel involve a discussion on income inequality met with accusations of envy and greed. This seems to be 🔴 Extremely Toxic. The conversation contains explicit aggression and personal attacks.
 
                                         """),
 
@@ -122,8 +134,66 @@ class Summarizer:
                 chain = prompt_template | self.llm | self.output_parser
                 output = chain.batch([{}])
                 print(output)
-                self.bot.reply_to(message, f'{output[0]}')
+                markup.add(summarize, new_analyze, go_back)
+                self.bot.reply_to(message, f'{output[0]}', reply_markup=markup)
+
             else:
                 self.bot.reply_to(message, f'Failed! Try with another channel!')
         else:
             self.bot.reply_to(message, "Please provide a channel name!")
+
+    def detoxify_single_message(self, message):
+        self.bot.reply_to(message, "Let's see... 👀")
+        markup = types.InlineKeyboardMarkup(row_width=1)
+        go_back = types.InlineKeyboardButton('Start again! 🔄', callback_data='restart')
+        toxicity_result = self.gpt.predictToxicity(message.text)
+        _, toxicity_score = toxicity_result
+        toxicity_score = str(toxicity_score)
+        prompt_template = ChatPromptTemplate.from_messages([
+    ("system", """As an AI language model, your task is to detoxify and provide non-toxic alternatives for the following messages if they are found to be toxic based on the provided toxicity scale.
+
+Toxicity Scale:
+0. **Non-toxic:** Messages promote a positive and respectful environment. They are inclusive and constructive, with no offensive content.
+1. **Slightly Toxic:** Messages are mostly respectful but may include passive-aggressive criticism or slight bias.
+2. **Moderately Toxic:** Messages have an aggressive tone or contain derogatory language towards specific groups.
+3. **Highly Toxic:** Messages show clear contempt for individuals or groups, using insults or offensive language.
+4. **Extremely Toxic:** Messages are aggressively disrespectful, with threats or calls to violent action.
+
+**Task:**
+Review the provided messages and determine their toxicity levels. If the messages are Slightly, Moderately, Highly, or Extremely toxic, suggest rephrased, non-toxic versions that convey the intended messages in a respectful and positive manner.
+
+**Examples of detoxification:**
+
+1. **Non-toxic:**
+   - Original Message: "I appreciate your perspective and would like to discuss this further."
+   - Output: This message is 🟢 Non-toxic. It promotes a respectful and open dialogue.
+     
+2. **Slightly Toxic:**
+   - Original Message: "That's a naive way of looking at things, don't you think?"
+   - Output: This message is 🟡 Slightly Toxic due to its patronizing tone. A more respectful phrasing could be: "I think there might be a different way to view this situation. Can we explore that together?"
+
+3. **Moderately Toxic:**
+   - Original Message: "People who believe that are living in a fantasy world."
+   - Output: This message is 🟡 Moderately Toxic because it dismisses others' beliefs. A less toxic version could be: "I find it hard to agree with that perspective, but I'm open to understanding why people might feel that way."
+
+4. **Highly Toxic:**
+   - Original Message: "This is the dumbest idea I've ever heard."
+   - Output: The message is 🔴 Highly Toxic due to its derogatory language. A constructive alternative might be: "I have some concerns about this idea and would like to discuss them further."
+
+5. **Extremely Toxic:**
+   - Original Message: "Anyone who supports this policy must be a complete idiot. We should kill them all, they don't deserve to exist."
+   - Output: This message is 🔴 Extremely Toxic and offensive. A non-toxic rephrasing could be: "I'm surprised that there's support for this and would like to understand the reasoning behind it."
+
+Now, please detoxify the following message:
+    """),
+    ("user", message.text),
+    ("system", f"Toxicity level: {toxicity_score}.") 
+])
+        chain = prompt_template | self.llm | self.output_parser
+        output = chain.batch([{}])
+        print(output)
+        markup.add(go_back)
+        self.bot.reply_to(message, f'{output[0]}', reply_markup=markup)
+
+        
+    
