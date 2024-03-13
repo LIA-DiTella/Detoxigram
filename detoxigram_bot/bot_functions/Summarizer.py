@@ -20,18 +20,21 @@ class Summarizer:
         summarize = types.InlineKeyboardButton('Summarize 📝', callback_data='summarize')
         go_back = types.InlineKeyboardButton('Restart! 🔄', callback_data='restart')
         new_analyze = types.InlineKeyboardButton('Analyze 🔍', callback_data='analyze')
-                
-        if self.last_channel_analyzed:
+        global last_channel_analyzed
+
+        if self.last_channel_analyzed is not None:
             channel_name = last_channel_analyzed
+            print(f"I'm here, and the last channel analyzed is {last_channel_analyzed}")
         else:
             channel_name = message.text
             last_channel_analyzed = channel_name
+        
         if channel_name:
             self.bot.reply_to(message, f"Got it! I'll summarize {channel_name}... Please wait a moment 🙏")
             messages = self.loop.run_until_complete(self.formatter.fetch(channel_name))
             processed_messages = self.formatter.process_messages(messages)
             if len(processed_messages) > 0:
-                self.bot.reply_to(message, "Give me one sec... 🤔")
+                self.bot.reply_to(message, "Give me a moment... 🤔")
                 data = processed_messages[:20]
                 transformed_data = self.formatter.transform_data_to_expected_format(data)
                 print(transformed_data)
@@ -93,6 +96,13 @@ class Summarizer:
                     - Output: 
                     The channel involve a debate over the government's economic policies and their impact on the middle class. This seems to be 🟡 Slightly Toxic. The conversation includes some bias and a subtle lack of appreciation for differing viewpoints.
 
+                    - Conversation:
+                     
+                     ```
+                     [('user', 'BREAKING: Donald Trump is officially the GOP nominee for President\n\nhttps://thepostmillennial.com/breaking-donald-trump-is-officially-the-gop-nominee-for-president?utm_campaign=64501'), ('user', 'I want to introduce you to Gabriella Delorenzo and Megan Rothmund, two incredible TPUSA students who attend SUNY Cortland.\n\n"When I was 15 I discovered Turning Point. I immediately loved what the organization stood for. I loved the morals that it had, the views that it had."\n\n"When Gabriella reached out to me about becoming vice president for it, I was so excited, and it was exciting to become a part of something so great."\n\nThese two young women tried to start a TPUSA chapter at their school, but the Student Government refused to recognize the chapter. Instead they were belittled and demeaned for 100 minutes in public. Faculty even got involved and the university president responded by saying "We silence voices all the time in this country." \n\nThey persevered and SUNY Cortland reversed their decision in a massive victory for free speech. A huge shoutout to @ADFLegal for representing our students\' First Amendment rights, playing a huge role in the reversal. \n\nThere\'s still much work to do, but Gabriella and Megan are exactly why @TPUSA fights so hard to make sure there\'s a home for conservative students on America\'s campuses.\n\nOnward! 🇺🇸🔥'), ('user', 'Mark Robinson is poised to be the next governor of North Carolina, and the left is in a panic. In order to stop a conservative black man from making NC a new Florida, the left is planning to spend $100 million and is outrageously smearing him as a Holocaust denier… 🚨⬇️\n\nhttps://podcasts.apple.com/us/podcast/the-charlie-kirk-show/id1460600818?i=1000648968709'), ('user', 'What is with the spate of United Airlines mechanical failures involving it\'s San Francisco based aircraft?\n\n- Yesterday, a United Boeing 777-300 jet from Sydney to San Francisco was aborted when 10 seconds into its flight jet fuel began spilling from the rear right landing gear.\n\n- Last Thursday, a United 777-200 took off from San Francisco to Japan when a landing gear wheel fell off during take off. The wheel crashed onto two cars in an employee parking lot.\n\n- Last Friday, a United Airbus 320 heading from SFO to Mexico City had to re-route to Los Angeles because of hydraulic issues.\n\nRetired airline pilot Douglas Rice made this observation to NBC: “All three aircraft either originate or terminate in San Francisco."\n\nWoke city + Woke airlines = fly at your own risk!'), ('user', "It's been just days since the big leadership shakeup at the RNC, and already huge changes are evident, with dozens of members of the old guard being hit with layoffs… ⬇️⬇️⬇️\n\nhttps://podcasts.apple.com/us/podcast/the-charlie-kirk-show/id1460600818?i=1000648958491"), ('user', 'Ken Buck is resigning…. Next week. This give Republicans a ONE SEAT majority. \n\nCan’t state enough how cruel and terrible much of the DC Republican class it. It’s not about country, never was. \n\nInstead of seeing out the end of their term they can’t wait to bolt to CNN and get paid bashing Republicans. Repulsive.'),
+                     ```
+                    - Output:
+                     The channel involves a mix of political news, including updates on leadership changes at the RNC, Joe Biden's budget proposal, and a whistleblower's death. The content varies from political commentary to breaking news. The messages exhibit a range of tones, from supportive to critical. Overall, the channel appears 🟡 Slightly Toxic due to some biased and emotionally charged comments, but it does not exhibit a pervasive toxicity issue.
                     3. **Moderately Toxic:**
                     - Conversation:
                         ```
