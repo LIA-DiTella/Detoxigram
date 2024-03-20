@@ -124,17 +124,21 @@ class ChannelAnalyzer:
                 if len(processed_messages) > 0:
                     data = processed_messages[:100]
                     data = self.bert.filter_toxic_messages(data)
+                    data = [str(message['message']) for message in data]
                     total_toxicity_score = 0
-                    
+                    print(data)
                 for msg in data:
-                    message_text = msg['message']
+                    print(msg['message'])
+                    message_text = str(msg['message'])
                     if not isinstance(message_text, str):
                         print(f"Message is not a string: {message_text}")
                         continue  # Skip this message
                     toxicity_result = self.gpt.predictToxicity(message_text)
                     _, numeric_toxicity = toxicity_result
                     total_toxicity_score += numeric_toxicity
-                    self.last_toxicity = total_toxicity_score
+                    average_toxicity_score = total_toxicity_score / len(messages)
+                    self.last_toxicity = average_toxicity_score
+
                     
                     if 0 <= average_toxicity_score < 0.99:
                             markup.add(explainer, summarize, go_back)
