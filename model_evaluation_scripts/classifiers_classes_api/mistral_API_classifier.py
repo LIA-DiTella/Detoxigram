@@ -291,4 +291,4 @@ class mistral_classifier(Classifier):
         else:
             self.bot.reply_to(message, "Please provide a channel name!")
     
-mistral_classifier.predictToxicity()
+# mistral_classifier.predictToxicity()
