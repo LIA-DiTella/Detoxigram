@@ -7,7 +7,7 @@ from classifiers_classes_api.perspective_classifier import perspective_classifie
 from classifiers_classes_api.gpt_classifier import gpt_classifier
 # from classifiers_classes_api.llama_cpp_classifier import llama_cpp_classifier
 from classifiers_classes_api.multi_bert_classifier import multi_bert_classifier
-from classifiers_classes_api.mistral_API_classifier import mistral_classifier
+from classifiers_classes_api.mistral_API_classifier import mistral_large_classifier
 from model_evaluation_scripts.classifiers_classes_api.mixtral_8x7b_API_classifier import mistral_classifier
 
 import matplotlib.pyplot as plt
