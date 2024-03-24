@@ -141,7 +141,7 @@ def main():
     # #cargo clasificadores
     
     mixtral = mistral_classifier("prompt_template_few_shot")
-    plot_toxicity_models_scatter_plot(mixtral, "Mistral", df, columnas_18_hasta_final)
+    plot_toxicity_models_scatter_plot(mixtral, "Mistral Large.v2", df, columnas_18_hasta_final)
 
     # gpt = gpt_classifier("gpt-3.5-turbo", os.environ["OPENAI_API_KEY"], templatetype= "prompt_template_few_shot")
     # toxigen_bert = hate_bert_classifier("../model_evaluation_scripts/classifiers_classes_api/toxigen_hatebert")
