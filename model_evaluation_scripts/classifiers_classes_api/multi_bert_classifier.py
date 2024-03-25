@@ -40,7 +40,20 @@ class multi_bert_classifier(Classifier):
 		probabilities = F.sigmoid(logits)[0]
 		res = {}
 		for label, position  in self.labels.items(): res[label] = probabilities[position].item()
-		return res 
+		return input_message, res 
+	
+	def get_most_toxic_messages(self, messages):
+		toxicity_levels = []
+		for message in messages:
+			toxicity_levels.append(self.predict_toxicity_scores(message))
+		sorted_messages = sorted(toxicity_levels, key = lambda d : d[1]["healthy"])[0:10]
+		
+		 #me quedo solo con los comentarios
+		message_list = list(map(lambda x: x[0], sorted_messages))
+		return message_list
+		
+
+
 
 
 

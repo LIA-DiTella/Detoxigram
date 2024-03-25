@@ -26,14 +26,14 @@ class Classifier:
 
 	def predictToxicityFile(self, file_path): #precondicion, file_path es el nombre de un archivo en la carpeta datasets
 			script_dir = os.path.dirname(os.path.realpath(__file__))
-			relative_path = os.path.join('..', '..', 'dataset/', file_path)
+			relative_path = os.path.join('..', '..', 'dataset/testing_datasets/', file_path)
 			absolute_path = os.path.join(script_dir, relative_path)
 			with contextlib.redirect_stdout(None): #me molesta este output
-				telegram_data = load_dataset( "json", data_files=absolute_path)
+				telegram_data = load_dataset( "csv", data_files=absolute_path)
 			predicted_toxic_messages = 0
 			predicted_toxicity_scores = 0
 			for m in telegram_data["train"]:
-				message = m["message"] if len(m["message"]) > 0 else None
+				message = m["text"] if len(m["text"]) > 0 else None
 				if message is None: break
 				isToxic, toxicity_score = self.predictToxicity(message)
 				if (isToxic): predicted_toxic_messages += 1
@@ -47,4 +47,23 @@ class Classifier:
 			print(f"Se detectaron {predicted_toxic_messages} mensajes toxicos, lo que corresponde a un {predicted_toxic_messages / dataset_size}   del total")
 			print(f"La toxicidad promedio fue del {predicted_toxicity_scores /dataset_size }")
 
-	
+	def compareToxicity(self, file_path, text_label, toxicity_label, toxicity_threshold = 3, binary = True):
+		script_dir = os.path.dirname(os.path.realpath(__file__))
+		relative_path = os.path.join('..', '..', 'dataset/testing_datasets/', file_path)
+		absolute_path = os.path.join(script_dir, relative_path)
+		with contextlib.redirect_stdout(None): #me molesta este output
+			dataset = load_dataset( "csv", data_files=absolute_path, split="train")
+		predicitions = []
+		labels = []
+		for m in dataset:
+			message = m[text_label]
+			predicted_toxicity = self.predictToxicity(message)[1]/4
+			real_toxicity = m[toxicity_label]
+			if binary:
+				predicted_toxicity = 1 if predicted_toxicity >= 0.5 else 0
+				real_toxicity = 1 if real_toxicity  >= toxicity_threshold else 0
+			predicitions.append(predicted_toxicity)
+			labels.append(real_toxicity)
+		
+		return predicitions, labels
+		
