@@ -5,8 +5,11 @@ import pandas as pd
 from classifiers_classes_api.hate_bert_classifier import hate_bert_classifier
 from classifiers_classes_api.perspective_classifier import perspective_classifier
 from classifiers_classes_api.gpt_classifier import gpt_classifier
-from classifiers_classes_api.llama_cpp_classifier import llama_cpp_classifier
+# from classifiers_classes_api.llama_cpp_classifier import llama_cpp_classifier
 from classifiers_classes_api.multi_bert_classifier import multi_bert_classifier
+from classifiers_classes_api.mistral_API_classifier import mistral_large_classifier
+from model_evaluation_scripts.classifiers_classes_api.mixtral_8x7b_API_classifier import mistral_classifier
+
 import matplotlib.pyplot as plt
 import seaborn as sns
 import time
@@ -131,23 +134,27 @@ def main():
 
     #leo el archivo
     script_dir = os.path.dirname(os.path.realpath(__file__))
-    relative_path = os.path.join('..', 'dataset/testing_datasets/')
-    file_path = "Detoxigram - Surveys - Final.csv"
-    df = pd.read_csv(relative_path + file_path)
+    # relative_path = os.path.join('..', 'dataset/testing_datasets/')
+    file_path = "/Users/ezecotton/Desktop/Detoxigram/dataset/testing_datasets/Detoxigram - Surveys - Final.csv"
+    df = pd.read_csv(file_path)
     columnas_18_hasta_final= df.iloc[:, 18:-1] 
 
     # #cargo clasificadores
-    #gpt = gpt_classifier("gpt-3.5-turbo", os.environ["OPENAI_API_KEY"], templatetype= "prompt_template_few_shot")
-    toxigen_bert = hate_bert_classifier("../model_evaluation_scripts/classifiers_classes_api/toxigen_hatebert")
+    
+    mixtral = mistral_classifier("prompt_template_few_shot")
+    plot_toxicity_models_scatter_plot(mixtral, "Mistral Large.v2", df, columnas_18_hasta_final)
+
+    # gpt = gpt_classifier("gpt-3.5-turbo", os.environ["OPENAI_API_KEY"], templatetype= "prompt_template_few_shot")
+    # toxigen_bert = hate_bert_classifier("../model_evaluation_scripts/classifiers_classes_api/toxigen_hatebert")
     #perspective = perspective_classifier("AIzaSyBLcQ87gA8wc_960mNzT6uCiDkUWRoz6mE" ,attributes=["TOXICITY"])
-    multi_bert = multi_bert_classifier("../model_evaluation_scripts/classifiers_classes_api/multi_label_bert")
-    bert_scores, user_scores = plot_toxicity_models_scatter_plot(toxigen_bert, "Hate Bert - Toxi Gen", df, columnas_18_hasta_final)
+    # multi_bert = multi_bert_classifier("../model_evaluation_scripts/classifiers_classes_api/multi_label_bert")
+    # bert_scores, user_scores = plot_toxicity_models_scatter_plot(toxigen_bert, "Hate Bert - Toxi Gen", df, columnas_18_hasta_final)
     #multi_scores, user_scores = plot_toxicity_models_scatter_plot(multi_bert, "Hate Bert - Toxi Gen", df, columnas_18_hasta_final)
-    multi_bert.predictToxicityFile("annotated_test.csv")
+    # multi_bert.predictToxicityFile("annotated_test.csv")
 
 
     
 
-    #plot_toxicity_comparison(user_scores, {"HateBert": bert_scores, "GPT 3.5": gpt_scores, "Multi_BERT": multi_scores})
+    # plot_toxicity_comparison(user_scores, {"HateBert": bert_scores, "GPT 3.5": gpt_scores, "Multi_BERT": multi_scores})
 if __name__ == "__main__":
     main()
