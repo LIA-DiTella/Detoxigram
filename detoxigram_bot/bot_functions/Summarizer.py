@@ -17,9 +17,8 @@ class Summarizer:
 
     def summarize(self, message):
         markup = types.InlineKeyboardMarkup(row_width=1)
-        summarize = types.InlineKeyboardButton('Explain me why 👀', callback_data='summarize')
         go_back = types.InlineKeyboardButton('Restart! 🔄', callback_data='restart')
-        new_analyze = types.InlineKeyboardButton('Analyze 🔍', callback_data='analyze')
+        new_analyze = types.InlineKeyboardButton('New analyze 🔍', callback_data='analyze')
         global last_channel_analyzed
 
         if self.last_channel_analyzed is not None:
@@ -144,7 +143,7 @@ class Summarizer:
                 chain = prompt_template | self.llm | self.output_parser
                 output = chain.batch([{}])
                 print(output)
-                markup.add(summarize, new_analyze, go_back)
+                markup.add(new_analyze, go_back)
                 self.bot.reply_to(message, f'{output[0]}', reply_markup=markup)
 
             else:

@@ -12,6 +12,7 @@ from telethon.tl.functions.messages import GetHistoryRequest
 from model_evaluation_scripts.classifiers_classes_api.perspective_classifier import perspective_classifier
 from model_evaluation_scripts.classifiers_classes_api.hate_bert_classifier import hate_bert_classifier
 from model_evaluation_scripts.classifiers_classes_api.gpt_classifier import gpt_classifier
+from model_evaluation_scripts.classifiers_classes_api.multi_bert_classifier import multi_bert_classifier
 from bot_functions.Formater import Formatter
 from bot_functions.Summarizer import Summarizer
 from bot_functions.ChannelAnalyzer import ChannelAnalyzer
@@ -33,6 +34,8 @@ GOOGLE_CLOUD_API_KEY:str = os.environ['GOOGLE_CLOUD_API_KEY']
 perspective:perspective_classifier = perspective_classifier(GOOGLE_CLOUD_API_KEY, attributes=['TOXICITY'], verbosity=True)
 bert:hate_bert_classifier = hate_bert_classifier('../model_evaluation_scripts/classifiers_classes_api/toxigen_hatebert', verbosity=True)
 gpt:gpt_classifier = gpt_classifier('gpt-3.5-turbo', OPENAI_API_KEY, verbosity=True, templatetype='prompt_template_few_shot')
+multibert:multi_bert_classifier = multi_bert_classifier('../model_evaluation_scripts/classifiers_classes_api/multibert', verbosity=True)
+
 
 # Initialize the bot
 bot:telebot = telebot.TeleBot(BOT_TOKEN)
@@ -50,7 +53,7 @@ last_channel_analyzed:str = None
 # Initialize formatter, summarizer, and channel analyzer
 formatter:Formatter = Formatter(client)
 summarizer:Summarizer = Summarizer(bot, loop, formatter, bert, gpt, ChatOpenAI(model='gpt-3.5-turbo', temperature=0), StrOutputParser(), last_channel_analyzed)
-channel_analyzer:ChannelAnalyzer = ChannelAnalyzer(bot, loop, formatter, bert, gpt=gpt, last_channel_analyzed=last_channel_analyzed, last_toxicity=last_analyzed_toxicity)
+channel_analyzer:ChannelAnalyzer = ChannelAnalyzer(bot, loop, formatter, multibert=multibert, gpt=gpt, last_channel_analyzed=last_channel_analyzed, last_toxicity=last_analyzed_toxicity)
 
 # Markup variables for buttons
 markup:types = types.InlineKeyboardMarkup(row_width=1)
@@ -67,10 +70,11 @@ single_message:types = types.InlineKeyboardButton('Detoxify 📩', callback_data
 @bot.message_handler(commands=['start'])
 def send_welcome(message:Message) -> None:
     username = message.from_user.first_name
-    markup.add(analyze, summarize_button, help, more)
+    markup_start:types = types.InlineKeyboardMarkup(row_width=1)
+    markup_start.add(analyze, summarize_button, help, more)
     bot.send_message(message.chat.id, f'''Hello {username} and welcome to Detoxigram! 👋 \n
 I'm here to help you to identify toxicity in your telegram channels, so you can make an informed choice in the content you consume and share 🤖\n
-What would you like to do?''', reply_markup=markup)
+What would you like to do?''', reply_markup=markup_start)
 
 @bot.callback_query_handler(func=lambda call: True)
 def answer(callback:CallbackQuery) -> None:
