@@ -8,8 +8,6 @@ import os
 import sys
 import contextlib
 from .generic_classifier import Classifier
-from dotenv import load_dotenv
-load_dotenv()
 
 
 from langchain_core.output_parsers import StrOutputParser
@@ -22,8 +20,8 @@ from langchain_mistralai.chat_models import ChatMistralAI
 
 
 class mistral_classifier(Classifier):
-    def __init__(self, templatetype, verbosity = False):
-        self.mistral_api_key= os.getenv('MISTRAL_API_KEY')
+    def __init__(self, mistral_api_key, templatetype, verbosity = False):
+        self.mistral_api_key= mistral_api_key
         self.chat = ChatMistralAI(model= "open-mixtral-8x7b", mistral_api_key= self.mistral_api_key)
         self.verbosity = verbosity
         self.templatetype = templatetype
