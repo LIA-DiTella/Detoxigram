@@ -12,7 +12,6 @@ from telethon import TelegramClient, sessions
 from telethon.tl.functions.messages import GetHistoryRequest
 from model_evaluation_scripts.classifiers_classes_api.perspective_classifier import perspective_classifier
 from model_evaluation_scripts.classifiers_classes_api.hate_bert_classifier import hate_bert_classifier
-# from model_evaluation_scripts.classifiers_classes_api.gpt_classifier import gpt_classifier
 from model_evaluation_scripts.classifiers_classes_api.multi_bert_classifier import multi_bert_classifier
 from model_evaluation_scripts.classifiers_classes_api.mixtral_8x7b_API_classifier import mistral_classifier
 from bot_functions.Formater import Formatter
@@ -35,7 +34,6 @@ MISTRAL_API_KEY:str = os.environ['MISTRAL_API_KEY']
 
 # Initialize the classifiers
 bert:hate_bert_classifier = hate_bert_classifier('../model_evaluation_scripts/classifiers_classes_api/toxigen_hatebert', verbosity=True)
-# gpt:gpt_classifier = gpt_classifier('gpt-3.5-turbo', OPENAI_API_KEY, verbosity=True, templatetype='prompt_template_few_shot')
 multibert:multi_bert_classifier = multi_bert_classifier('../model_evaluation_scripts/classifiers_classes_api/multibert', verbosity=True)
 mistral:mistral_classifier = mistral_classifier(mistral_api_key=MISTRAL_API_KEY, templatetype='prompt_template_few_shot', verbosity=True)
 
@@ -58,7 +56,7 @@ greetings = ['holis', 'holaaaa', 'hey', 'hi', 'hello', 'good morning', 'hellooo'
 formatter:Formatter = Formatter(client)
 channel_analyzer:ChannelAnalyzer = ChannelAnalyzer(bot, loop, formatter, multibert=multibert, mistral=mistral, last_channel_analyzed=last_channel_analyzed, last_toxicity=last_analyzed_toxicity)
 
-explainer:Explainer = Explainer(bot, loop, formatter, mistral, bert, StrOutputParser(), channel_analyzer.last_channel_analyzed)
+explainer:Explainer = Explainer(bot, loop, formatter, mistral, bert,  StrOutputParser(), channel_analyzer.last_channel_analyzed)
 
 # Markup variables for buttons
 markup:types = types.InlineKeyboardMarkup(row_width=1)
