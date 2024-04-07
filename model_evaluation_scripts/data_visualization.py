@@ -10,6 +10,8 @@ from classifiers_classes_api.multi_bert_classifier import multi_bert_classifier
 import matplotlib.pyplot as plt
 import seaborn as sns
 import time
+from sklearn.metrics import roc_curve, auc, confusion_matrix, ConfusionMatrixDisplay
+
 
 def convert_toxicity_to_int(text):
         if (text == "4 - Extremely toxic"): return 4
@@ -58,7 +60,7 @@ def plot_toxicity_comparison(human_toxicity_scores, ai_toxicity_scores):
     plt.savefig("comparacion.png")
 
 
-def plot_toxicity_models_scatter_plot(model, model_name, file, columns):
+def plot_toxicity_models_scatter_plot(model, model_name, file, columns, save_plot = True):
     user_labels = []
     model_predictions = []
     start = time.time()
@@ -89,10 +91,27 @@ def plot_toxicity_models_scatter_plot(model, model_name, file, columns):
 
     end = time.time()
     
-    createPlot(model_predictions, user_labels, model_name)
-    print(f"El timepo que demoró el procesamiento del rest fue de {end - start} segundos. ")
+    if save_plot: createPlot(model_predictions, user_labels, model_name)
+    print(f"El tiempo que demoró el procesamiento del rest fue de {end - start} segundos. ")
     print(f"El tiempo promedio por mensaje fue de{(end - start)/len(columns)} segundos. ")
     return model_predictions, user_labels
+
+
+def plot_roc_curve(ground_truth, predictions, model_name):
+    plt.figure()
+    fpr, tpr, _ = roc_curve(ground_truth, predictions)
+    roc_auc_model = auc(fpr, tpr)
+    plt.plot(fpr, tpr, lw=2, label=f' {model_name}(AUC = %0.2f)' % roc_auc_model)
+
+    plt.plot([0, 1], [0, 1], color='black', lw=1, linestyle='--')
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.title('ROC')
+    plt.legend(loc='lower right')
+    plt.savefig(f"graficos/{model_name}.png")
+
 
 
 def binary_toxicity_evaluation(model, file, columns):
@@ -126,27 +145,86 @@ def binary_toxicity_evaluation(model, file, columns):
     percentage_correct_classifications = sum(correct_predictions) / len(correct_predictions)
     return percentage_correct_classifications
 
+def plot_confusion_matrix(model_name, predictions, labels, binarylabels = False):
+    predictions = [1 if (x / 4) >= 0.5 else 0 for x in predictions]
+    if not binarylabels: labels = [1 if x >= 2 else 0 for x in labels]
+
+    print(predictions)
+    print(labels)
+    cm = confusion_matrix(labels, predictions)
+    print(cm)
+    disp = ConfusionMatrixDisplay(confusion_matrix=cm)
+    disp.plot()
+    disp.figure_.savefig(f"graficos/{model_name}_confusion_matrix.png")
+
+def predict_dataset_toxicity(model, relative_path):
+    #precondicion, funciona con multibert
+    files = os.listdir(relative_path)
+    for f in files:
+        if "testing_datasets" == f: continue
+        print(f"Procesando el archivo: {f}")
+        model.predictToxicityFile(f)
+
+def process_toxicity(x):
+    if x["toxic"] == "not_hate":
+        x["toxic"] = 0
+    else:
+        x["toxic"] = 1
+    return x
 
 def main():
 
     #leo el archivo
     script_dir = os.path.dirname(os.path.realpath(__file__))
-    relative_path = os.path.join('..', 'dataset/testing_datasets/')
+    relative_path = os.path.join('..', 'dataset/')
     file_path = "Detoxigram - Surveys - Final.csv"
-    df = pd.read_csv(relative_path + file_path)
+    df = pd.read_csv(relative_path + "testing_datasets/" + file_path)
     columnas_18_hasta_final= df.iloc[:, 18:-1] 
 
     # #cargo clasificadores
     #gpt = gpt_classifier("gpt-3.5-turbo", os.environ["OPENAI_API_KEY"], templatetype= "prompt_template_few_shot")
     toxigen_bert = hate_bert_classifier("../model_evaluation_scripts/classifiers_classes_api/toxigen_hatebert")
-    #perspective = perspective_classifier("AIzaSyBLcQ87gA8wc_960mNzT6uCiDkUWRoz6mE" ,attributes=["TOXICITY"])
-    multi_bert = multi_bert_classifier("../model_evaluation_scripts/classifiers_classes_api/multi_label_bert")
-    bert_scores, user_scores = plot_toxicity_models_scatter_plot(toxigen_bert, "Hate Bert - Toxi Gen", df, columnas_18_hasta_final)
-    #multi_scores, user_scores = plot_toxicity_models_scatter_plot(multi_bert, "Hate Bert - Toxi Gen", df, columnas_18_hasta_final)
-    multi_bert.predictToxicityFile("annotated_test.csv")
+    perspective = perspective_classifier("AIzaSyBLcQ87gA8wc_960mNzT6uCiDkUWRoz6mE" ,attributes=["TOXICITY"])
+    multi_bert = multi_bert_classifier("../model_evaluation_scripts/classifiers_classes_api/multi_label_bert") 
+    #predict_dataset_toxicity(multi_bert, relative_path)
 
 
     
+
+    #multi_scores, user_scores =  plot_toxicity_models_scatter_plot(multi_bert, "Multi-Bert", df, columnas_18_hasta_final, save_plot=False)
+    #plot_confusion_matrix("MultiBert", multi_scores, user_scores)
+
+    #perspective_scores, user_scores =  plot_toxicity_models_scatter_plot(perspective, "Perspective", df, columnas_18_hasta_final, save_plot=False)
+    #plot_confusion_matrix("Perspective", perspective_scores, user_scores)
+
+    #toxi_scores, _ =  plot_toxicity_models_scatter_plot(toxigen_bert, "Toxigen", df, columnas_18_hasta_final, save_plot=False)
+    #plot_confusion_matrix("Toxigen-Hatebert", toxi_scores, user_scores)
+
+
+
+        
+    #plot_toxicity_comparison(user_scores, {"HateBert": toxi_scores, "GPT 3.5": gpt_scores, "Multi_BERT": multi_scores, "Perspective": perspective_scores})
+
+    #print("Puntaje binario GPT: ",  binary_toxicity_evaluation(gpt, df, columnas_18_hasta_final))
+    #print("Puntaje binario Perspective: ",  binary_toxicity_evaluation(perspective, df, columnas_18_hasta_final))
+    #print("Puntaje binario MultiBert: ",  binary_toxicity_evaluation(multi_bert, df, columnas_18_hasta_final))
+    #print("Puntaje binario HateBert-Toxigen: ",  binary_toxicity_evaluation(toxigen_bert, df, columnas_18_hasta_final))
+
+
+    # predicted_toxicity, real_toxicity = multi_bert.compareToxicity("implicit_hate_v1_stg1_posts.csv", "post", "toxic", binary = False)
+
+    # #real_toxicity = [1 if num >= 3 else 0 for num in real_toxicity] #la convierto en binaria
+    # #real_toxicity = [1 if num == 0 else 0 for num in real_toxicity] #paso de healthiness a unhealthiness, para el dataset de UCC
+
+    # correct_predictions = 0
+    # for i in range(0, len(predicted_toxicity)):
+    #      if predicted_toxicity[i] >= 0.5 and real_toxicity[i] == 1 or predicted_toxicity[i] < 0.5 and real_toxicity[i] == 0:
+    #          correct_predictions = correct_predictions + 1
+    # print(str(correct_predictions/len(predicted_toxicity)))
+
+    # plot_confusion_matrix("MultiBERT - implicit-hate", [x*4 for x in predicted_toxicity], real_toxicity, binarylabels = True) #esta funcion espera valores entre 0 y 4 para predicted
+
+    # plot_roc_curve(real_toxicity, predicted_toxicity, "Toxigen - implicit_hate_db")
 
     #plot_toxicity_comparison(user_scores, {"HateBert": bert_scores, "GPT 3.5": gpt_scores, "Multi_BERT": multi_scores})
 if __name__ == "__main__":
