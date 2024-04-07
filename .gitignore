@@ -4,3 +4,5 @@ model_evaluation_scripts/classifiers_classes_api/toxigen_hatebert
 model_evaluation_scripts/classifiers_classes_api/minstral
 model_evaluation_scripts/classifiers_classes_api/__pycache__
 model_evaluation_scripts/classifiers_classes_api/classifiers_classes_api/__pycache__
+.env
+detoxigram_bot/.env
