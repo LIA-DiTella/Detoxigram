@@ -5,18 +5,21 @@ from telebot import types
 
 
 class Explainer:
-    def __init__(self, bot, loop, formatter, mistral, bert, output_parser, last_channel_analyzed):
+    def __init__(self, bot, loop, formatter, mistral, bert, output_parser, user_management):
         self.bot = bot
         self.loop = loop
         self.formatter = formatter
         self.mistral = mistral
         self.bert = bert
         self.output_parser = output_parser
-        self.last_channel_analyzed = last_channel_analyzed
-        self.channel_name = None
         self.llm = mistral.chat
+        self.user_management = user_management
 
-    def explain(self, message, channel_name, filtered_messages, toxicity):
+    def explain(self, message):
+        user_id = message.chat.id
+        state = self.user_management.get_user_state(user_id)
+        toxicity = state.last_analyzed_toxicity
+
         markup = types.InlineKeyboardMarkup(row_width=1)
         go_back = types.InlineKeyboardButton('Restart! 🔄', callback_data='restart')
         new_analyze = types.InlineKeyboardButton('New analyze 🔍', callback_data='analyze')
@@ -46,10 +49,10 @@ Toxicity Scale:
 
 4. **Extremely Toxic:** Message that is not only explicitly aggressive and disrespectful but also contains threats or calls to violent action. It attacks groups by their gender, ethnicity, sexual orientation, ideology, or religion. Promotes hostility, incitement to hatred, and suggests harmful consequences in the real world against individuals or groups, violating ethical and moral principles and endangering the safety and well-being of people.
                     '''
-        if channel_name:            
-            if len(filtered_messages) > 0:
+        if state.last_channel_analyzed:            
+            if len(state.last_chunk_of_messages) > 0:
                 self.bot.reply_to(message, "Give me a moment... 🤔")
-                filtered_messages = filtered_messages[:15]
+                filtered_messages = state.last_chunk_of_messages[:15]
 
                 prompt_template = ChatPromptTemplate.from_messages([
                     ("system","""
@@ -133,13 +136,12 @@ Review the provided messages and determine their toxicity levels. If the message
    - Original Message: "Anyone who supports this policy must be a complete idiot. We should kill them all, they don't deserve to exist."
    - Output: This message is 🔴 Extremely Toxic and offensive. A non-toxic rephrasing could be: "I'm surprised that there's support for this and would like to understand the reasoning behind it."
 
-Now, please detoxify the following message:
+Now, please detoxify the following message which has a toxicity level of {toxicity_score}
     """),
-    ("user", message.text),
-    ("system", f"Toxicity level: {toxicity_score}.") 
+    ("user", message.text)
 ])
         chain = prompt_template | self.llm | self.output_parser
-        output = chain.batch([{}])
+        output = chain.batch([{toxicity_score}])
         print(output)
         markup.add(go_back)
         self.bot.reply_to(message, f'{output[0]}', reply_markup=markup)
