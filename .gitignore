@@ -6,3 +6,6 @@ model_evaluation_scripts/classifiers_classes_api/__pycache__
 model_evaluation_scripts/classifiers_classes_api/classifiers_classes_api/__pycache__
 .env
 detoxigram_bot/.env
+model_evaluation_scripts/__pycache__
+detoxigram_bot/bot_functions/group_toxicity_distribution/__pycache__
+detoxigram_bot/bot_functions/__pycache__

@@ -39,8 +39,8 @@ multibert:multi_bert_classifier = multi_bert_classifier('../model_evaluation_scr
 mistral:mistral_classifier = mistral_classifier(mistral_api_key=MISTRAL_API_KEY, templatetype='prompt_template_few_shot', verbosity=True)
 
 client:TelegramClient = TelegramClient(sessions.MemorySession(), API_ID_TELEGRAM, API_HASH_TELEGRAM)  
-
-group_toxicity_distribution:GroupToxicityDistribution = GroupToxicityDistribution()
+base_dir = os.path.dirname(os.path.abspath(__file__))
+group_toxicity_distribution:GroupToxicityDistribution = GroupToxicityDistribution(base_dir)
 formatter:Formatter = Formatter(client)
 user_management:UserManagement = UserManagement()
 loop:asyncio = asyncio.new_event_loop()  
@@ -120,7 +120,9 @@ Now, please provide the @ChannelName you would like to analyze 🤓''')
             elif callback.data == 'learn_more':
                 bot.send_message(callback.message.chat.id, "So... we just clasified the channel you sent. But, how toxic is in in relation with other channels we have analized? Let's see...")
                 toxicity_vector = multibert.get_group_toxicity_distribution(state.last_chunk_of_messages)
-                
+                print(toxicity_vector)
+                keys_order = ['sarcastic', 'antagonize', 'condescending', 'dismissive', 'hostile', 'healthy']
+                toxicity_vector = [toxicity_vector[key] for key in keys_order]
                 #Hardcodeado, random mensajes en el medio
                 random_number = np.random.randint(0, 20)
                 if random_number < 10:
@@ -131,6 +133,8 @@ Now, please provide the @ChannelName you would like to analyze 🤓''')
                 toxicity_graphic = group_toxicity_distribution.get_toxicity_graph(state.last_channel_analyzed, toxicity_vector)
 
                 if os.path.exists(toxicity_graphic) and os.access(toxicity_graphic, os.R_OK):
+                    markupLearnMore = types.InlineKeyboardMarkup(row_width=1)
+                    markupLearnMore.add(go_back)
                     bot.send_photo(callback.message.chat.id, open(toxicity_graphic, 'rb'))
                 else:
                     bot.send_message(callback.message.chat.id, "Oh! Something went wrong... I couldn't get the toxicity distribution of the channel 😔")

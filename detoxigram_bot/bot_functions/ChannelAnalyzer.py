@@ -15,14 +15,18 @@ class ChannelAnalyzer:
 
     def resolve_invite_link(self, invite_link):
         '''
-        Pre: invite_link is a string
-        Post: returns the username of the chat
+        Requires: invite_link is a string with the invite link of a channel
+        Ensures: returns the username of the channel
         '''
         chat = self.bot.get_chat(invite_link)
         return chat.username
 
     def obtain_channel_name(self, channel_name):
-            if channel_name.startswith('http'):
+        '''
+        Requires: channel_name is a string with the name of a channel
+        Ensures: returns the username of the channel
+        '''
+        if channel_name.startswith('http'):
                 url = urlparse(channel_name)
                 if url.netloc == 't.me':
                     path = url.path.lstrip('/')
@@ -34,12 +38,12 @@ class ChannelAnalyzer:
                             print(f"Error getting chat: {e}")
                     else:
                         channel_name = path
-            return channel_name
+        return channel_name
     
     def ChannelClassifier(self, message):
         '''
-        Pre: message is a string with the name of a channel
-        Post: returns the toxicity of the channel
+        Requires: message is a string with the name of a channel
+        Ensures: returns the toxicity of the channel
         '''
         user_id = message.chat.id
         state = self.user_management.get_user_state(user_id)
@@ -47,7 +51,7 @@ class ChannelAnalyzer:
         markup = types.InlineKeyboardMarkup(row_width=2)
         explainer = types.InlineKeyboardButton('Explain me 👀', callback_data='explainer')
         go_back = types.InlineKeyboardButton('Restart 🔄', callback_data='restart')
-        learn_more = types.InlineKeyboardButton('Learn more 📚', callback_data='learn_more')
+        learn_more = types.InlineKeyboardButton('Toxicity scores 📊', callback_data='learn_more')
         average_toxicity_score = 0
         total_toxicity_score = 0
         try:
@@ -70,30 +74,20 @@ class ChannelAnalyzer:
                     state.last_chunk_of_messages = filtered_messages
                     
                     for msg in filtered_messages:
-                        toxicity_result = self.mistral.predictToxicity(msg)
-                        numeric_toxicity = 0
-
-                        if isinstance(toxicity_result, tuple) and len(toxicity_result) > 1:
-
-                            if isinstance(toxicity_result[1], int):
-                                numeric_toxicity = toxicity_result[1]
-                                total_toxicity_score += numeric_toxicity
-                            else:
-                                print("El segundo valor no es un entero:", toxicity_result[1])
-                                pass
-                        else:
-                            print("Resultado no es una tupla o no tiene suficientes elementos:", toxicity_result)
-                            pass                                        
                         
-                        total_toxicity_score += numeric_toxicity
-                        print(total_toxicity_score)
+                        toxicity_result = self.mistral.predictToxicity(msg)
+                        if toxicity_result[1] is None:
+                            continue
+                        else:
+                            total_toxicity_score += toxicity_result[1]
                     
                     average_toxicity_score = total_toxicity_score / len(filtered_messages)
                     state.last_analyzed_toxicity = average_toxicity_score
                     
                     if 0 <= average_toxicity_score < 0.80:
                             markup.add(learn_more, explainer, go_back)
-                            self.bot.send_message(message.chat.id, f'''🟢 Well, {channel_name} doesn't seem to be toxic at all!''', reply_markup=markup)
+                            self.bot.send_message(message.chat.id, f'''🟢 Well, {channel_name} doesn't seem to be toxic at all!''')
+                            self.bot.send_message(message.chat.id, f'''Do you wanna understand more about the toxicity of the channel? Click on the buttons below!''', reply_markup=markup)
                     elif 0.80 <= average_toxicity_score < 2.1:
                             markup.add(learn_more, explainer, go_back)
                             self.bot.send_message(message.chat.id, f'''🟡 Watch out! {channel_name} seems to have quite toxic content...''', reply_markup=markup)
@@ -112,4 +106,6 @@ class ChannelAnalyzer:
             self.bot.reply_to(message, "Ups! That is not a valid channel name. Try again! 🫣")
         
         except Exception as e:
+            self.bot.reply_to(message, "Oh! I'm sorry for that... I got confused and couldn't analyze the channel 😔 Would you please try again?")
+            markup.add(go_back)
             print( f"Oh no! An error occurred: {str(e)}")
