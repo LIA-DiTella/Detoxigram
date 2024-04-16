@@ -138,6 +138,8 @@ Now, please provide the @ChannelName you would like to analyze 🤓''')
                     bot.send_photo(callback.message.chat.id, open(toxicity_graphic, 'rb'))
                 else:
                     bot.send_message(callback.message.chat.id, "Oh! Something went wrong... I couldn't get the toxicity distribution of the channel 😔")
+                    markupLearnMore = types.InlineKeyboardMarkup(row_width=1)
+                    markupLearnMore.add(go_back)
                 
                 os.remove(toxicity_graphic)
             
