@@ -100,8 +100,7 @@ Now, please provide the @ChannelName you would like to analyze 🤓''')
             elif callback.data == 'explainer':
                 print(state.last_channel_analyzed)
                 if state.last_channel_analyzed != None: 
-                    bot.send_message(callback.message.chat.id, f"Let's evaluate the content of {state.last_channel_analyzed}... We saw that the toxicity level of this channel is {state.last_analyzed_toxicity}, now I will explain you why. It may take a few seconds 🕣")
-                    explainer.explain(callback.message)
+                    bot.send_message(callback.message.chat.id, f"After evaluating the content of {state.last_channel_analyzed}, we saw that this channel is {state.last_analyzed_toxicity}. Now I will explain you why, it will take a few seconds 🕣")                    explainer.explain(callback.message)
                 else:
                     bot.send_message(callback.message.chat.id, "I'm sorry, I don't have any channel to explain. Please analyze a channel first!")
 
