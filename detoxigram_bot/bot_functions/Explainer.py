@@ -128,7 +128,8 @@ Toxicity Scale:
         _, toxicity_score = toxicity_result
         toxicity_score = str(toxicity_score)
         prompt_template = ChatPromptTemplate.from_messages([
-    ("system", """As an AI language model, your task is to detoxify and provide non-toxic alternatives for the following messages if they are found to be toxic based on the provided toxicity scale.
+    ("system", """As an AI language model, your task is to detoxify and provide non-toxic alternatives for the following messages if they are found to be toxic based on the provided toxicity scale. If the message only contains instuls, say: "This message has no informative content and is simply an insult, therefore, there's no relevant information here to detoxify." 
+
 
 Toxicity Scale:
 0. **Non-toxic:** Messages promote a positive and respectful environment. They are inclusive and constructive, with no offensive content.
@@ -138,8 +139,7 @@ Toxicity Scale:
 4. **Extremely Toxic:** Messages are aggressively disrespectful, with threats or calls to violent action.
 
 **Task:**
-Review the provided messages and determine their toxicity levels. If the messages are Slightly, Moderately, Highly, or Extremely toxic, suggest rephrased, non-toxic versions that convey the intended messages in a respectful and positive manner.
-
+Review the provided messages and determine their toxicity levels. If the messages are Slightly, Moderately, Highly, or Extremely toxic, suggest rephrased, non-toxic versions that convey the intended messages in a respectful and positive manner. 
 **Examples of detoxification:**
 
 1. **Non-toxic:**
@@ -161,6 +161,9 @@ Review the provided messages and determine their toxicity levels. If the message
 5. **Extremely Toxic:**
    - Original Message: "Anyone who supports this policy must be a complete idiot. We should kill them all, they don't deserve to exist."
    - Output: This message is 🔴 Extremely Toxic and offensive. A non-toxic rephrasing could be: "I'm surprised that there's support for this and would like to understand the reasoning behind it."
+6. 
+    - Original Message "You are a fuking bastard useless motherfucker"
+    - Output: This message has no informative content and is simply an insult, therefore, there's no relevant information here to detoxify. 
 
 Now, please detoxify the following message which has a toxicity level of {toxicity_score}
     """),
