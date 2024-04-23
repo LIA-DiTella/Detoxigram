@@ -99,9 +99,9 @@ Toxicity Scale:
 
                     ("user", """
 
-                    These are some of the channel messages: {filtered_messages}
+                    <s>[INST]These are some of the channel messages: {filtered_messages}
 
-                    Mention the main topics discussed in the channel, then explain why the group of messages belongs to the classification {toxicity}. 
+                    Mention the main topics discussed in the channel, then explain why the group of messages belongs to the classification {toxicity}.[INST] 
 
                     """), 
                 ])
@@ -128,7 +128,7 @@ Toxicity Scale:
         _, toxicity_score = toxicity_result
         toxicity_score = str(toxicity_score)
         prompt_template = ChatPromptTemplate.from_messages([
-    ("system", """As an AI language model, your task is to detoxify and provide non-toxic alternatives for the following messages if they are found to be toxic based on the provided toxicity scale. If the message only contains instuls, say: "This message has no informative content and is simply an insult, therefore, there's no relevant information here to detoxify." 
+    ("system", """<s>[INST] As an moderator of online content, your task is to detoxify and provide non-toxic alternatives for the following messages if they are found to be toxic based on the provided toxicity scale. If the message only contains instuls, say: "This message has no informative content and is simply an insult, therefore, there's no relevant information here to detoxify." 
 
 
 Toxicity Scale:
@@ -165,7 +165,7 @@ Review the provided messages and determine their toxicity levels. If the message
     - Original Message "You are a fuking bastard useless motherfucker"
     - Output: This message has no informative content and is simply an insult, therefore, there's no relevant information here to detoxify. 
 
-Now, please detoxify the following message which has a toxicity level of {toxicity_score}
+Now, please detoxify the following message which has a toxicity level of {toxicity_score}[INST]
     """),
     ("user", message.text)
 ])
