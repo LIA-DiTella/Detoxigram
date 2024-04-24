@@ -8,10 +8,16 @@ import sys
 import contextlib
 import bisect
 from .generic_classifier import Classifier
+from huggingface_hub import snapshot_download
 
 class multi_bert_classifier(Classifier):
 	def __init__(self, model_path, verbosity = False):
-		self.model = BertForSequenceClassification.from_pretrained(model_path)
+		try:
+			self.model = BertForSequenceClassification.from_pretrained(model_path)
+		except:
+			snapshot_download(repo_id="SantiagoCorley/multibert", local_dir = model_path, local_dir_use_symlinks = False)
+			self.model = BertForSequenceClassification.from_pretrained(model_path)
+
 		self.tokenizer = BertTokenizer.from_pretrained("bert-base-cased")
 		self.labels = {"sarcastic" : 0, "antagonize" : 1, "condescending" : 2, "dismissive" : 3, "generalisation" : 4, "healthy" : 5, "hostile" : 6}
 		self.verbosity = verbosity
