@@ -4,7 +4,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from telebot import types
 
 
-class Explainer:
+class explainer:
     def __init__(self, bot, loop, formatter, mistral, bert, output_parser, user_management):
         self.bot = bot
         self.loop = loop

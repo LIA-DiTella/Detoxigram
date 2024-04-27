@@ -2,7 +2,7 @@ from telebot import types
 from telethon import TelegramClient, sessions
 from telethon.tl.functions.messages import GetHistoryRequest
 
-class Formatter:
+class formater:
     def __init__(self, client):
         self.client = client
 
