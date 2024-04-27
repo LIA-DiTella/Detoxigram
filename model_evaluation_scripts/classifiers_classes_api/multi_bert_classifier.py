@@ -117,7 +117,7 @@ class multi_bert_classifier(Classifier):
 				telegram_data = load_dataset( "json", data_files=absolute_path)
 			predicted_toxic_messages = 0
 			predicted_toxicity_scores = 0
-			print(f"Analizando {len(telegram_data["train"])} mensajes \n")
+			print(f"Analizando {len(telegram_data['train'])} mensajes \n")
 			for m in telegram_data["train"]:
 				message = m["message"] if len(m["message"]) > 0 else None
 				if message is None: break

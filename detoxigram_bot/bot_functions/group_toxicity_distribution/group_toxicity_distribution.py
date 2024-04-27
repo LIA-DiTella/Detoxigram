@@ -1,41 +1,49 @@
-import os 
 from PIL import Image, ImageDraw, ImageFont
+import os
 
 class GroupToxicityDistribution:
-    def __init__(self, base_dir):
+    def __init__(self):
+        self.base_dir = os.path.dirname(__file__)
+        self.gauge_images = {
+            0: './empty_gauge.png',
+            1: './gauge_1.png',
+            2: './gauge_2.png',
+            3: './gauge_3.png',
+        }
         self.positions = [
-                            (438, 828, 841),
-                            (1159, 828, 1558), 
-                            (442, 1189, 841), 
-                            (1161, 1187, 1558),
-                            (440, 1548, 839),
-                            (1163, 1547, 1558), 
-                        ]
-        self.font_path = os.path.join(os.path.dirname(__file__), 'IBMPlexSans-Regular.ttf')
-        self.template_path = os.path.join(os.path.dirname(__file__), 'template.png')
-        self.base_dir = base_dir
-
+            (926, 175, 1322, 371),  # Sarcastic
+            (1443, 173, 1845, 369), # Antagonize
+            (924, 617, 1322, 816),  # Generalization
+            (1445, 615, 1843, 813), # Dismissive
+        ]
+        self.font_path = os.path.join(self.base_dir, 'IBMPlexSans-Regular.ttf')
+        self.template_path = os.path.join(self.base_dir, 'template.png')
 
     def get_toxicity_graph(self, channel_name, toxicity_vector):
-        '''
-        Pre: None
-        Post: saves the toxicity distribution of the channel in a png file
-        '''
-        with Image.open(self.template_path) as img:
-            draw = ImageDraw.Draw(img)
-            font_size = 36 * 4  
-            font = ImageFont.truetype(self.font_path, font_size)
-            text_width = draw.textlength(channel_name, font=font)
-            x = (img.width - text_width) // 2
-            y = 120
-            
-            draw.text((x, y), channel_name, font=font, fill='#DC312C')
-
-            for value, (x_start, y, x_end) in zip(toxicity_vector, self.positions):
-                x_position = x_start + float(value) * (x_end - x_start)
-                radius = 25
-                draw.ellipse((x_position - radius, y - radius, x_position + radius, y + radius), fill='#F8F1E4', outline='#DC312C', width=3)
-            
-            img.save(f'{channel_name}_toxicity_distribution.png')
-            return os.path.join(self.base_dir, f'{channel_name}_toxicity_distribution.png')
+        try:
+            with Image.open(self.template_path) as img:
+                draw = ImageDraw.Draw(img)
+                
+                font_size = 36 * 4 
+                font = ImageFont.truetype(self.font_path, font_size)
+                
+                name_coords = (97, 269)
+                draw.text(name_coords, channel_name, font=font, fill='#DC312C')          
         
+                for value, (x1, y1, x2, y2) in zip(toxicity_vector, self.positions):
+                    scaled_value = 0 if value < 0.10 else 1 if value < 0.5 else 2 if value < 0.75 else 3
+                    gauge_image_path = os.path.join(self.base_dir, self.gauge_images[scaled_value])
+                    
+                    with Image.open(gauge_image_path) as gauge_img:
+                        gauge_width, gauge_height = gauge_img.size
+                        gauge_x = x1 + (x2 - x1 - gauge_width) // 2
+                        gauge_y = y1 + (y2 - y1 - gauge_height) // 2
+                        img.paste(gauge_img, (gauge_x, gauge_y), gauge_img)
+                
+                output_path = os.path.join(self.base_dir, f'{channel_name}_toxicity_distribution.png')
+                img.save(output_path)
+                return output_path
+        except IOError as e:
+            print(f"Error opening image files: {e}")
+        except Exception as e:
+            print(f"An unexpected error occurred while creating the toxicity distribution: {e}")
