@@ -21,9 +21,9 @@ class Explainer:
         toxicity = state.last_analyzed_toxicity
 
         markup = types.InlineKeyboardMarkup(row_width=1)
-        go_back = types.InlineKeyboardButton('Restart! 🔄', callback_data='restart')
-        new_analyze = types.InlineKeyboardButton('New analyze 🔍', callback_data='analyze')
-
+        go_back = types.InlineKeyboardButton('Restart 🔄', callback_data='restart')
+        new_analyze = types.InlineKeyboardButton('Analyze another channel 🔍', callback_data='analyze')
+        show_more = types.InlineKeyboardButton('More options 👇', callback_data='show_more')
         if 0 <= toxicity < 1:
             toxicity = "Non-toxic"
         elif toxicity >= 1 and toxicity < 2:
@@ -37,17 +37,18 @@ class Explainer:
 
         escala = '''
 
-Toxicity Scale:
+                    Toxicity Scale:
 
-0. **Non-toxic:** Message that encourages a positive, respectful, and inclusive environment, promoting kindness and mutual understanding. The opinions and perspectives of everyone are valued, contributing to constructive dialogue without personal disqualifications or offensive content. It may contain objective or neutral information.
+                    0. **Non-toxic:** Message that encourages a positive, respectful, and inclusive environment, promoting kindness and mutual understanding. The opinions and perspectives of everyone are valued, contributing to constructive dialogue without personal disqualifications or offensive content. It may contain objective or neutral information.
 
-1. **Slightly Toxic:** Message that, although mostly respectful, may include criticism or disagreements expressed in a passive-aggressive or slightly biased manner. It does not directly attack individuals or groups, and the intention to cause harm is not clear, but it suggests a lack of appreciation for the viewpoint of others.
+                    1. **Slightly Toxic:** Message that, although mostly respectful, may include criticism or disagreements expressed in a passive-aggressive or slightly biased manner. It does not directly attack individuals or groups, and the intention to cause harm is not clear, but it suggests a lack of appreciation for the viewpoint of others.
 
-2. **Moderately Toxic:** Message with an aggressive or disrespectful tone, which may include sarcasm, irony, or derogatory language towards certain groups by gender, ethnicity, sexual orientation, ideology, or religion. Although it does not attack violently, it seeks to hurt, ridicule, or belittle others, showing a rejection towards the diversity of opinions and people.
+                    2. **Moderately Toxic:** Message with an aggressive or disrespectful tone, which may include sarcasm, irony, or derogatory language towards certain groups by gender, ethnicity, sexual orientation, ideology, or religion. Although it does not attack violently, it seeks to hurt, ridicule, or belittle others, showing a rejection towards the diversity of opinions and people.
 
-3. **Highly Toxic:** Message that demonstrates a clear rejection and contempt for individuals or groups, using insults, racist, sexist, misogynist, degrading, or dehumanizing references. It attacks groups by their gender, ethnicity, sexual orientation, ideology, or religion. This offensive language seeks to intimidate, exclude, or incite hatred, showing an explicit intention to cause harm.
+                    3. **Highly Toxic:** Message that demonstrates a clear rejection and contempt for individuals or groups, using insults, racist, sexist, misogynist, degrading, or dehumanizing references. It attacks groups by their gender, ethnicity, sexual orientation, ideology, or religion. This offensive language seeks to intimidate, exclude, or incite hatred, showing an explicit intention to cause harm.
 
-4. **Extremely Toxic:** Message that is not only explicitly aggressive and disrespectful but also contains threats or calls to violent action. It attacks groups by their gender, ethnicity, sexual orientation, ideology, or religion. Promotes hostility, incitement to hatred, and suggests harmful consequences in the real world against individuals or groups, violating ethical and moral principles and endangering the safety and well-being of people.
+                    4. **Extremely Toxic:** Message that is not only explicitly aggressive and disrespectful but also contains threats or calls to violent action. It attacks groups by their gender, ethnicity, sexual orientation, ideology, or religion. Promotes hostility, incitement to hatred, and suggests harmful consequences in the real world against individuals or groups, violating ethical and moral principles and endangering the safety and well-being of people.
+                    
                     '''
         if state.last_channel_analyzed:            
             if len(state.last_chunk_of_messages) > 0:
@@ -131,41 +132,50 @@ Toxicity Scale:
     def detoxify_single_message(self, message):
         self.bot.reply_to(message, "Let's see... 👀")
         markup = types.InlineKeyboardMarkup(row_width=1)
-        go_back = types.InlineKeyboardButton('Start again! 🔄', callback_data='restart')
+        detoxify_new = types.InlineKeyboardButton('Detoxify another message 📩', callback_data='detoxify')
+        go_back = types.InlineKeyboardButton('Restart 🔄', callback_data='restart')
         toxicity_result = self.mistral.predictToxicity(message.text)
         _, toxicity_score = toxicity_result
         toxicity_score = str(toxicity_score)
         prompt_template = ChatPromptTemplate.from_messages([
     ("system", """<s>[INST] As an moderator of online content, your task is to detoxify and provide non-toxic alternatives for the following messages if they are found to be toxic based on the provided toxicity scale. If the message only contains instuls, say: "This message has no informative content and is simply an insult, therefore, there's no relevant information here to detoxify." 
+<<<<<<< Updated upstream
+
+=======
+>>>>>>> Stashed changes
 
 
-Toxicity Scale:
-0. **Non-toxic:** Messages promote a positive and respectful environment. They are inclusive and constructive, with no offensive content.
-1. **Slightly Toxic:** Messages are mostly respectful but may include passive-aggressive criticism or slight bias.
-2. **Moderately Toxic:** Messages have an aggressive tone or contain derogatory language towards specific groups.
-3. **Highly Toxic:** Messages show clear contempt for individuals or groups, using insults or offensive language.
-4. **Extremely Toxic:** Messages are aggressively disrespectful, with threats or calls to violent action.
-
+<<<<<<< Updated upstream
 **Task:**
 Review the provided messages and determine their toxicity levels. If the messages are Slightly, Moderately, Highly, or Extremely toxic, suggest rephrased, non-toxic versions that convey the intended messages in a respectful and positive manner. 
 **Examples of detoxification:**
+=======
+            Toxicity Scale:
+            0. **Non-toxic:** Messages promote a positive and respectful environment. They are inclusive and constructive, with no offensive content.
+            1. **Slightly Toxic:** Messages are mostly respectful but may include passive-aggressive criticism or slight bias.
+            2. **Moderately Toxic:** Messages have an aggressive tone or contain derogatory language towards specific groups.
+            3. **Highly Toxic:** Messages show clear contempt for individuals or groups, using insults or offensive language.
+            4. **Extremely Toxic:** Messages are aggressively disrespectful, with threats or calls to violent action.
 
-1. **Non-toxic:**
-   - Original Message: "I appreciate your perspective and would like to discuss this further."
-   - Output: This message is 🟢 Non-toxic. It promotes a respectful and open dialogue.
-     
-2. **Slightly Toxic:**
-   - Original Message: "That's a naive way of looking at things, don't you think?"
-   - Output: This message is 🟡 Slightly Toxic due to its patronizing tone. A more respectful phrasing could be: "I think there might be a different way to view this situation. Can we explore that together?"
+            **Task:**
+            Review the provided messages and determine their toxicity levels. If the messages are Slightly, Moderately, Highly, or Extremely toxic, suggest rephrased, non-toxic versions that convey the intended messages in a respectful and positive manner.
+>>>>>>> Stashed changes
 
-3. **Moderately Toxic:**
-   - Original Message: "People who believe that are living in a fantasy world."
-   - Output: This message is 🟡 Moderately Toxic because it dismisses others' beliefs. A less toxic version could be: "I find it hard to agree with that perspective, but I'm open to understanding why people might feel that way."
+            **Examples of detoxification:**
 
-4. **Highly Toxic:**
-   - Original Message: "This is the dumbest idea I've ever heard."
-   - Output: The message is 🔴 Highly Toxic due to its derogatory language. A constructive alternative might be: "I have some concerns about this idea and would like to discuss them further."
+            1. **Non-toxic:**
+            - Original Message: "I appreciate your perspective and would like to discuss this further."
+            - Output: This message is 🟢 Non-toxic. It promotes a respectful and open dialogue.
+                
+            2. **Slightly Toxic:**
+            - Original Message: "That's a naive way of looking at things, don't you think?"
+            - Output: This message is 🟡 Slightly Toxic due to its patronizing tone. A more respectful phrasing could be: "I think there might be a different way to view this situation. Can we explore that together?"
 
+            3. **Moderately Toxic:**
+            - Original Message: "People who believe that are living in a fantasy world."
+            - Output: This message is 🟡 Moderately Toxic because it dismisses others' beliefs. A less toxic version could be: "I find it hard to agree with that perspective, but I'm open to understanding why people might feel that way."
+
+<<<<<<< Updated upstream
 5. **Extremely Toxic:**
    - Original Message: "Anyone who supports this policy must be a complete idiot. We should kill them all, they don't deserve to exist."
    - Output: This message is 🔴 Extremely Toxic and offensive. A non-toxic rephrasing could be: "I'm surprised that there's support for this and would like to understand the reasoning behind it."
@@ -174,6 +184,17 @@ Review the provided messages and determine their toxicity levels. If the message
     - Output: This message has no informative content and is simply an insult, therefore, there's no relevant information here to detoxify. 
 
 Now, please detoxify the following message which has a toxicity level of {toxicity_score}[INST]
+=======
+            4. **Highly Toxic:**
+            - Original Message: "This is the dumbest idea I've ever heard."
+            - Output: The message is 🔴 Highly Toxic due to its derogatory language. A constructive alternative might be: "I have some concerns about this idea and would like to discuss them further."
+
+            5. **Extremely Toxic:**
+            - Original Message: "Anyone who supports this policy must be a complete idiot. We should kill them all, they don't deserve to exist."
+            - Output: This message is 🔴 Extremely Toxic and offensive. A non-toxic rephrasing could be: "I'm surprised that there's support for this and would like to understand the reasoning behind it."
+
+            Now, please detoxify the following message which has a toxicity level of {toxicity_score}
+>>>>>>> Stashed changes
     """),
     ("user", message.text)
 ])
