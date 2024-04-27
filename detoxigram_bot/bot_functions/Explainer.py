@@ -95,13 +95,21 @@ Toxicity Scale:
 
                     🔴 The Extremely Toxic level of the channel is evident through the aggressive disrespect and threats made in the messages. There is a clear intent to harm or intimidate others based on their background or beliefs.
 
-                    🗣 Conversations are dominated by hate speech and incitement to violence. Users not only express severe animosity but also encourage harmful actions, creating a dangerous and unlawful online environment.'''[INST]"""),
+                    🗣 Conversations are dominated by hate speech and incitement to violence. Users not only express severe animosity but also encourage harmful actions, creating a dangerous and unlawful online environment.'''
+                     
+                    ###
+                    FORMAT EXAMPLE
+                    📝 [Summary]
+                    🟢/🟡/🔴 [Classification reason]
+                    🗣 [Consequences for the user]
+                     
+                    [INST]"""),
 
                     ("user", """
 
                     <s>[INST]These are some of the channel messages: {filtered_messages}
 
-                    Mention the main topics discussed in the channel, then explain why the group of messages belongs to the classification {toxicity}.[INST] 
+                    Mention the main topics discussed in the channel, then explain why the group of messages belongs to the classification {toxicity}. Use 2 sentences for each paragraph, emulate the provided examples. Remember to follow the format examples provided in the system prompt. No yapping.[INST] 
 
                     """), 
                 ])
@@ -113,7 +121,7 @@ Toxicity Scale:
                     }])
                 print(output)
                 markup.add(new_analyze, go_back)
-                self.bot.reply_to(message, f'{output[0]}', reply_markup=markup)
+                self.bot.reply_to(message, f'{output[0]}', reply_markup=markup, parse_mode='Markdown')
 
             else:
                 self.bot.reply_to(message, f'Failed! Try with another channel!')
@@ -173,7 +181,7 @@ Now, please detoxify the following message which has a toxicity level of {toxici
         output = chain.batch([{toxicity_score}])
         print(output)
         markup.add(go_back)
-        self.bot.reply_to(message, f'{output[0]}', reply_markup=markup)
+        self.bot.reply_to(message, f'{output[0]}', reply_markup=markup, parse_mode='Markdown')
 
         
     
