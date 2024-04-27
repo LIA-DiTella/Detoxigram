@@ -11,17 +11,31 @@ from .generic_classifier import Classifier
 from huggingface_hub import snapshot_download
 
 class multi_bert_classifier(Classifier):
-	def __init__(self, model_path, verbosity = False):
+	def __init__(self, model_path, toxicity_distribution_path,  verbosity = False, calculate_toxicity_distribution = False):
+		
+		#intentar descargar multibert 
 		try:
 			self.model = BertForSequenceClassification.from_pretrained(model_path)
 		except:
 			snapshot_download(repo_id="SantiagoCorley/multibert", local_dir = model_path, local_dir_use_symlinks = False)
 			self.model = BertForSequenceClassification.from_pretrained(model_path)
-
+		
 		self.tokenizer = BertTokenizer.from_pretrained("bert-base-cased")
 		self.labels = {"sarcastic" : 0, "antagonize" : 1, "condescending" : 2, "dismissive" : 3, "generalisation" : 4, "healthy" : 5, "hostile" : 6}
 		self.verbosity = verbosity
-		self.toxicity_distribution = self.predict_toxicity_distribution()
+		self.toxicity_distribution_path = toxicity_distribution_path
+		self.toxicity_distribution = self.load_toxicity_distribution(calculate_toxicity_distribution)
+
+
+	def load_toxicity_distribution(self, calculate_toxicity_distribution):
+		if (calculate_toxicity_distribution):
+			toxicity_distribution = self.predict_toxicity_distribution()
+			with open(self.toxicity_distribution_path, 'w') as f:
+				json.dump(toxicity_distribution, f)
+		else:
+			with open(self.toxicity_distribution_path, 'r') as f:
+				toxicity_distribution = json.load(f)
+		return toxicity_distribution
 
 	def predictToxicity(self, input_message):
 		input_message = input_message[0:512]  #no me quiero pasar de los 512 tokens de bert
@@ -126,23 +140,3 @@ class multi_bert_classifier(Classifier):
 			average_scores = self.predict_average_toxicity_scores(toxic_messages)
 			#print(average_scores)
 			return average_scores
-
-
-
-			
-
-		
-
-
-
-
-
-
-
-
-
-
-
-
-#bert_classifier = hate_bert_classificator("toxigen_hatebert", verbosity = True)
-#bert_classifier.predictToxicityFile('Benjaminnorton_processed.json')
