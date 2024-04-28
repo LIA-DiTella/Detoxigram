@@ -12,7 +12,6 @@ from huggingface_hub import snapshot_download
 
 class multi_bert_classifier(Classifier):
 	def __init__(self, model_path, toxicity_distribution_path,  verbosity = False, calculate_toxicity_distribution = False):
-		
 		#intentar descargar multibert 
 		try:
 			self.model = BertForSequenceClassification.from_pretrained(model_path)
@@ -88,8 +87,8 @@ class multi_bert_classifier(Classifier):
 		toxicity_levels = []
 		for message in messages:
 			toxicity_levels.append(self.predict_toxicity_scores(message))
-		sorted_messages = sorted(toxicity_levels, key = lambda d : d[1]["healthy"])[0:10]
 
+		sorted_messages = sorted(toxicity_levels, key = lambda d : d[1]["healthy"])[0:10]
 		 #me quedo solo con los comentarios
 		message_list = list(map(lambda x: x[0], sorted_messages))
 		return message_list
