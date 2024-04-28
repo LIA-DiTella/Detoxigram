@@ -15,11 +15,11 @@ from model_evaluation_scripts.classifiers_classes_api.perspective_classifier imp
 from model_evaluation_scripts.classifiers_classes_api.hate_bert_classifier import hate_bert_classifier
 from model_evaluation_scripts.classifiers_classes_api.multi_bert_classifier import multi_bert_classifier
 from model_evaluation_scripts.classifiers_classes_api.mixtral_8x7b_API_classifier import mistral_classifier
-from bot_functions.formater import Formatter
-from bot_functions.explainer import Explainer
-from bot_functions.group_toxicity_distribution.group_toxicity_distribution import GroupToxicityDistribution
-from detoxigram_bot.bot_functions.channel_analyzer import ChannelAnalyzer
-from detoxigram_bot.bot_functions.user_management import UserManagement
+from bot_functions.Formater import formater
+from bot_functions.Explainer import explainer
+from bot_functions.group_toxicity_distribution.group_toxicity_distribution import group_toxicity_distribution
+from detoxigram_bot.bot_functions.channel_analyzer import channel_analyzer
+from detoxigram_bot.bot_functions.user_management import user_management
 from langchain_openai import ChatOpenAI
 from langchain_core.output_parsers import StrOutputParser
 import numpy as np
@@ -36,13 +36,13 @@ GOOGLE_CLOUD_API_KEY:str = os.environ['GOOGLE_CLOUD_API_KEY']
 MISTRAL_API_KEY:str = os.environ['MISTRAL_API_KEY']
 
 bert:hate_bert_classifier = hate_bert_classifier('../model_evaluation_scripts/classifiers_classes_api/toxigen_hatebert', verbosity=True)
-multibert:multi_bert_classifier = multi_bert_classifier('../model_evaluation_scripts/classifiers_classes_api/multibert', verbosity=True)
+multibert:multi_bert_classifier = multi_bert_classifier('../model_evaluation_scripts/classifiers_classes_api/multibert', verbosity=True, toxicity_distribution_path='../model_evaluation_scripts/classifiers_classes_api/toxicity_distribution_cache/multibert_distribution.json',calculate_toxicity_distribution=False)
 mistral:mistral_classifier = mistral_classifier(mistral_api_key=MISTRAL_API_KEY, templatetype='prompt_template_few_shot', verbosity=True)
 
 client:TelegramClient = TelegramClient(sessions.MemorySession(), API_ID_TELEGRAM, API_HASH_TELEGRAM)  
-group_toxicity_distribution:GroupToxicityDistribution = GroupToxicityDistribution()
-formatter:Formatter = Formatter(client)
-user_management:UserManagement = UserManagement()
+group_toxicity_distribution_:group_toxicity_distribution = group_toxicity_distribution()
+formatter:formater = formater(client)
+user_manage:user_management = user_management()
 loop:asyncio = asyncio.new_event_loop()  
 
 bot:telebot = telebot.TeleBot(BOT_TOKEN)
@@ -64,8 +64,8 @@ async def main():
     retry_delays = [10, 20, 40, 80] 
     attempt = 0
 
-    channel_analyzer:ChannelAnalyzer = ChannelAnalyzer(bot, loop, formatter, multibert=multibert, mistral=mistral, user_management=user_management)
-    explainer:Explainer = Explainer(bot, loop, formatter, mistral, bert,  StrOutputParser(), user_management = user_management)
+    channel_analyzer_:channel_analyzer = channel_analyzer(bot, loop, formatter, multibert=multibert, mistral=mistral, user_management=user_manage)
+    explainer_:explainer = explainer(bot, loop, formatter, mistral, bert,  StrOutputParser(), user_management = user_manage)
     '''Handlers'''
 
     @bot.message_handler(func=lambda message: message.text is not None and (re.search(r'ho+la+', message.text.lower()) or any(greeting in message.text.lower() for greeting in greetings) or (re.search(r'he+llo+', message.text.lower())) or (re.search(r'he+y+', message.text.lower()) )))
@@ -90,23 +90,19 @@ What would you like to do?'''.format(username = username), reply_markup=markup_s
     def answer(callback:CallbackQuery) -> None:
         if callback.message:
             user_id = callback.message.chat.id
-            state = user_management.get_user_state(user_id) 
+            state = user_manage.get_user_state(user_id) 
             if callback.data == 'analyze':
                 bot.send_message(callback.message.chat.id, '''Great! \n 
 Just for you to know, when we evaluate the toxicity, we'll only consider the last 50 messages of the channel ⚠️\n 
 Now, please provide the @ChannelName or the invite link of the channel you would like to analyze 🤓''')
-                bot.register_next_step_handler(callback.message, channel_analyzer.channel_classifier)
+                bot.register_next_step_handler(callback.message, channel_analyzer_.channel_classifier)
             
             elif callback.data == 'explainer':
                 print(state.last_channel_analyzed)
                 if state.last_channel_analyzed != None: 
-<<<<<<< Updated upstream
-                    bot.send_message(callback.message.chat.id, f"After evaluating the content of {state.last_channel_analyzed}, we saw that this channel is {state.last_analyzed_toxicity}. Now I will explain you why, it will take a few seconds 🕣")
-=======
                     bot.send_message(callback.message.chat.id, "After evaluating the content of {last_channel_analyzed}, we saw that this channel is {last_toxicity}. Now I will explain you why, it will take a few seconds 🕣".format(last_channel_analyzed = state.last_channel_analyzed, last_toxicity = state.last_toxicity ))                    
                     
->>>>>>> Stashed changes
-                    explainer.explain(callback.message)
+                    explainer_.explain(callback.message)
                 else:
                     bot.send_message(callback.message.chat.id, "I'm sorry, I don't have any channel to explain. Please analyze a channel first!")
 
@@ -120,20 +116,20 @@ Now, please provide the @ChannelName or the invite link of the channel you would
                     "Need more help or have any questions? Don't hesitate to reach out. You can contact us directly at malbaposse@mail.utdt.edu. We're here to help make your digital spaces safer! 🛡️\n\n"
                 )
 
-                help_markup = markup.add(analyze, explainer, go_back, more)
+                help_markup = markup.add(analyze, explainer_, go_back, more)
                 bot.send_message(help_text, reply_markup=help_markup, parse_mode='Markdown')
 
             elif callback.data == 'learn_more':
 
                 bot.send_message(callback.message.chat.id, "So... we've just classified the channel you sent. But, how does its toxicity stack up against the others we've analyzed?")
 
-                # toxicity_vector = multibert.get_group_toxicity_distribution(state.last_chunk_of_messages)
-                # print(toxicity_vector)
+                toxicity_vector = multibert.get_group_toxicity_distribution(state.last_chunk_of_messages)
+                
+                keys_order = ['sarcastic', 'antagonize', 'generalisation', 'dismissive']
+                
+                toxicity_vector = [toxicity_vector[key] for key in keys_order]
 
-                # keys_order = ['sarcastic', 'antagonize', 'generalisation', 'dismissive']
-                # toxicity_vector = [toxicity_vector[key] for key in keys_order]
-                toxicity_vector = [0.1, 0.2, 0.3, 0.4]
-                toxicity_graphic = group_toxicity_distribution.get_toxicity_graph(state.last_channel_analyzed, toxicity_vector)
+                toxicity_graphic = group_toxicity_distribution_.get_toxicity_graph(state.last_channel_analyzed, toxicity_vector)
 
                 if os.path.exists(toxicity_graphic) and os.access(toxicity_graphic, os.R_OK):
                     markupLearnMore = types.InlineKeyboardMarkup(row_width=1)
@@ -146,7 +142,7 @@ Now, please provide the @ChannelName or the invite link of the channel you would
             
             elif callback.data == 'detoxify':
                 bot.send_message(callback.message.chat.id, "Great! ⚠️ Now, please write a message you would like to detoxify 🤓")
-                bot.register_next_step_handler(callback.message, explainer.detoxify_single_message)
+                bot.register_next_step_handler(callback.message, explainer_.detoxify_single_message)
             
             elif callback.data == 'more':
                 more_markup = types.InlineKeyboardMarkup(row_width=1)
@@ -164,27 +160,21 @@ Now, please provide the @ChannelName or the invite link of the channel you would
     while True:
         try:
             await bot.polling(none_stop=True)
-            # If polling is successful, it would usually continue indefinitely,
-            # so no break statement is needed here.
         except ReadTimeout:
-            # If a ReadTimeout occurs, handle it and retry
             if attempt < len(retry_delays):
                 time_to_wait = retry_delays[attempt]
                 print(f"Request timed out. Retrying in {time_to_wait} seconds.")
                 await asyncio.sleep(time_to_wait)
                 attempt += 1
             else:
-                # Reset attempt count and keep retrying
                 print("Request failed after maximum attempts. Retrying again after a delay.")
                 attempt = 0
-                await asyncio.sleep(retry_delays[-1])  # Use the longest delay before retrying again
+                await asyncio.sleep(retry_delays[-1]) 
         except ConnectionError:
-            # If a ConnectionError occurs, handle it and retry
             print("Connection lost... retrying in 5 seconds")
             await asyncio.sleep(5)
         except Exception as e:
-            # Log the unexpected exception and retry
-            print(f"An unexpected error occurred: {e}. Retrying in 10 seconds...")
+            print(f"An unexpected error occurred: {e}.≥ Retrying in 10 seconds...")
             await asyncio.sleep(10)
 
 if __name__ == '__main__':

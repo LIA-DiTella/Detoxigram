@@ -1,4 +1,4 @@
-class UserState:
+class user_state:
     def __init__(self):
         self.is_detoxifying = False
         self.last_analyzed_toxicity = 0
@@ -26,13 +26,13 @@ class UserState:
         return f"UserState(detoxifying={self.is_detoxifying}, last_analyzed_toxicity={self.last_analyzed_toxicity}, last_channel_analyzed={self.last_channel_analyzed})"
 
  
-class UserManagement:
+class user_management:
     def __init__(self):
         self.user_states = {}
 
     def get_user_state(self, user_id):
         if user_id not in self.user_states:
-            self.user_states[user_id] = UserState()
+            self.user_states[user_id] = user_state()
         return self.user_states[user_id]
     
     def set_user_state(self, user_id, state):
@@ -40,6 +40,6 @@ class UserManagement:
 
     def reset_user_state(self, user_id):
         if user_id in self.user_states:
-            self.user_states[user_id] = UserState()
+            self.user_states[user_id] = user_state()
     
         

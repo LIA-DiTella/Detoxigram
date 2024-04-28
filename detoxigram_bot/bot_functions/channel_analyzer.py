@@ -3,7 +3,7 @@ import telebot
 from telebot import types
 from urllib.parse import parse_qs, urlparse
 
-class ChannelAnalyzer:
+class channel_analyzer:
 
     def __init__(self, bot, loop, formatter, multibert, mistral, user_management):
 
@@ -65,8 +65,7 @@ class ChannelAnalyzer:
             self.bot.reply_to(message, "Ups! That is not a valid channel name. Try again! 🫣")
         except Exception as e:
             self.bot.reply_to(message, f"Oh! Something went wrong 😞 Let's start over!", reply_markup=markup)
-            self.bot.send_message(user_id, "Oh! Something went wrong 😞 Let's start over!", reply_markup=markup)
-
+            print(e)
     def _analyze_channel_messages(self, message, channel_name, state, markup):
 
         self.bot.reply_to(message, f"Got it! I will analyze {channel_name}... Please wait a moment 🙏")
