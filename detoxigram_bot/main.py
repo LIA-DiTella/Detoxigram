@@ -14,8 +14,8 @@ from telethon.tl.functions.messages import GetHistoryRequest
 from model_evaluation_scripts.classifiers_classes_api.hate_bert_classifier import hate_bert_classifier
 from model_evaluation_scripts.classifiers_classes_api.multi_bert_classifier import multi_bert_classifier
 from model_evaluation_scripts.classifiers_classes_api.mixtral_8x7b_API_classifier import mistral_classifier
-from bot_functions.formater import formater
-from bot_functions.explainer import explainer
+from bot_functions.Formater import formater
+from bot_functions.Explainer import explainer
 from bot_functions.group_toxicity_distribution.group_toxicity_distribution import group_toxicity_distribution
 from detoxigram_bot.bot_functions.channel_analyzer import channel_analyzer
 from detoxigram_bot.bot_functions.user_management import user_management
