@@ -5,12 +5,12 @@ from urllib.parse import parse_qs, urlparse
 
 class channel_analyzer:
 
-    def __init__(self, bot, loop, formatter, multibert, mistral, user_management):
+    def __init__(self, bot, loop, formatter, hatebert, mistral, user_management):
 
         self.bot = bot
         self.loop = loop
         self.formatter = formatter
-        self.multibert = multibert
+        self.hatebert = hatebert
         self.mistral = mistral
         self.user_management = user_management
 
@@ -66,6 +66,7 @@ class channel_analyzer:
         except Exception as e:
             self.bot.reply_to(message, f"Oh! Something went wrong 😞 Let's start over!", reply_markup=markup)
             print(e)
+    
     def _analyze_channel_messages(self, message, channel_name, state, markup):
 
         self.bot.reply_to(message, f"Got it! I will analyze {channel_name}... Please wait a moment 🙏")
@@ -101,8 +102,8 @@ class channel_analyzer:
         self._send_toxicity_response(message, channel_name, average_toxicity_score, markup)
 
     def _calculate_average_toxicity(self, messages):
-
-        toxicity_scores = [score for _, score in (self.mistral.predictToxicity(msg) for msg in messages) if score is not None]
+        filtered_messages = self.hatebert.filter_toxic_messages(messages)
+        toxicity_scores = [score for _, score in (self.mistral.predictToxicity(msg) for msg in filtered_messages) if score is not None]
         return sum(toxicity_scores) / len(toxicity_scores) if toxicity_scores else 0
 
     def _send_toxicity_response(self, message, channel_name, toxicity_score, markup):

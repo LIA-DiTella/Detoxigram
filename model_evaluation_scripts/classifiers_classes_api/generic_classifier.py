@@ -50,7 +50,7 @@ class Classifier:
 			else: messages.append(message)
 		return self.get_most_toxic_messages(messages)
 	
-	def predict_average_toxicity_scores(self, messages):
+	def predict_average_toxicity_score(self, messages):
 		toxicity = 0
 		for txm in messages: toxicity = toxicity + self.predictToxicity(txm)[1]
 		return toxicity/len(messages)

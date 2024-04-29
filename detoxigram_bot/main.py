@@ -11,12 +11,11 @@ from telebot import types
 from telebot.types import Message, CallbackQuery
 from telethon import TelegramClient, sessions
 from telethon.tl.functions.messages import GetHistoryRequest
-from model_evaluation_scripts.classifiers_classes_api.perspective_classifier import perspective_classifier
 from model_evaluation_scripts.classifiers_classes_api.hate_bert_classifier import hate_bert_classifier
 from model_evaluation_scripts.classifiers_classes_api.multi_bert_classifier import multi_bert_classifier
 from model_evaluation_scripts.classifiers_classes_api.mixtral_8x7b_API_classifier import mistral_classifier
-from bot_functions.Formater import formater
-from bot_functions.Explainer import explainer
+from bot_functions.formater import formater
+from bot_functions.explainer import explainer
 from bot_functions.group_toxicity_distribution.group_toxicity_distribution import group_toxicity_distribution
 from detoxigram_bot.bot_functions.channel_analyzer import channel_analyzer
 from detoxigram_bot.bot_functions.user_management import user_management
@@ -35,9 +34,9 @@ OPENAI_API_KEY:str = os.environ['OPENAI_API_KEY']
 GOOGLE_CLOUD_API_KEY:str = os.environ['GOOGLE_CLOUD_API_KEY']
 MISTRAL_API_KEY:str = os.environ['MISTRAL_API_KEY']
 
-bert:hate_bert_classifier = hate_bert_classifier('../model_evaluation_scripts/classifiers_classes_api/toxigen_hatebert', verbosity=True)
+hatebert:hate_bert_classifier = hate_bert_classifier('../model_evaluation_scripts/classifiers_classes_api/toxigen_hatebert', verbosity=True)
 multibert:multi_bert_classifier = multi_bert_classifier('../model_evaluation_scripts/classifiers_classes_api/multibert', verbosity=True, toxicity_distribution_path='../model_evaluation_scripts/classifiers_classes_api/toxicity_distribution_cache/multibert_distribution.json',calculate_toxicity_distribution=False)
-mistral:mistral_classifier = mistral_classifier(mistral_api_key=MISTRAL_API_KEY, templatetype='prompt_template_few_shot', verbosity=True)
+mistral:mistral_classifier = mistral_classifier(mistral_api_key=MISTRAL_API_KEY, templatetype='prompt_template_few_shot', verbosity=True, toxicity_distribution_path='../model_evaluation_scripts/classifiers_classes_api/toxicity_distribution_cache/mistral_distribution.json', calculate_toxicity_distribution=False)
 
 client:TelegramClient = TelegramClient(sessions.MemorySession(), API_ID_TELEGRAM, API_HASH_TELEGRAM)  
 group_toxicity_distribution_:group_toxicity_distribution = group_toxicity_distribution()
@@ -64,8 +63,8 @@ async def main():
     retry_delays = [10, 20, 40, 80] 
     attempt = 0
 
-    channel_analyzer_:channel_analyzer = channel_analyzer(bot, loop, formatter, multibert=multibert, mistral=mistral, user_management=user_manage)
-    explainer_:explainer = explainer(bot, loop, formatter, mistral, bert,  StrOutputParser(), user_management = user_manage)
+    channel_analyzer_:channel_analyzer = channel_analyzer(bot, loop, formatter, hatebert=hatebert, mistral=mistral, user_management=user_manage)
+    explainer_:explainer = explainer(bot, loop, formatter, mistral, hatebert,  StrOutputParser(), user_management = user_manage)
     '''Handlers'''
 
     @bot.message_handler(func=lambda message: message.text is not None and (re.search(r'ho+la+', message.text.lower()) or any(greeting in message.text.lower() for greeting in greetings) or (re.search(r'he+llo+', message.text.lower())) or (re.search(r'he+y+', message.text.lower()) )))
@@ -126,7 +125,7 @@ Now, please provide the @ChannelName or the invite link of the channel you would
                 toxicity_vector = multibert.get_group_toxicity_distribution(state.last_chunk_of_messages)
                 
                 keys_order = ['sarcastic', 'antagonize', 'generalisation', 'dismissive']
-                
+
                 toxicity_vector = [toxicity_vector[key] for key in keys_order]
 
                 toxicity_graphic = group_toxicity_distribution_.get_toxicity_graph(state.last_channel_analyzed, toxicity_vector)
