@@ -5,7 +5,7 @@ class group_toxicity_distribution:
     def __init__(self):
         self.base_dir = os.path.dirname(__file__)
         self.gauge_images = {
-            0: 'empty_gauge.png',
+            0: 'gauge_0.png',
             1: 'gauge_1.png',
             2: 'gauge_2.png',
             3: 'gauge_3.png',
@@ -38,7 +38,7 @@ class group_toxicity_distribution:
                     print(scaled_value)
                     print(type(scaled_value))
                     gauge_image_path = os.path.join(self.base_dir, self.gauge_images.get(scaled_value))
-                    
+                    print(gauge_image_path)
                     with Image.open(gauge_image_path) as gauge_img:
                         gauge_width, gauge_height = gauge_img.size
                         gauge_x = x1 + (x2 - x1 - gauge_width) // 2
