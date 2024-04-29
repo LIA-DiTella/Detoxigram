@@ -2,8 +2,14 @@ import unittest
 import random
 import string
 import sys
+import os
+from dotenv import main
+
 sys.path.append('..')
 from model_evaluation_scripts.classifiers_classes_api.multi_bert_classifier import multi_bert_classifier
+from model_evaluation_scripts.classifiers_classes_api.hate_bert_classifier import hate_bert_classifier
+from model_evaluation_scripts.classifiers_classes_api.mixtral_8x7b_API_classifier import mistral_classifier
+
 
 
 class Test_Multi_bert_Methods(unittest.TestCase):
@@ -30,11 +36,49 @@ class Test_Multi_bert_Methods(unittest.TestCase):
         toxicity = self.multibert.predictToxicity("I like cats")[0]
         self.assertFalse(toxicity)
 
-    def test_get_most_toxic_messages_test(self):
+    def test_get_most_toxic_messages(self):
         toxic_messages = ["I hate u" for i in range(0, 10)]
-        messages = toxic_messages + ["i love u"]
+        messages = ["i love u"] + toxic_messages
         most_toxic_messages = self.multibert.get_most_toxic_messages(messages)
         self.assertTrue("i love u" not in most_toxic_messages)
+
+class Test_hate_bert_Methods(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.hatebert = hate_bert_classifier("../model_evaluation_scripts/classifiers_classes_api/toxigen_hatebert")
+    
+    def test_get_most_toxic_messages(self):
+        toxic_messages = ["I hate u" for i in range(0, 10)]
+        messages = ["i love u"] + toxic_messages
+        most_toxic_messages = self.hatebert.get_most_toxic_messages(messages)
+        self.assertTrue("i love u" not in most_toxic_messages)
+
+    def test_get_most_toxic_message(self):
+        toxic_messages = ["i do not like deaf black woman" for i in range(0, 10)]
+        messages = ["I am a black deaf woman"] + toxic_messages
+        most_toxic_messages = self.hatebert.get_most_toxic_messages(messages)
+        self.assertTrue("I am a black deaf woman" not in most_toxic_messages)
+
+    def test_predict_average_toxicity_scores(self):
+        toxic_messages = ["I hate u", "i love u"]
+        a = self.hatebert.predictToxicity(toxic_messages[0])[1]
+        b = self.hatebert.predictToxicity(toxic_messages[1])[1]
+        self.assertEqual((a + b)/2, self.hatebert.predict_average_toxicity_scores(toxic_messages))
+
+
+class Test_mixtral_Methods(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        main.load_dotenv()
+        MISTRAL_API_KEY:str = os.environ['MISTRAL_API_KEY']
+        cls.mistral = mistral_classifier(mistral_api_key=MISTRAL_API_KEY, templatetype='prompt_template_few_shot', toxicity_distribution_path = "../model_evaluation_scripts/classifiers_classes_api/toxicity_distribution_cache/mistral_distribution.json", calculate_toxicity_distribution = False )
+    
+    def test_fake(self):
+        self.assertTrue(True)
+
+    def test_get_group_toxicity_distribution_high_toxicity(self):
+        high_toxicity_score = self.mistral.get_group_toxicity_distribution("i hope everyone dies everyone sucks")
+        self.assertEqual(high_toxicity_score == 1)
 
 if __name__ == '__main__':
     unittest.main()
