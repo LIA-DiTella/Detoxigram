@@ -60,7 +60,7 @@ class mistral_classifier(Classifier):
 				continue
 			average_toxicity = self.predict_average_toxicity_scores(most_toxic_messages) #promedio segun mixtral	
 			detected_toxicity.append(average_toxicity)
-		return detected_toxicity
+		return detected_toxicity.sort()
 	
 	def get_group_toxicity_distribution(self, message_list):
 		res = []

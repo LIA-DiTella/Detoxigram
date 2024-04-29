@@ -19,7 +19,7 @@ class multi_bert_classifier(Classifier):
 			snapshot_download(repo_id="SantiagoCorley/multibert", local_dir = model_path, local_dir_use_symlinks = False)
 			self.model = BertForSequenceClassification.from_pretrained(model_path)
 		
-		self.tokenizer = BertTokenizer.from_pretrained("bert-base-cased")
+		self.tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
 		self.labels = {"sarcastic" : 0, "antagonize" : 1, "condescending" : 2, "dismissive" : 3, "generalisation" : 4, "healthy" : 5, "hostile" : 6}
 		self.verbosity = verbosity
 		self.toxicity_distribution_path = toxicity_distribution_path
@@ -70,7 +70,7 @@ class multi_bert_classifier(Classifier):
 		for label, score in average_toxicity_scores.items():
 			index = bisect.bisect_left(self.toxicity_distribution[label], score)
 			res[label] = index / len(self.toxicity_distribution[label])
-		res["healthy"] = 1 - res["healthy"] #como siempre, corrijo para que sea una clase negativa
+		#res["healthy"] = 1 - res["healthy"] #como siempre, corrijo para que sea una clase negativa
 		return res
 
 	def predict_average_toxicity_scores(self, messages):
