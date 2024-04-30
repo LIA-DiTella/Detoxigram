@@ -67,7 +67,7 @@ async def main():
     explainer_:explainer = explainer(bot, loop, formatter, mistral, hatebert,  StrOutputParser(), user_management = user_manage)
     '''Handlers'''
 
-    @bot.message_handler(func=lambda message: message.text is not None and (re.search(r'ho+la+', message.text.lower()) or any(greeting in message.text.lower() for greeting in greetings) or (re.search(r'he+llo+', message.text.lower())) or (re.search(r'he+y+', message.text.lower()) )))
+    @bot.message_handler(func=lambda message: message.text is not None and (re.search(r'ho+la+', message.text.lower()) or any(greeting in message.text.lower() for greeting in greetings) or (re.search(r'he+llo+', message.text.lower())) or (re.search(r'he+y+', message.text.lower())) or message.text.startswith('/start')))
     def handle_greeting(message):
         username = message.from_user.first_name
         markup_start_hello = types.InlineKeyboardMarkup(row_width=1)
@@ -75,15 +75,6 @@ async def main():
         bot.reply_to(message, '''Hello {username} and welcome to Detoxigram! 👋 \n
 I'm here to help you to identify toxicity in your telegram channels, so you can make an informed choice in the content you consume and share 🤖\n
 What would you like to do?'''.format(username = username), reply_markup=markup_start_hello)
-
-    @bot.message_handler(commands=['start'])
-    def send_welcome(message:Message) -> None:
-        username = message.from_user.first_name
-        markup_start:types = types.InlineKeyboardMarkup(row_width=1)
-        markup_start.add(analyze, help, more)
-        bot.send_message(message.chat.id, '''Hello {username} and welcome to Detoxigram! 👋 \n
-I'm here to help you to identify toxicity in your telegram channels, so you can make an informed choice in the content you consume and share 🤖\n
-What would you like to do?'''.format(username = username), reply_markup=markup_start)
 
     @bot.callback_query_handler(func=lambda call: True)
     def answer(callback:CallbackQuery) -> None:

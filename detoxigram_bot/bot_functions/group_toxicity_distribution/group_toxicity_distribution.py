@@ -34,7 +34,7 @@ class group_toxicity_distribution:
                     
                     print(value)
 
-                    scaled_value = 0 if value < 0.25 else 1 if value < 0.5 else 2 if value < 0.75 else 3
+                    scaled_value = 0 if value < 0.025 else 1 if value < 0.050 else 2 if value < 0.075 else 3
                     print(scaled_value)
                     print(type(scaled_value))
                     gauge_image_path = os.path.join(self.base_dir, self.gauge_images.get(scaled_value))
