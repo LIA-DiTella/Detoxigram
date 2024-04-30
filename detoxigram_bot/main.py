@@ -76,7 +76,6 @@ async def main():
 I'm here to help you to identify toxicity in your telegram channels, so you can make an informed choice in the content you consume and share 🤖
 What would you like to do?
 '''.format(username = username), reply_markup=markup_start_hello)
-        # say goodbye hadnler
     
     @bot.message_handler(func=lambda message: (message.text is not None and message.text.startswith('/end')) or (message.text is not None and message.text.lower() == 'goodbye') or (message.text is not None and message.text.lower() == 'bye') or (message.text is not None and message.text.lower() == 'exit') or (message.text is not None and message.text.lower() == 'quit') or (message.text is not None and message.text.lower() == 'stop') or (message.text is not None and message.text.lower() == 'end'))
     def handle_goodbye(message):
@@ -131,8 +130,10 @@ Now, please provide the @ChannelName you would like to analyze 🤓''')
                     markupLearnMore.add(explanation, go_back)
                     bot.send_photo(callback.message.chat.id, open(toxicity_graphic, 'rb'))
                 else:
+
                     bot.send_message(callback.message.chat.id, "Oops! Something went wrong... I couldn't get the toxicity distribution of the channel 😔 Why don't we try again?")
-                
+                    markupLearnMore = types.InlineKeyboardMarkup(row_width=1)
+                    markupLearnMore.add(go_back)
                 os.remove(toxicity_graphic)
             
             elif callback.data == 'detoxify':
