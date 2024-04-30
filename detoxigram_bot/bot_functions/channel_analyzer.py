@@ -55,16 +55,17 @@ class channel_analyzer:
 
         user_id = message.chat.id
         state = self.user_management.get_user_state(user_id)
-        markup = self._get_base_markup()
+        markup = self._get_base_markup('basic')
+        markup_2 = self._get_base_markup('exception')
 
         try:
             channel_name = self.obtain_channel_name(message.text)
             self._analyze_channel_messages(message, channel_name, state, markup)
 
         except (IndexError, ValueError) as e:
-            self.bot.reply_to(message, "Ups! That is not a valid channel name. Try again! 🫣")
+            self.bot.reply_to(message, "Oops! That is not a valid channel name. Try again! 🫣", reply_markup=markup_2)
         except Exception as e:
-            self.bot.reply_to(message, f"Oh! Something went wrong 😞 Let's start over!", reply_markup=markup)
+            self.bot.reply_to(message, f"Oops! Something went wrong 😞 Let's start over!", reply_markup=markup_2)
             print(e)
     
     def _analyze_channel_messages(self, message, channel_name, state, markup):
@@ -75,7 +76,7 @@ class channel_analyzer:
         print(messages)
         self._reply_based_on_response_time(message, response_time)
 
-        if messages:
+        if messages: 
             self._classify_messages(messages, state, message, channel_name, markup)
         else:
             self.bot.reply_to(message, "No messages found in the specified channel! Why don't we start again?", reply_markup=markup)
@@ -84,6 +85,7 @@ class channel_analyzer:
 
         start = time.time()
         messages = self.formatter.process_messages(self.loop.run_until_complete(self.formatter.fetch(channel_name)))
+
         end = time.time()
         state.last_chunk_of_messages = messages
         return messages, end - start
@@ -91,37 +93,40 @@ class channel_analyzer:
     def _reply_based_on_response_time(self, message, response_time):
 
         if response_time > 10:
-            self.bot.reply_to(message, "It took a while to get the messages, but I've got them! Now let me analyze... 🕣")
+            self.bot.reply_to(message, "It took a while to get the messages, but I've got them! Now give me a second to check for toxicity in the channel 🕣")
         else:
-            self.bot.reply_to(message, "I've got the messages! Analyzing now... 🕵️‍♂️")
+            self.bot.reply_to(message, "I've got the messages! Now give me a few seconds to check for toxicity in the channel... 🕵️‍♂️")
 
     def _classify_messages(self, messages, state, message, channel_name, markup):
-        
-        average_toxicity_score = self._calculate_average_toxicity(messages)
+        filtered_messages = self.hatebert.get_most_toxic_messages(messages)
+        average_toxicity_score = self.hatebert.predict_average_toxicity_score(filtered_messages)
         state.last_analyzed_toxicity = average_toxicity_score
         self._send_toxicity_response(message, channel_name, average_toxicity_score, markup)
 
-    def _calculate_average_toxicity(self, messages):
-        filtered_messages = self.hatebert.filter_toxic_messages(messages)
-        toxicity_scores = [score for _, score in (self.mistral.predictToxicity(msg) for msg in filtered_messages) if score is not None]
-        return sum(toxicity_scores) / len(toxicity_scores) if toxicity_scores else 0
-
     def _send_toxicity_response(self, message, channel_name, toxicity_score, markup):
+        print('The toxicity score for', channel_name,' is:', toxicity_score)
         if toxicity_score < 1:
-            self._send_response_message(message, '🟢', channel_name, "doesn't seem to be toxic at all!", markup)
+            self._send_response_message(message, '🟢', channel_name, "doesn't seem to be toxic at all!\n\nDo you want to learn more about our analysis? Click on the buttons below!", markup)
         elif 1 <= toxicity_score < 2:
-            self._send_response_message(message, '🟡', channel_name, "seems to have quite toxic content!", markup)
+            self._send_response_message(message, '🟡', channel_name, "seems to have quite toxic content!\n\nDo you want to learn more about our analysis? Click on the buttons below!", markup)
         elif 2 <= toxicity_score:
-            self._send_response_message(message, '🔴', channel_name, "seems to have really toxic content!", markup)
+            self._send_response_message(message, '🔴', channel_name, "seems to have really toxic content!\n\nDo you want to learn more about our analysis? Click on the buttons below!", markup)
 
     def _send_response_message(self, message, emoji, channel_name, assessment, markup):
         response_text = f"{emoji} Well, {channel_name} {assessment}"
         self.bot.send_message(message.chat.id, response_text, reply_markup=markup)
 
-    def _get_base_markup(self):
-        markup = types.InlineKeyboardMarkup(row_width=2)
-        explain_toxicity = types.InlineKeyboardButton('Toxicity dimensions 📊', callback_data='learn_more')
-        explain = types.InlineKeyboardButton('Explain me 👀', callback_data='explainer')
-        restart = types.InlineKeyboardButton('Restart 🔄', callback_data='restart')
-        markup.add(explain_toxicity, explain, restart)
+    def _get_base_markup(self, marktype):
+        if marktype == 'basic':
+            markup = types.InlineKeyboardMarkup(row_width=2)
+            explain_toxicity = types.InlineKeyboardButton('Toxicity dimensions 📊', callback_data='learn_more')
+            explain = types.InlineKeyboardButton('Explain me 👀', callback_data='explainer')
+            restart = types.InlineKeyboardButton('Restart 🔄', callback_data='restart')
+            markup.add(explain_toxicity, explain, restart)
+        
+        elif marktype == 'exception':
+            markup = types.InlineKeyboardMarkup(row_width=2)
+            analyze = types.InlineKeyboardButton('Analyze again 🔄', callback_data='analyze')
+            restart = types.InlineKeyboardButton('Restart 🔄', callback_data='restart')
+            markup.add(restart)
         return markup

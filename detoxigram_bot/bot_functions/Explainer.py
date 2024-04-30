@@ -23,7 +23,7 @@ class explainer:
         markup = types.InlineKeyboardMarkup(row_width=1)
         go_back = types.InlineKeyboardButton('Restart 🔄', callback_data='restart')
         new_analyze = types.InlineKeyboardButton('Analyze another channel 🔍', callback_data='analyze')
-        show_more = types.InlineKeyboardButton('More options 👇', callback_data='show_more')
+        toxicity_ = types.InlineKeyboardButton('Toxicity dimensions 📊', callback_data='learn_more')
         if 0 <= toxicity < 1:
             toxicity = "Non-toxic"
         elif toxicity >= 1 and toxicity < 2:
@@ -121,7 +121,7 @@ class explainer:
                         'toxicity': toxicity
                     }])
                 print(output)
-                markup.add(new_analyze, go_back)
+                markup.add(new_analyze, toxicity_, go_back)
                 self.bot.reply_to(message, f'{output[0]}', reply_markup=markup, parse_mode='Markdown')
 
             else:

@@ -34,9 +34,6 @@ class formater:
         processed_messages = []
         for msg in messages:
             if msg.message:
-                processed_message = {
-                    'message': msg.message,
-                    'timestamp': msg.date.strftime('%Y-%m-%d %H:%M:%S')
-                }
+                processed_message = msg.message
                 processed_messages.append(processed_message)
         return processed_messages
