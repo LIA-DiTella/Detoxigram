@@ -72,19 +72,24 @@ async def main():
         username = message.from_user.first_name
         markup_start_hello = types.InlineKeyboardMarkup(row_width=1)
         markup_start_hello.add(analyze, detoxify, help)
-        bot.reply_to(message, '''Hello {username} and welcome to Detoxigram! 👋 \n
-I'm here to help you to identify toxicity in your telegram channels, so you can make an informed choice in the content you consume and share 🤖\n
-What would you like to do?'''.format(username = username), reply_markup=markup_start_hello)
-
+        bot.reply_to(message, '''Hello {username} and welcome to Detoxigram! 👋
+I'm here to help you to identify toxicity in your telegram channels, so you can make an informed choice in the content you consume and share 🤖
+What would you like to do?
+'''.format(username = username), reply_markup=markup_start_hello)
+        # say goodbye hadnler
+    
+    @bot.message_handler(func=lambda message: (message.text is not None and message.text.startswith('/end')) or (message.text is not None and message.text.lower() == 'goodbye') or (message.text is not None and message.text.lower() == 'bye') or (message.text is not None and message.text.lower() == 'exit') or (message.text is not None and message.text.lower() == 'quit') or (message.text is not None and message.text.lower() == 'stop') or (message.text is not None and message.text.lower() == 'end'))
+    def handle_goodbye(message):
+        bot.reply_to(message, "Goodbye! 👋 If you need anything else, just say hi!")
     @bot.callback_query_handler(func=lambda call: True)
     def answer(callback:CallbackQuery) -> None:
         if callback.message:
             user_id = callback.message.chat.id
             state = user_manage.get_user_state(user_id) 
             if callback.data == 'analyze':
-                bot.send_message(callback.message.chat.id, '''Great! \n 
-Just for you to know, when we evaluate the toxicity, we'll only consider the last 50 messages of the channel ⚠️\n 
-Now, please provide the @ChannelName or the invite link of the channel you would like to analyze 🤓''')
+                bot.send_message(callback.message.chat.id, '''Great!\n\n
+Just so you know, when we evaluate the toxicity, we'll only consider the last 50 messages of the channel ⚠️\n\n
+Now, please provide the @ChannelName you would like to analyze 🤓''')
                 bot.register_next_step_handler(callback.message, channel_analyzer_.channel_classifier)
             
             elif callback.data == 'explainer':
@@ -126,7 +131,7 @@ Now, please provide the @ChannelName or the invite link of the channel you would
                     markupLearnMore.add(explanation, go_back)
                     bot.send_photo(callback.message.chat.id, open(toxicity_graphic, 'rb'))
                 else:
-                    bot.send_message(callback.message.chat.id, "Oh! Something went wrong... I couldn't get the toxicity distribution of the channel 😔")
+                    bot.send_message(callback.message.chat.id, "Oops! Something went wrong... I couldn't get the toxicity distribution of the channel 😔 Why don't we try again?")
                 
                 os.remove(toxicity_graphic)
             
@@ -142,10 +147,7 @@ Now, please provide the @ChannelName or the invite link of the channel you would
             elif callback.data == 'restart':
                 restart_markup = types.InlineKeyboardMarkup(row_width=1)
                 restart_markup.add(analyze, more)
-                bot.send_message(callback.message.chat.id, "Ok! Let's see, what would you like to do now? 🤔", reply_markup=restart_markup)
-
-            elif callback.data == 'end' or callback.data == 'exit' or callback.data == 'goodbye' or callback.data == 'bye' or callback.data == 'stop' or callback.data == 'cancel' or callback.data == 'quit':
-                bot.send_message(callback.message.chat.id, "Goodbye! 👋 If you need anything else, just say hi!")
+                bot.send_message(callback.message.chat.id, "Alright! What would you like to do now? 🤔", reply_markup=restart_markup)
     
     while True:
         try:
