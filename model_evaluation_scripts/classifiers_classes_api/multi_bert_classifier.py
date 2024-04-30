@@ -8,14 +8,33 @@ import sys
 import contextlib
 import bisect
 from .generic_classifier import Classifier
+from huggingface_hub import snapshot_download
 
 class multi_bert_classifier(Classifier):
-	def __init__(self, model_path, verbosity = False):
-		self.model = BertForSequenceClassification.from_pretrained(model_path)
-		self.tokenizer = BertTokenizer.from_pretrained("bert-base-cased")
+	def __init__(self, model_path, toxicity_distribution_path,  verbosity = False, calculate_toxicity_distribution = False):
+		#intentar descargar multibert 
+		try:
+			self.model = BertForSequenceClassification.from_pretrained(model_path)
+		except:
+			snapshot_download(repo_id="SantiagoCorley/multibert", local_dir = model_path, local_dir_use_symlinks = False)
+			self.model = BertForSequenceClassification.from_pretrained(model_path)
+		
+		self.tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
 		self.labels = {"sarcastic" : 0, "antagonize" : 1, "condescending" : 2, "dismissive" : 3, "generalisation" : 4, "healthy" : 5, "hostile" : 6}
 		self.verbosity = verbosity
-		self.toxicity_distribution = self.predict_toxicity_distribution()
+		self.toxicity_distribution_path = toxicity_distribution_path
+		self.toxicity_distribution = self.load_toxicity_distribution(calculate_toxicity_distribution)
+
+
+	def load_toxicity_distribution(self, calculate_toxicity_distribution):
+		if (calculate_toxicity_distribution):
+			toxicity_distribution = self.predict_toxicity_distribution()
+			with open(self.toxicity_distribution_path, 'w') as f:
+				json.dump(toxicity_distribution, f)
+		else:
+			with open(self.toxicity_distribution_path, 'r') as f:
+				toxicity_distribution = json.load(f)
+		return toxicity_distribution
 
 	def predictToxicity(self, input_message):
 		input_message = input_message[0:512]  #no me quiero pasar de los 512 tokens de bert
@@ -51,7 +70,7 @@ class multi_bert_classifier(Classifier):
 		for label, score in average_toxicity_scores.items():
 			index = bisect.bisect_left(self.toxicity_distribution[label], score)
 			res[label] = index / len(self.toxicity_distribution[label])
-		res["healthy"] = 1 - res["healthy"] #como siempre, corrijo para que sea una clase negativa
+		#res["healthy"] = 1 - res["healthy"] #como siempre, corrijo para que sea una clase negativa
 		return res
 
 	def predict_average_toxicity_scores(self, messages):
@@ -68,8 +87,8 @@ class multi_bert_classifier(Classifier):
 		toxicity_levels = []
 		for message in messages:
 			toxicity_levels.append(self.predict_toxicity_scores(message))
-		sorted_messages = sorted(toxicity_levels, key = lambda d : d[1]["healthy"])[0:10]
 
+		sorted_messages = sorted(toxicity_levels, key = lambda d : d[1]["healthy"])[0:10]
 		 #me quedo solo con los comentarios
 		message_list = list(map(lambda x: x[0], sorted_messages))
 		return message_list
@@ -98,6 +117,7 @@ class multi_bert_classifier(Classifier):
 			predicted_toxic_messages = 0
 			predicted_toxicity_scores = 0
 			# print(f"Analizando {len(telegram_data["train"])} mensajes \n")
+
 			for m in telegram_data["train"]:
 				message = m["message"] if len(m["message"]) > 0 else None
 				if message is None: break
@@ -120,23 +140,3 @@ class multi_bert_classifier(Classifier):
 			average_scores = self.predict_average_toxicity_scores(toxic_messages)
 			#print(average_scores)
 			return average_scores
-
-
-
-			
-
-		
-
-
-
-
-
-
-
-
-
-
-
-
-#bert_classifier = hate_bert_classificator("toxigen_hatebert", verbosity = True)
-#bert_classifier.predictToxicityFile('Benjaminnorton_processed.json')

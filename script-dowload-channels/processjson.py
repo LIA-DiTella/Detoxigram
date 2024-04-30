@@ -22,7 +22,12 @@ def process_json(input_file, output_file):
         data = json.load(file)
 
     # Extract messages and keep the last 100
-    messages = data.get('messages', [])[-100:]
+    messages = data.get('messages', [])[-300:]
+    # if 'message' is empty, delete
+
+    for message in messages:
+        if not message.get('message'):
+            messages.remove(message)
 
     # Transform data
     transformed_data = []

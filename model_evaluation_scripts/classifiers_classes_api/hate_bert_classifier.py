@@ -45,14 +45,7 @@ class hate_bert_classifier(Classifier):
 		res = []
 		for i in range(0, len(probas)):
 			if torch.argmax(probas[i]).item() == 1: res.append(self.tokenizer.decode(input_ids["input_ids"][i][1:-1], skip_special_tokens = True))
-			
 		return res
-
-
-
-
-
-
-
+		
 #bert_classifier = hate_bert_classificator("toxigen_hatebert", verbosity = True)
 #bert_classifier.predictToxicityFile('Benjaminnorton_processed.json')

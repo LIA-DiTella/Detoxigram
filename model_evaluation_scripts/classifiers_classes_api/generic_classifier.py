@@ -23,6 +23,38 @@ class Classifier:
 			isToxic, level = self.predictToxicity(m)
 			if isToxic: toxic_messages.append(m)
 		return toxic_messages
+	
+	def get_most_toxic_messages(self, messages):
+		toxicity_levels = []
+		for message in messages:
+			toxicity_levels.append((message, self.predictToxicity(message)[1]))
+		
+		#sort list of tuples by second element of tuple
+		sorted_messages = sorted(toxicity_levels, key = lambda d : d[1])[-10:]
+		 #me quedo solo con los mensajes
+		message_list = list(map(lambda x: x[0], sorted_messages))
+		return message_list
+	
+	def get_most_toxic_messages_file(self, file):
+		script_dir = os.path.dirname(os.path.realpath(__file__))
+		relative_path = os.path.join('..', '..', 'dataset/', file)
+		absolute_path = os.path.join(script_dir, relative_path)
+
+		with contextlib.redirect_stdout(None): #me molesta este output
+			telegram_data = load_dataset( "json", data_files=absolute_path)
+
+		messages = []
+		for m in telegram_data["train"]:
+			message = m["message"] if len(m["message"]) > 0 else None
+			if message is None: break
+			else: messages.append(message)
+		return self.get_most_toxic_messages(messages)
+	
+	def predict_average_toxicity_score(self, messages):
+		toxicity = 0
+		for txm in messages: toxicity = toxicity + self.predictToxicity(txm)[1]
+		return toxicity/len(messages)
+	
 
 	def predictToxicityFile(self, file_path): #precondicion, file_path es el nombre de un archivo en la carpeta datasets
 			script_dir = os.path.dirname(os.path.realpath(__file__))
@@ -66,4 +98,5 @@ class Classifier:
 			labels.append(real_toxicity)
 		
 		return predicitions, labels
+	
 		

@@ -2,7 +2,7 @@ from telebot import types
 from telethon import TelegramClient, sessions
 from telethon.tl.functions.messages import GetHistoryRequest
 
-class Formatter:
+class formater:
     def __init__(self, client):
         self.client = client
 
@@ -34,9 +34,6 @@ class Formatter:
         processed_messages = []
         for msg in messages:
             if msg.message:
-                processed_message = {
-                    'message': msg.message,
-                    'timestamp': msg.date.strftime('%Y-%m-%d %H:%M:%S')
-                }
+                processed_message = msg.message
                 processed_messages.append(processed_message)
         return processed_messages
