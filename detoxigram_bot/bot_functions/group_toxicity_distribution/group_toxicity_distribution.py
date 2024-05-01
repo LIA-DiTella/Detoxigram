@@ -34,11 +34,11 @@ class group_toxicity_distribution:
                     
                     print(value)
                     
-                    if value < 0.025:
+                    if value < 0.25:
                         scaled_value = 0
-                    elif value < 0.050:
+                    elif value < 0.50:
                         scaled_value = 1
-                    elif value < 0.075:
+                    elif value < 0.75:
                         scaled_value = 2
                     else:
                         scaled_value = 3
