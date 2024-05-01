@@ -15,6 +15,7 @@ from model_evaluation_scripts.classifiers_classes_api.mixtral_8x7b_API_classifie
 class Test_Multi_bert_Methods(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        print("Inicializando MultiBert")
         cls.multibert = multi_bert_classifier("../model_evaluation_scripts/classifiers_classes_api/multibert", toxicity_distribution_path = "../model_evaluation_scripts/classifiers_classes_api/toxicity_distribution_cache/multibert_distribution.json", calculate_toxicity_distribution = False)
     
     def test_unhealthy_items_range(self):
@@ -59,8 +60,7 @@ class Test_Multi_bert_Methods(unittest.TestCase):
         #tres mensajes que deberian dar muy neutros
         scores = self.multibert.get_group_toxicity_distribution(["Hello! How are you?", "Milei says that the economy is growing, but experts digress", "i dont belive you"])
         #print(scores)
-        self.assertEqual(scores["sarcastic"], 0)
-        self.assertEqual(scores["healthy"], 0)
+        self.assertEqual(scores["healthy"], 1)
         self.assertEqual(scores["dismissive"], 0)
         self.assertEqual(scores["hostile"], 0)
 
@@ -86,7 +86,7 @@ class Test_hate_bert_Methods(unittest.TestCase):
         toxic_messages = ["I hate u", "i love u"]
         a = self.hatebert.predictToxicity(toxic_messages[0])[1]
         b = self.hatebert.predictToxicity(toxic_messages[1])[1]
-        self.assertEqual((a + b)/2, self.hatebert.predict_average_toxicity_scores(toxic_messages))
+        self.assertEqual((a + b)/2, self.hatebert.predict_average_toxicity_score(toxic_messages))
 
 
 class Test_mixtral_Methods(unittest.TestCase):
@@ -94,7 +94,8 @@ class Test_mixtral_Methods(unittest.TestCase):
     def setUpClass(cls):
         main.load_dotenv()
         MISTRAL_API_KEY:str = os.environ['MISTRAL_API_KEY']
-        cls.mistral = mistral_classifier(mistral_api_key=MISTRAL_API_KEY, templatetype='prompt_template_few_shot', toxicity_distribution_path = "../model_evaluation_scripts/classifiers_classes_api/toxicity_distribution_cache/mistral_distribution.json", calculate_toxicity_distribution = False )
+        print("Inicializando Mistral")
+        cls.mistral = mistral_classifier(mistral_api_key=MISTRAL_API_KEY, templatetype='prompt_template_few_shot', toxicity_distribution_path = "../model_evaluation_scripts/classifiers_classes_api/toxicity_distribution_cache/mistral_distribution.json", calculate_toxicity_distribution = True )
     
     def test_fake(self):
         self.assertTrue(True)

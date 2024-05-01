@@ -37,12 +37,15 @@ class Classifier:
 	
 	def get_most_toxic_messages_file(self, file):
 		script_dir = os.path.dirname(os.path.realpath(__file__))
-		relative_path = os.path.join('..', '..', 'dataset/', file)
+		relative_path = os.path.join('..', '..', 'dataset/new_dataset', file)
 		absolute_path = os.path.join(script_dir, relative_path)
 
 		with contextlib.redirect_stdout(None): #me molesta este output
 			telegram_data = load_dataset( "json", data_files=absolute_path)
-
+		if len(telegram_data["train"]) > 100:
+			print("El archivo tiene muchos mensajes, solo considero los ultios 100")
+			telegram_data["train"] = telegram_data["train"].select(range(100))
+			
 		messages = []
 		for m in telegram_data["train"]:
 			message = m["message"] if len(m["message"]) > 0 else None

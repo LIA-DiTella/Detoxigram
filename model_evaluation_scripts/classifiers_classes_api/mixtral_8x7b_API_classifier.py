@@ -45,7 +45,7 @@ class mistral_classifier(Classifier):
 	# Para que sea más directo con como funciona el pipeline, en esta función debo llamar a BERT.
  	# Horrible pero lo más rápido en esta instancia
 	def predict_toxicity_distribution(self):
-		relative_path = os.path.join( '..', 'dataset/')
+		relative_path = os.path.join( '..', 'dataset/new_dataset/')
 		files = os.listdir(relative_path)
 		hate_bert = hate_bert_classifier("../model_evaluation_scripts/classifiers_classes_api/toxigen_hatebert/")
 		detected_toxicity = []
@@ -54,17 +54,19 @@ class mistral_classifier(Classifier):
 			if "testing_datasets" == f: continue
 			print(f"Procesando el archivo: {f}")
 			most_toxic_messages = hate_bert.get_most_toxic_messages_file(f) #mas toxicos segun hatebert
-
 			if (len(most_toxic_messages) < 10):
 				print("Warning: El grupo anterior analizado tienen menos de 10 mensajes válidos. Será ignorado al calular la distribución")
 				continue
-			average_toxicity = self.predict_average_toxicity_scores(most_toxic_messages) #promedio segun mixtral	
+			average_toxicity = self.predict_average_toxicity_score(most_toxic_messages) #promedio segun mixtral	
+			print(average_toxicity)
 			detected_toxicity.append(average_toxicity)
-		return detected_toxicity.sort()
+		print(detected_toxicity)
+		detected_toxicity.sort()
+		return detected_toxicity
 	
 	def get_group_toxicity_distribution(self, message_list):
 		res = []
-		average_toxicity_scores = self.predict_average_toxicity_scores(message_list)
+		average_toxicity_scores = self.predict_average_toxicity_score(message_list)
 		
 		index = bisect.bisect_left(self.toxicity_distribution, average_toxicity_scores)
 		res = index / len(self.toxicity_distribution) #normalizo para que quede entre 0 y 1 		

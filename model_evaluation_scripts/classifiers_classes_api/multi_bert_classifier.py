@@ -94,7 +94,7 @@ class multi_bert_classifier(Classifier):
 		return message_list
 	
 	def predict_toxicity_distribution(self):
-		relative_path = os.path.join( '..', 'dataset/')
+		relative_path = os.path.join( '..', 'dataset/new_dataset')
 		files = os.listdir(relative_path)
 		detected_label_distribution = {key: [] for key in self.labels}
 		for f in files:
@@ -109,11 +109,14 @@ class multi_bert_classifier(Classifier):
 	
 	def predictToxicityFile(self, file_path): #precondicion, file_path es el nombre de un archivo en la carpeta datasets
 			script_dir = os.path.dirname(os.path.realpath(__file__))
-			relative_path = os.path.join('..', '..', 'dataset/', file_path)
+			relative_path = os.path.join('..', '..', 'dataset/new_dataset', file_path)
 			absolute_path = os.path.join(script_dir, relative_path)
 
 			with contextlib.redirect_stdout(None): #me molesta este output
 				telegram_data = load_dataset( "json", data_files=absolute_path)
+			if len(telegram_data["train"]) > 100:
+				print("El archivo tiene muchos mensajes, solo considero los ultios 100")
+				telegram_data["train"] = telegram_data["train"].select(range(100)) #esto es deterministico
 			predicted_toxic_messages = 0
 			predicted_toxicity_scores = 0
 			# print(f"Analizando {len(telegram_data["train"])} mensajes \n")
