@@ -33,10 +33,16 @@ class group_toxicity_distribution:
                 for value, (x1, y1, x2, y2) in zip(toxicity_vector, self.positions):
                     
                     print(value)
+                    
+                    if value < 0.025:
+                        scaled_value = 0
+                    elif value < 0.050:
+                        scaled_value = 1
+                    elif value < 0.075:
+                        scaled_value = 2
+                    else:
+                        scaled_value = 3
 
-                    scaled_value = 0 if value < 0.025 else 1 if value < 0.050 else 2 if value < 0.075 else 3
-                    print(scaled_value)
-                    print(type(scaled_value))
                     gauge_image_path = os.path.join(self.base_dir, self.gauge_images.get(scaled_value))
                     print(gauge_image_path)
                     with Image.open(gauge_image_path) as gauge_img:

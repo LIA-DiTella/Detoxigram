@@ -24,6 +24,7 @@ class channel_analyzer:
             else:
                 return None
         except Exception as e:
+            print('Had the error:', e)
             return None
 
     def obtain_channel_name(self, message):
@@ -65,7 +66,7 @@ class channel_analyzer:
         except (IndexError, ValueError) as e:
             self.bot.reply_to(message, "Oops! That is not a valid channel name. Try again! 🫣", reply_markup=markup_2)
         except Exception as e:
-            self.bot.reply_to(message, f"Oops! Something went wrong 😞 Let's start over!", reply_markup=markup_2)
+            self.bot.reply_to(message, "Oops! Something went wrong 😞 Let's start over!", reply_markup=markup_2)
             print(e)
     
     def _analyze_channel_messages(self, message, channel_name, state, markup):
@@ -128,5 +129,5 @@ class channel_analyzer:
             markup = types.InlineKeyboardMarkup(row_width=2)
             analyze = types.InlineKeyboardButton('Analyze again 🔄', callback_data='analyze')
             restart = types.InlineKeyboardButton('Restart 🔄', callback_data='restart')
-            markup.add(restart)
+            markup.add(analyze, restart)
         return markup

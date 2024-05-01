@@ -39,19 +39,7 @@ class gpt_classifier(Classifier):
         return  isToxic, toxicity_score
         
     def createPrompt(self, template_type):
-            """
-            Creates a prompt template based on the provided template type and data.
-
-            Args:
-                template_type: The type of prompt template to create.
-                data: Optional data to be used in the prompt template.
-
-            Returns:
-                A ChatPromptTemplate object representing the prompt.
-
-            Raises:
-                ValueError: If an invalid template type is provided.
-            """
+            user = ("user", "Classify the following message: {message}")
             if template_type == 'prompt_template_few_shot':
                 prompt_template = ChatPromptTemplate.from_messages([
                     ("system", """You are moderator of toxic content in chat groups. Your task is to Classify the following messages in a scale from 0 to 4 according to their level of toxicity and agressiveness. Reply only with a number from 0 to 4, no additional characters. Use the following scale:
@@ -80,7 +68,7 @@ class gpt_classifier(Classifier):
                     user: Classify the following message: They're not happy in Gaza .. \nThey're not happy in Egypt .. \nThey're not happy in  Libya .. \nThey're not happy in Morocco .. \nThey're not happy in Iran .. \nThey're not happy in Iraq .. \nThey're not happy in Yemen ... \nThey're not happy in Afghanistan ... \nThey're not happy in Pakistan .. \nThey're not happy in Syria .. \nThey're not happy in Lebanon ...\n SO.. WHERE ARE THEY HAPPY?\n They're happy in Australia .. \nThey're happy in Canada .. \nThey're happy in England .. \nThey're happy in Ireland...\nThey're happy in France .. \nThey're happy in Italy .. \nThey're happy in Germany .. \nThey're happy in Sweden .. \nThey're happy in the USA .. \nThey're happy in Norway .. \nThey're happy in Holland .. \nThey're happy in Denmark ..\n Basically, they're happy in every country that is not Muslim and unhappy in every country that is!\n AND WHO DO THEY BLAME?\n Not Islam. \nNot their leadership. \nNot themselves\n THEY BLAME THE COUNTRIES THEY ARE HAPPY IN !\n AND THEN- They want to change those countries to be like, THE COUNTRY THEY CAME FROM WHERE THEY WERE UNHAPPY!\n Excuse me, but I can't help wondering... \nHow frigging dumb can you get? \nEveryone seems to be wondering why Muslim Terrorists are so quick to commit suicide.\n Lets have a look at the evidence: \n- No Christmas \n- No television \n- No nude women \n- No football \n- No pork chops \n- No hot dogs \n- No burgers \n- No beer \n- No bacon \n- Rags for clothes \n- Towels for hats \n- Constant wailing from some bloke in a tower \n- More than one wife \n- More than one mother-in-law \n- You can't shave \n- Your wife can't shave \n- You can't wash off the smell of donkeys \n- You cook over burning camel shit \n- Your wife is picked by someone else for you \n- and your wife smells worse than your donkey \n- Then they tell them that \"when they die, it all gets better\"???\n Well No Shit Sherlock!.... \nIt's not like it could get much worse!
                     assistant: 4"""),
 
-                        ("user", "Classify the following message: {message}")            ])
+                        (user)            ])
                 
             elif template_type == 'prompt_template_COT':
                 prompt_template = ChatPromptTemplate.from_messages([
@@ -121,7 +109,7 @@ class gpt_classifier(Classifier):
                     - CLASSIFICATION -  4}}
                         """),
 
-                    ("user", "Classify the following message: {message}")
+                    (user)
                 ])
             elif template_type == 'prompt_template_CARP':
                 prompt_template = ChatPromptTemplate.from_messages([
@@ -162,7 +150,7 @@ class gpt_classifier(Classifier):
                 - CLASSIFICATION -  4}}
                     """),
 
-                    ("user", "Classify the following message: {message}")                ])
+                    (user)                ])
             else:
                 raise ValueError("Invalid template type provided.")
 
