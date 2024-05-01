@@ -20,7 +20,7 @@ class Classifier:
 		#child classes can optimize if they suport batching
 		toxic_messages = []
 		for m in messages:
-			isToxic, level = self.predictToxicity(m)
+			isToxic, _ = self.predictToxicity(m)
 			if isToxic: toxic_messages.append(m)
 		return toxic_messages
 	

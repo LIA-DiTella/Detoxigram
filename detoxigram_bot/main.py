@@ -58,14 +58,34 @@ help:types = types.InlineKeyboardButton('What can I do? 🛟', callback_data='he
 more:types = types.InlineKeyboardButton('More options 👇', callback_data='more')
 detoxify:types = types.InlineKeyboardButton('Detoxify a message 📩', callback_data='detoxify')
 
+async def start_polling(bot, retry_delays):
+    attempt = 0
+    while True:
+        try:
+            await bot.polling(none_stop=True)
+        except ReadTimeout:
+            if attempt < len(retry_delays):
+                time_to_wait = retry_delays[attempt]
+                print(f"Request timed out. Retrying in {time_to_wait} seconds.")
+                await asyncio.sleep(time_to_wait)
+                attempt += 1
+            else:
+                print("Request failed after maximum attempts. Retrying again after a delay.")
+                attempt = 0
+                await asyncio.sleep(retry_delays[-1]) 
+        except ConnectionError:
+            print("Connection lost... retrying in 5 seconds")
+            await asyncio.sleep(5)
+        except Exception as e:
+            print(f"An unexpected error occurred: {e}.≥ Retrying in 10 seconds...")
+            await asyncio.sleep(10)
+
 async def main():
 
     retry_delays = [10, 20, 40, 80] 
-    attempt = 0
 
     channel_analyzer_:channel_analyzer = channel_analyzer(bot, loop, formatter, hatebert=hatebert, mistral=mistral, user_management=user_manage)
     explainer_:explainer = explainer(bot, loop, formatter, mistral, hatebert,  StrOutputParser(), user_management = user_manage)
-    '''Handlers'''
 
     @bot.message_handler(func=lambda message: message.text is not None and (re.search(r'ho+la+', message.text.lower()) or any(greeting in message.text.lower() for greeting in greetings) or (re.search(r'he+llo+', message.text.lower())) or (re.search(r'he+y+', message.text.lower())) or message.text.startswith('/start')))
     def handle_greeting(message):
@@ -80,6 +100,7 @@ What would you like to do?
     @bot.message_handler(func=lambda message: (message.text is not None and message.text.startswith('/end')) or (message.text is not None and message.text.lower() == 'goodbye') or (message.text is not None and message.text.lower() == 'bye') or (message.text is not None and message.text.lower() == 'exit') or (message.text is not None and message.text.lower() == 'quit') or (message.text is not None and message.text.lower() == 'stop') or (message.text is not None and message.text.lower() == 'end'))
     def handle_goodbye(message):
         bot.reply_to(message, "Goodbye! 👋 If you need anything else, just say hi!")
+    
     @bot.callback_query_handler(func=lambda call: True)
     def answer(callback:CallbackQuery) -> None:
         if callback.message:
@@ -150,27 +171,10 @@ Now, please provide the @ChannelName you would like to analyze 🤓''')
                 restart_markup.add(analyze, more)
                 bot.send_message(callback.message.chat.id, "Alright! What would you like to do now? 🤔", reply_markup=restart_markup)
     
-    while True:
-        try:
-            await bot.polling(none_stop=True)
-        except ReadTimeout:
-            if attempt < len(retry_delays):
-                time_to_wait = retry_delays[attempt]
-                print(f"Request timed out. Retrying in {time_to_wait} seconds.")
-                await asyncio.sleep(time_to_wait)
-                attempt += 1
-            else:
-                print("Request failed after maximum attempts. Retrying again after a delay.")
-                attempt = 0
-                await asyncio.sleep(retry_delays[-1]) 
-        except ConnectionError:
-            print("Connection lost... retrying in 5 seconds")
-            await asyncio.sleep(5)
-        except Exception as e:
-            print(f"An unexpected error occurred: {e}.≥ Retrying in 10 seconds...")
-            await asyncio.sleep(10)
+    await start_polling(bot, retry_delays)
 
 if __name__ == '__main__':
     
     asyncio.run(main())
+
 

@@ -125,7 +125,7 @@ class explainer:
                 self.bot.reply_to(message, f'{output[0]}', reply_markup=markup, parse_mode='Markdown')
 
             else:
-                self.bot.reply_to(message, f'Failed! Try with another channel!')
+                self.bot.reply_to(message, "Failed! Try with another channel!")
         else:
             self.bot.reply_to(message, "Please provide a channel name!")
 
@@ -139,17 +139,8 @@ class explainer:
         toxicity_score = str(toxicity_score)
         prompt_template = ChatPromptTemplate.from_messages([
     ("system", """<s>[INST] As an moderator of online content, your task is to detoxify and provide non-toxic alternatives for the following messages if they are found to be toxic based on the provided toxicity scale. If the message only contains instuls, say: "This message has no informative content and is simply an insult, therefore, there's no relevant information here to detoxify." 
-<<<<<<< Updated upstream
-
-=======
->>>>>>> Stashed changes
 
 
-<<<<<<< Updated upstream
-**Task:**
-Review the provided messages and determine their toxicity levels. If the messages are Slightly, Moderately, Highly, or Extremely toxic, suggest rephrased, non-toxic versions that convey the intended messages in a respectful and positive manner. 
-**Examples of detoxification:**
-=======
             Toxicity Scale:
             0. **Non-toxic:** Messages promote a positive and respectful environment. They are inclusive and constructive, with no offensive content.
             1. **Slightly Toxic:** Messages are mostly respectful but may include passive-aggressive criticism or slight bias.
@@ -159,7 +150,6 @@ Review the provided messages and determine their toxicity levels. If the message
 
             **Task:**
             Review the provided messages and determine their toxicity levels. If the messages are Slightly, Moderately, Highly, or Extremely toxic, suggest rephrased, non-toxic versions that convey the intended messages in a respectful and positive manner.
->>>>>>> Stashed changes
 
             **Examples of detoxification:**
 
@@ -175,16 +165,6 @@ Review the provided messages and determine their toxicity levels. If the message
             - Original Message: "People who believe that are living in a fantasy world."
             - Output: This message is 🟡 Moderately Toxic because it dismisses others' beliefs. A less toxic version could be: "I find it hard to agree with that perspective, but I'm open to understanding why people might feel that way."
 
-<<<<<<< Updated upstream
-5. **Extremely Toxic:**
-   - Original Message: "Anyone who supports this policy must be a complete idiot. We should kill them all, they don't deserve to exist."
-   - Output: This message is 🔴 Extremely Toxic and offensive. A non-toxic rephrasing could be: "I'm surprised that there's support for this and would like to understand the reasoning behind it."
-6. 
-    - Original Message "You are a fuking bastard useless motherfucker"
-    - Output: This message has no informative content and is simply an insult, therefore, there's no relevant information here to detoxify. 
-
-Now, please detoxify the following message which has a toxicity level of {toxicity_score}[INST]
-=======
             4. **Highly Toxic:**
             - Original Message: "This is the dumbest idea I've ever heard."
             - Output: The message is 🔴 Highly Toxic due to its derogatory language. A constructive alternative might be: "I have some concerns about this idea and would like to discuss them further."
@@ -194,14 +174,13 @@ Now, please detoxify the following message which has a toxicity level of {toxici
             - Output: This message is 🔴 Extremely Toxic and offensive. A non-toxic rephrasing could be: "I'm surprised that there's support for this and would like to understand the reasoning behind it."
 
             Now, please detoxify the following message which has a toxicity level of {toxicity_score}
->>>>>>> Stashed changes
     """),
     ("user", message.text)
 ])
         chain = prompt_template | self.llm | self.output_parser
         output = chain.batch([{toxicity_score}])
         print(output)
-        markup.add(go_back)
+        markup.add(detoxify_new, go_back)
         self.bot.reply_to(message, f'{output[0]}', reply_markup=markup, parse_mode='Markdown')
 
         
