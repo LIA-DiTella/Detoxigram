@@ -13,7 +13,7 @@ class user_state:
             return "🟡 Slightly toxic"
         elif 2 <= self.last_analyzed_toxicity < 3:
             return "🟡 Moderately toxic"
-        elif 3 <= self.last_analyzed_toxicity < 3.5:
+        elif 2.5 <= self.last_analyzed_toxicity < 3.5:
             return "🔴 Highly toxic"
         else:
             return "🔴 Extremely toxic"
