@@ -93,7 +93,8 @@ class mistral_classifier(Classifier):
 		if toxicity_score is not None and toxicity_score >= 2:
 			isToxic = True
 
-		return isToxic, toxicity_score
+		print(input_message, "toxicity_score:", toxicity_score, "\n\n\n\n")
+		return isToxic, toxicity_score,
 
 	def createPrompt(self, template_type):
 			"""

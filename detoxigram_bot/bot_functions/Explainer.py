@@ -18,7 +18,7 @@ class explainer:
         self.cache_dir = os.path.dirname(os.path.abspath(__file__))
 
     
-    def write_cache(self, chat_id, channel_name, average_toxicity_score):
+    def write_cache(self, user_id, chat_id, channel_name, average_toxicity_score):
         cache_file_path = os.path.join(self.cache_dir, "explainer_cache.json")
         try:
             with open(cache_file_path, 'r') as cache_file:
@@ -27,6 +27,7 @@ class explainer:
             cache = {}
 
         cache[chat_id] = {
+            'user_id': user_id,
             'channel_name': channel_name,
             'average_toxicity_score': average_toxicity_score
         }

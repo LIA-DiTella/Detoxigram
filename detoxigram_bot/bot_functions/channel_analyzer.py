@@ -119,8 +119,9 @@ class channel_analyzer:
 
     def _classify_messages(self, messages, state, message, channel_name, markup):
         filtered_messages = self.hatebert.get_most_toxic_messages(messages)
-        average_toxicity_score = self.hatebert.predict_average_toxicity_score(filtered_messages)
+        average_toxicity_score = self.mistral.predict_average_toxicity_score(filtered_messages)
         state.last_analyzed_toxicity = average_toxicity_score
+        print("average toxicity:", average_toxicity_score)
         self._send_toxicity_response(message, channel_name, average_toxicity_score, markup)
         self.write_cache(message.chat.id, channel_name, average_toxicity_score)
         
@@ -128,7 +129,7 @@ class channel_analyzer:
 
     def _send_toxicity_response(self, message, channel_name, toxicity_score, markup):
         print('The toxicity score for', channel_name,' is:', toxicity_score)
-        if toxicity_score < 1.5:
+        if toxicity_score < 1:
             self._send_response_message(message, '🟢', channel_name, "isn't toxic at all!\n\nDo you want to learn more about our analysis? Click on the buttons below!", markup)
         elif 1 <= toxicity_score < 2.5:
             self._send_response_message(message, '🟡', channel_name, "has quite toxic content!\n\nDo you want to learn more about our analysis? Click on the buttons below!", markup)
