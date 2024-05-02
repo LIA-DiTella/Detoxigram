@@ -18,7 +18,11 @@ class explainer:
         self.cache_dir = os.path.dirname(os.path.abspath(__file__))
 
     
+<<<<<<< HEAD
+    def write_cache(self, user_id, channel_name, average_toxicity_score):
+=======
     def write_cache(self, user_id, chat_id, channel_name, average_toxicity_score):
+>>>>>>> 40204b00f6af24743e1a0c307a509864f63409e3
         cache_file_path = os.path.join(self.cache_dir, "explainer_cache.json")
         try:
             with open(cache_file_path, 'r') as cache_file:
@@ -26,7 +30,11 @@ class explainer:
         except FileNotFoundError:
             cache = {}
 
+<<<<<<< HEAD
+        cache[channel_name] = {
+=======
         cache[chat_id] = {
+>>>>>>> 40204b00f6af24743e1a0c307a509864f63409e3
             'user_id': user_id,
             'channel_name': channel_name,
             'average_toxicity_score': average_toxicity_score
@@ -144,7 +152,7 @@ class explainer:
                 print(output)
                 markup.add(new_analyze, toxicity_, go_back)
                 self.bot.reply_to(message, f'{output[0]}', reply_markup=markup, parse_mode='Markdown')
-                self.write_cache(user_id, state.last_channel_analyzed, toxicity, output[0])
+                self.write_cache(user_id, state.last_channel_analyzed, toxicity)
             else:
                 self.bot.reply_to(message, "Failed! Try with another channel!")
         else:
