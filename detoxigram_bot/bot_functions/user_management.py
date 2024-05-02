@@ -9,9 +9,9 @@ class user_state:
     def last_toxicity(self):
         if self.last_analyzed_toxicity < 1:
             return "🟢 Non-toxic"
-        elif 1 <= self.last_analyzed_toxicity < 2:
+        elif 1 <= self.last_analyzed_toxicity < 1.75:
             return "🟡 Slightly toxic"
-        elif 2 <= self.last_analyzed_toxicity < 3:
+        elif 1.75 <= self.last_analyzed_toxicity < 2.5:
             return "🟡 Moderately toxic"
         elif 2.5 <= self.last_analyzed_toxicity < 3.5:
             return "🔴 Highly toxic"

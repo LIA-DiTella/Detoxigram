@@ -55,11 +55,11 @@ class explainer:
         toxicity_ = types.InlineKeyboardButton('Toxicity dimensions 📊', callback_data='learn_more')
         if 0 <= toxicity < 1:
             toxicity = "Non-toxic"
-        elif toxicity >= 1 and toxicity < 2:
+        elif toxicity >= 1 and toxicity < 1.75:
             toxicity = "Slightly toxic"
-        elif 2 <= toxicity < 3:
+        elif 1.75 <= toxicity < 2.5:
             toxicity = "Moderately toxic"
-        elif 3 <= toxicity < 3.5:
+        elif 2.5 <= toxicity < 3.5:
             toxicity = "Highly toxic"
         else:
             toxicity = "Extremely toxic"
@@ -93,44 +93,46 @@ class explainer:
                     ###
                     EXAMPLES:
                     1. 🟢 Non-toxic example:
-                    '''📝 The channel features a range of topics including including political figures, community events, international politics and news updates. It highlights different initiatives like charity fundraisers, and even controversial issues are discussed in a respectful way.
-
-                    🟢 This channel maintains a Non-toxic environment by promoting constructive dialogue and community engagement. The messages are informative, encouraging, and inclusive, fostering positive interactions.
+                    '''🟢 This channel maintains a Non-toxic environment by promoting constructive dialogue and community engagement. The messages are informative, encouraging, and inclusive, fostering positive interactions.
+ 
+                    📝 The channel features a range of topics including including political figures, community events, international politics and news updates. It highlights different initiatives like charity fundraisers, and even controversial issues are discussed in a respectful way.
 
                     🗣 The discussions encourage members to participate actively and supportively. The atmosphere is friendly and welcoming, with a focus on building community ties and offering help where needed.'''
                     
                     2. 🟡 Slightly toxic example:
-                    '''📝 The messages cover various topics, including political figures, legal cases, media bias, and criminal investigations. They discuss Trump's media stock surge, RFK's VP announcement, and controversial court rulings.
-                     
-                    🟡 The channel exhibits a Slightly Toxic level due to the biased and emotionally charged comments present in the messages. 
+                    '''🟡 The channel exhibits a Slightly Toxic level due to the biased and emotionally charged comments present in the messages. 
 
+                    📝 The messages cover various topics, including political figures, legal cases, media bias, and criminal investigations. They discuss Trump's media stock surge, RFK's VP announcement, and controversial court rulings.
+                     
                     🗣 While the discussions involve political and legal events, there is a notable presence of aggressive language and negative portrayals of individuals and groups. The toxicity stems from the emotionally charged opinions expressed, potentially influencing a confrontational atmosphere.'''
 
                     3. 🟡 Moderately toxic example:
-                    '''📝 Topics discussed include sports, political debates, media bias, and social issues. Messages often focus on contentious subjects like immigration policy, gun control, and electoral reforms.
-
-                    🟡 The channel is Moderately Toxic due to frequent use of harsh language and occasional derogatory remarks towards specific groups or individuals. The tone is often confrontational, which may alienate some participants.
+                    '''🟡 The channel is Moderately Toxic due to frequent use of harsh language and occasional derogatory remarks towards specific groups or individuals. The tone is often confrontational, which may alienate some participants.
+                    
+                    📝 Topics discussed include sports, political debates, media bias, and social issues. Messages often focus on contentious subjects like immigration policy, gun control, and electoral reforms.
 
                     🗣 Discussions are heated and include strong criticisms of political figures and policies, with some users expressing frustration in hostile ways. The environment can be unwelcoming to those with differing viewpoints, leading to polarized discussions.'''
 
                     4. 🔴 Highly toxic example:
-                    '''📝 The discussions in this channel revolve around highly polarizing and sensitive topics such as religious conflicts, racial tensions, and extreme political views. It includes derogatory terms and insults targeted at specific groups.
-
-                    🔴 The channel displays a Highly Toxic level with frequent use of offensive language and clear contempt for individuals or groups based on their identity or beliefs. The conversations are marked by negativity and hostility.
+                    '''🔴 The channel displays a Highly Toxic level with frequent use of offensive language and clear contempt for individuals or groups based on their identity or beliefs. The conversations are marked by negativity and hostility.
+                     
+                    📝 The discussions in this channel revolve around highly polarizing and sensitive topics such as religious conflicts, racial tensions, and extreme political views. It includes derogatory terms and insults targeted at specific groups.
 
                     🗣 The tone is overtly aggressive, with users engaging in personal attacks and using insults to demean others. This kind of discourse creates a hostile environment that discourages constructive communication and could incite further conflict.'''
 
                     5. 🔴 Extremely toxic example:
-                    '''📝 This channel contains discussions that often escalate into threats and calls for violence against specific groups or individuals. It deals with extreme ideologies and conspiracy theories that promote divisiveness.
+                    '''🔴 The Extremely Toxic level of the channel is evident through the aggressive disrespect and threats made in the messages. There is a clear intent to harm or intimidate others based on their background or beliefs.
 
-                    🔴 The Extremely Toxic level of the channel is evident through the aggressive disrespect and threats made in the messages. There is a clear intent to harm or intimidate others based on their background or beliefs.
+                    📝 This channel contains discussions that often escalate into threats and calls for violence against specific groups or individuals. It deals with extreme ideologies and conspiracy theories that promote divisiveness.
 
                     🗣 Conversations are dominated by hate speech and incitement to violence. Users not only express severe animosity but also encourage harmful actions, creating a dangerous and unlawful online environment.'''
                      
                     ###
                     FORMAT EXAMPLE
-                    📝 [Summary]
-                    🟢(Non-toxic) / 🟡 (Slightly or Moderately toxic) / 🔴 (Highly or Extemely toxic) [Classification reason]
+                    🟢(Non-toxic) / 🟡 (Slightly or Moderately toxic) / 🔴 (Highly or Extemely toxic) + [Classification reason]
+                     
+                    📝 [Main topics discussed]
+                     
                     🗣 [Consequences for the user]
                      
                     [INST]"""),
@@ -139,7 +141,7 @@ class explainer:
 
                     <s>[INST]These are some of the channel messages: {filtered_messages}
 
-                    Mention the main topics discussed in the channel, then explain why the group of messages belongs to the classification {toxicity}. Finally explain the consequences for the user. Use 2 sentences for each paragraph. Remember to follow the format examples provided in the system prompt. Do your best, this is very important for my career. Be straightforward and concise. No yapping.[INST] 
+                    1- Mention the classification {toxicity} and explain the reason for that classification. 2- Mention the main topics discussed in the channel. 3- Finally explain the consequences for the user. Use 2 sentences for each paragraph. Remember to follow the format examples provided in the system prompt. Do your best, this is very important for my career. Be straightforward and concise. No yapping.[INST] 
 
                     """), 
                 ])
