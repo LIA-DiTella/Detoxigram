@@ -2,7 +2,8 @@ import time
 import telebot
 from telebot import types
 from urllib.parse import parse_qs, urlparse
-
+import json 
+import os
 class channel_analyzer:
 
     def __init__(self, bot, loop, formatter, hatebert, mistral, user_management):
@@ -13,7 +14,24 @@ class channel_analyzer:
         self.hatebert = hatebert
         self.mistral = mistral
         self.user_management = user_management
+        self.cache_dir = os.path.dirname(os.path.abspath(__file__))
 
+    def write_cache(self, chat_id, channel_name, average_toxicity_score):
+        cache_file_path = os.path.join(self.cache_dir, "channel_analyzer_cache.json")
+        try:
+            with open(cache_file_path, 'r') as cache_file:
+                cache = json.load(cache_file)
+        except (FileNotFoundError, json.JSONDecodeError):
+            cache = {}
+
+        cache[chat_id] = {
+            'channel_name': channel_name,
+            'average_toxicity_score': average_toxicity_score
+        }
+
+        with open(cache_file_path, 'w') as cache_file:
+            json.dump(cache, cache_file)
+            
     def _parse_channel_from_url(self, url):
 
         try:
@@ -65,12 +83,13 @@ class channel_analyzer:
 
         except (IndexError, ValueError) as e:
             self.bot.reply_to(message, "Oops! That is not a valid channel name. Try again! 🫣", reply_markup=markup_2)
+            print(e)
         except Exception as e:
             self.bot.reply_to(message, "Oops! Something went wrong 😞 Let's start over!", reply_markup=markup_2)
             print(e)
     
     def _analyze_channel_messages(self, message, channel_name, state, markup):
-
+        
         self.bot.reply_to(message, f"Got it! I will analyze {channel_name}... Please wait a moment 🙏")
         messages, response_time = self._fetch_and_process_messages(channel_name, state)
         state.update_channel_analysis(channel_name, messages)
@@ -103,15 +122,18 @@ class channel_analyzer:
         average_toxicity_score = self.hatebert.predict_average_toxicity_score(filtered_messages)
         state.last_analyzed_toxicity = average_toxicity_score
         self._send_toxicity_response(message, channel_name, average_toxicity_score, markup)
+        self.write_cache(message.chat.id, channel_name, average_toxicity_score)
+        
+
 
     def _send_toxicity_response(self, message, channel_name, toxicity_score, markup):
         print('The toxicity score for', channel_name,' is:', toxicity_score)
-        if toxicity_score < 1:
-            self._send_response_message(message, '🟢', channel_name, "doesn't seem to be toxic at all!\n\nDo you want to learn more about our analysis? Click on the buttons below!", markup)
-        elif 1 <= toxicity_score < 2:
-            self._send_response_message(message, '🟡', channel_name, "seems to have quite toxic content!\n\nDo you want to learn more about our analysis? Click on the buttons below!", markup)
-        elif 2 <= toxicity_score:
-            self._send_response_message(message, '🔴', channel_name, "seems to have really toxic content!\n\nDo you want to learn more about our analysis? Click on the buttons below!", markup)
+        if toxicity_score < 1.5:
+            self._send_response_message(message, '🟢', channel_name, "isn't toxic at all!\n\nDo you want to learn more about our analysis? Click on the buttons below!", markup)
+        elif 1 <= toxicity_score < 2.5:
+            self._send_response_message(message, '🟡', channel_name, "has quite toxic content!\n\nDo you want to learn more about our analysis? Click on the buttons below!", markup)
+        elif 2.5 <= toxicity_score:
+            self._send_response_message(message, '🔴', channel_name, "has really toxic content!\n\nDo you want to learn more about our analysis? Click on the buttons below!", markup)
 
     def _send_response_message(self, message, emoji, channel_name, assessment, markup):
         response_text = f"{emoji} Well, {channel_name} {assessment}"
@@ -131,3 +153,5 @@ class channel_analyzer:
             restart = types.InlineKeyboardButton('Restart 🔄', callback_data='restart')
             markup.add(analyze, restart)
         return markup
+    
+

@@ -23,7 +23,7 @@ from langchain_openai import ChatOpenAI
 from langchain_core.output_parsers import StrOutputParser
 import numpy as np
 from requests.exceptions import ReadTimeout, ConnectionError
-
+import json
 main.load_dotenv()
 print(os.getcwd())
 
@@ -57,6 +57,22 @@ go_back:types = types.InlineKeyboardButton('Restart 🔄', callback_data='restar
 help:types = types.InlineKeyboardButton('What can I do? 🛟', callback_data='help')
 more:types = types.InlineKeyboardButton('More options 👇', callback_data='more')
 detoxify:types = types.InlineKeyboardButton('Detoxify a message 📩', callback_data='detoxify')
+
+
+def write_cache(self, chat_id, channel_name, toxicity_vector, cache_dir=os.path.dirname(os.path.abspath(__file__))):
+        cache_file_path = os.path.join(cache_dir, "channel_analyzer_cache.json")
+        try:
+            with open(cache_file_path, 'r') as cache_file:
+                cache = json.load(cache_file)
+        except FileNotFoundError:
+            cache = {}
+
+        cache[chat_id] = {'channel_name': channel_name, 'toxicity vector': toxicity_vector}
+
+        with open(cache_file_path, 'w') as cache_file:
+            json.dump(cache, cache_file)
+            print("Cache updated successfully!")
+
 
 async def start_polling(bot, retry_delays):
     attempt = 0
@@ -140,16 +156,20 @@ Now, please provide the @ChannelName you would like to analyze 🤓''')
 
                 toxicity_vector = multibert.get_group_toxicity_distribution(state.last_chunk_of_messages)
                 
+                write_cache(user_id, state.last_channel_analyzed, toxicity_vector)
+                
                 keys_order = ['sarcastic', 'antagonize', 'generalisation', 'dismissive']
 
                 toxicity_vector = [toxicity_vector[key] for key in keys_order]
 
                 toxicity_graphic = group_toxicity_distribution_.get_toxicity_graph(state.last_channel_analyzed, toxicity_vector)
+                
+               
 
                 if os.path.exists(toxicity_graphic) and os.access(toxicity_graphic, os.R_OK):
                     markupLearnMore = types.InlineKeyboardMarkup(row_width=1)
                     markupLearnMore.add(explanation, go_back)
-                    bot.send_photo(callback.message.chat.id, open(toxicity_graphic, 'rb'))
+                    bot.send_photo(callback.message.chat.id, open(toxicity_graphic, 'rb'), markup=markupLearnMore)
                 else:
 
                     bot.send_message(callback.message.chat.id, "Oops! Something went wrong... I couldn't get the toxicity distribution of the channel 😔 Why don't we try again?")

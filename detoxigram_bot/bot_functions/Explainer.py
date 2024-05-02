@@ -2,7 +2,8 @@ import time
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from telebot import types
-
+import json
+import os
 
 class explainer:
     def __init__(self, bot, loop, formatter, mistral, bert, output_parser, user_management):
@@ -14,6 +15,25 @@ class explainer:
         self.output_parser = output_parser
         self.llm = mistral.chat
         self.user_management = user_management
+        self.cache_dir = os.path.dirname(os.path.abspath(__file__))
+
+    
+    def write_cache(self, chat_id, channel_name, average_toxicity_score):
+        cache_file_path = os.path.join(self.cache_dir, "explainer_cache.json")
+        try:
+            with open(cache_file_path, 'r') as cache_file:
+                cache = json.load(cache_file)
+        except FileNotFoundError:
+            cache = {}
+
+        cache[chat_id] = {
+            'channel_name': channel_name,
+            'average_toxicity_score': average_toxicity_score
+        }
+
+        with open(cache_file_path, 'w') as cache_file:
+            json.dump(cache, cache_file)
+            print("Cache updated successfully!")
 
     def explain(self, message):
         user_id = message.chat.id
@@ -123,7 +143,7 @@ class explainer:
                 print(output)
                 markup.add(new_analyze, toxicity_, go_back)
                 self.bot.reply_to(message, f'{output[0]}', reply_markup=markup, parse_mode='Markdown')
-
+                self.write_cache(user_id, state.last_channel_analyzed, toxicity, output[0])
             else:
                 self.bot.reply_to(message, "Failed! Try with another channel!")
         else:

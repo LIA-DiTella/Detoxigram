@@ -1,6 +1,6 @@
 from PIL import Image, ImageDraw, ImageFont
 import os
-
+import json
 class group_toxicity_distribution:
     def __init__(self):
         self.base_dir = os.path.dirname(__file__)
@@ -24,10 +24,10 @@ class group_toxicity_distribution:
             with Image.open(self.template_path) as img:
                 draw = ImageDraw.Draw(img)
                 
-                font_size = 36 * 3
+                font_size = 36 * 2.3
                 font = ImageFont.truetype(self.font_path, font_size)
                 
-                name_coords = (97, 240)
+                name_coords = (97, 270)
                 draw.text(name_coords, channel_name, font=font, fill='#DC312C')          
         
                 for value, (x1, y1, x2, y2) in zip(toxicity_vector, self.positions):
