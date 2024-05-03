@@ -18,11 +18,7 @@ class explainer:
         self.cache_dir = os.path.dirname(os.path.abspath(__file__))
 
     
-<<<<<<< HEAD
     def write_cache(self, user_id, channel_name, average_toxicity_score):
-=======
-    def write_cache(self, user_id, chat_id, channel_name, average_toxicity_score):
->>>>>>> 40204b00f6af24743e1a0c307a509864f63409e3
         cache_file_path = os.path.join(self.cache_dir, "explainer_cache.json")
         try:
             with open(cache_file_path, 'r') as cache_file:
@@ -30,11 +26,7 @@ class explainer:
         except FileNotFoundError:
             cache = {}
 
-<<<<<<< HEAD
         cache[channel_name] = {
-=======
-        cache[chat_id] = {
->>>>>>> 40204b00f6af24743e1a0c307a509864f63409e3
             'user_id': user_id,
             'channel_name': channel_name,
             'average_toxicity_score': average_toxicity_score
@@ -54,15 +46,15 @@ class explainer:
         new_analyze = types.InlineKeyboardButton('Analyze another channel 🔍', callback_data='analyze')
         toxicity_ = types.InlineKeyboardButton('Toxicity dimensions 📊', callback_data='learn_more')
         if 0 <= toxicity < 1:
-            toxicity = "Non-toxic"
+            toxicity = "🟢 Non-toxic"
         elif toxicity >= 1 and toxicity < 1.75:
-            toxicity = "Slightly toxic"
+            toxicity = "🟡 Slightly toxic"
         elif 1.75 <= toxicity < 2.5:
-            toxicity = "Moderately toxic"
+            toxicity = "🟡 Moderately toxic"
         elif 2.5 <= toxicity < 3.5:
-            toxicity = "Highly toxic"
+            toxicity = "🔴 Highly toxic"
         else:
-            toxicity = "Extremely toxic"
+            toxicity = "🔴 Extremely toxic"
 
         escala = '''
 
@@ -129,7 +121,7 @@ class explainer:
                      
                     ###
                     FORMAT EXAMPLE
-                    🟢(Non-toxic) / 🟡 (Slightly or Moderately toxic) / 🔴 (Highly or Extemely toxic) + [Classification reason]
+                    🟢 Non-toxic / 🟡 Slightly or Moderately toxic / 🔴 Highly or Extemely toxic + [Classification reason]
                      
                     📝 [Main topics discussed]
                      
@@ -141,7 +133,7 @@ class explainer:
 
                     <s>[INST]These are some of the channel messages: {filtered_messages}
 
-                    1- Mention the classification {toxicity} and explain the reason for that classification. 2- Mention the main topics discussed in the channel. 3- Finally explain the consequences for the user. Use 2 sentences for each paragraph. Remember to follow the format examples provided in the system prompt. Do your best, this is very important for my career. Be straightforward and concise. No yapping.[INST] 
+                    1- Mention the classification {toxicity} and explain the reason for that classification. 2- 📝 Mention the main topics discussed in the channel. 3- 🗣 Finally explain the consequences for the user. Use 2 sentences for each paragraph. Remember to follow the format examples provided in the system prompt. Do your best, this is very important for my career. Be straightforward and concise. No yapping.[INST] 
 
                     """), 
                 ])

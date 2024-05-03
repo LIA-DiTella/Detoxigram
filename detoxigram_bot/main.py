@@ -59,7 +59,7 @@ more:types = types.InlineKeyboardButton('More options 👇', callback_data='more
 detoxify:types = types.InlineKeyboardButton('Detoxify a message 📩', callback_data='detoxify')
 
 
-def write_cache(self, chat_id, channel_name, toxicity_vector, cache_dir=os.path.dirname(os.path.abspath(__file__))):
+def write_cache(user_id, channel_name, toxicity_vector, cache_dir=os.path.dirname(os.path.abspath(__file__))):
         cache_file_path = os.path.join(cache_dir, "channel_analyzer_cache.json")
         try:
             with open(cache_file_path, 'r') as cache_file:
@@ -67,7 +67,7 @@ def write_cache(self, chat_id, channel_name, toxicity_vector, cache_dir=os.path.
         except FileNotFoundError:
             cache = {}
 
-        cache[chat_id] = {'channel_name': channel_name, 'toxicity vector': toxicity_vector}
+        cache[channel_name] = {'channel_name': channel_name, 'toxicity vector': toxicity_vector}
 
         with open(cache_file_path, 'w') as cache_file:
             json.dump(cache, cache_file)
@@ -169,7 +169,7 @@ Now, please provide the @ChannelName you would like to analyze 🤓''')
                 if os.path.exists(toxicity_graphic) and os.access(toxicity_graphic, os.R_OK):
                     markupLearnMore = types.InlineKeyboardMarkup(row_width=1)
                     markupLearnMore.add(explanation, go_back)
-                    bot.send_photo(callback.message.chat.id, open(toxicity_graphic, 'rb'), markup=markupLearnMore)
+                    bot.send_photo(callback.message.chat.id, open(toxicity_graphic, 'rb'), reply_markup=markupLearnMore)
                 else:
 
                     bot.send_message(callback.message.chat.id, "Oops! Something went wrong... I couldn't get the toxicity distribution of the channel 😔 Why don't we try again?")
