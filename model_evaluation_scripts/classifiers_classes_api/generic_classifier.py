@@ -56,12 +56,6 @@ class Classifier:
 	def predict_average_toxicity_score(self, messages):
 		toxicity = 0
 		for txm in messages: toxicity = toxicity + self.predictToxicity(txm)[1]
-		print("self:", self)
-		print("NUEVO PRINT messages: ", (messages), "\n")
-		print("NUEVO PRINT toxicity: ", (toxicity), "\n")
-		print("NUEVO PRINT len(messages): ", len(messages), "\n")	
-		print("NUEVO PRINT average Toxicity: ", toxicity/len(messages), "\n")
-
 		return toxicity/len(messages)
 	
 

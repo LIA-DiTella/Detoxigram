@@ -11,6 +11,7 @@ import contextlib
 import bisect
 from .generic_classifier import Classifier
 from .hate_bert_classifier import hate_bert_classifier
+import threading
 
 
 from langchain_core.output_parsers import StrOutputParser
@@ -93,8 +94,35 @@ class mistral_classifier(Classifier):
 		if toxicity_score is not None and toxicity_score >= 2:
 			isToxic = True
 
-		print(input_message, "toxicity_score:", toxicity_score, "\n\n\n\n")
+		#print(input_message, "toxicity_score:", toxicity_score, "\n\n\n\n")
 		return isToxic, toxicity_score,
+
+
+	def concurrent_predict_toxicity(self, message, i, res, lock):
+		#solo para ser usada por la fución posterior
+		toxicity = self.predictToxicity(message)[1]
+		with lock:
+			res[i] = toxicity
+
+	def predict_average_toxicity_score(self, messages):
+	
+		res = [None] * len(messages)
+		threads = [None] * len(messages)
+		lock = threading.Lock()
+
+		for i in range(0, len(messages)):
+			threads[i] = threading.Thread(target=self.concurrent_predict_toxicity, args=( messages[i], i, res, lock))
+			threads[i].start()
+			if (i == 5): time.sleep(0.5)
+		
+		for i in range(0, len(messages)): threads[i].join()
+
+		average_toxicity = sum(res) / len(res)
+		return average_toxicity
+
+
+
+
 
 	def createPrompt(self, template_type):
 			"""

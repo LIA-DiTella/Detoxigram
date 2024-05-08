@@ -3,6 +3,7 @@ import random
 import string
 import sys
 import os
+import time
 from dotenv import main
 
 sys.path.append('..')
@@ -95,10 +96,27 @@ class Test_mixtral_Methods(unittest.TestCase):
         main.load_dotenv()
         MISTRAL_API_KEY:str = os.environ['MISTRAL_API_KEY']
         print("Inicializando Mistral")
-        cls.mistral = mistral_classifier(mistral_api_key=MISTRAL_API_KEY, templatetype='prompt_template_few_shot', toxicity_distribution_path = "../model_evaluation_scripts/classifiers_classes_api/toxicity_distribution_cache/mistral_distribution.json", calculate_toxicity_distribution = True )
+        cls.mistral = mistral_classifier(mistral_api_key=MISTRAL_API_KEY, templatetype='prompt_template_few_shot', toxicity_distribution_path = "../model_evaluation_scripts/classifiers_classes_api/toxicity_distribution_cache/mistral_distribution.json", calculate_toxicity_distribution = False )
     
-    def test_fake(self):
-        self.assertTrue(True)
+    def test_concurrency(self):
+        messages = ["i like chairs", "i hate u a lot", "i really dislike u", "i like chairs", "i hate u a lot", "i really dislike u", "i like chairs"]
+        
+        concurrent_time_start = time.time()
+        concurrent_answer = self.mistral.predict_average_toxicity_score(messages)
+        concurrent_time_end = time.time()
+        elapsed_time = concurrent_time_end - concurrent_time_start
+
+        print("Tiempo para predecir toxicidad de 10 mensajes de forma concurrente: ", elapsed_time, "segundos")
+
+        start_time = time.time()
+        none_concurrent_answer = 0
+        for i in range(0, len(messages)): none_concurrent_answer += self.mistral.predictToxicity(messages[i])[1]
+        none_concurrent_answer = none_concurrent_answer/len(messages)
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+        print("Tiempo para predecir toxicidad de 10 mensajes de forma no concurrente: ", elapsed_time, "segundos")
+        
+        self.assertEqual(concurrent_answer, none_concurrent_answer)
 
     def test_get_group_toxicity_distribution_high_toxicity(self):
         self.assertFalse(False)
