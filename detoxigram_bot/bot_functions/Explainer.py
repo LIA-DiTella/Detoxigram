@@ -182,19 +182,23 @@ class explainer:
                 
             2. **Slightly Toxic:**
             - Original Message: Now, please detoxify the following message which has a toxicity level of {toxicity}:[[["That's a naive way of looking at things, don't you think?"
-            - Output: This message is 🟡 Slightly Toxic due to its patronizing tone. A more respectful phrasing could be: "Could there be a more comprehensive way of looking at it?"
+            - Output: This message is 🟡 Slightly Toxic due to its patronizing tone. 
+            A more respectful phrasing could be: "Could there be a more comprehensive way of looking at it?"
 
             3. **Moderately Toxic:**
             - Original Message: Now, please detoxify the following message which has a toxicity level of {toxicity}:[[["People who believe that are living in a fantasy world."
-            - Output: This message is 🟡 Moderately Toxic because it dismisses others' beliefs. A less toxic version could be: "I find it hard to agree with that perspective, I think it's unrealistic."]]]
+            - Output: This message is 🟡 Moderately Toxic because it dismisses others' beliefs. 
+            A less toxic version could be: "I find it hard to agree with that perspective, I think it's unrealistic."]]]
 
             4. **Highly Toxic:**
             - Original Message: Now, please detoxify the following message which has a toxicity level of {toxicity}:[[["This is the dumbest idea I've ever heard."]]]
-            - Output: The message is 🔴 Highly Toxic due to its derogatory language. A constructive alternative might be: "I don't think that idea is the best approach at all."
+            - Output: The message is 🔴 Highly Toxic due to its derogatory language. 
+             A constructive alternative might be: "I don't think that idea is the best approach at all."
 
             5. **Extremely Toxic:**
             - Original Message: Now, please detoxify the following message which has a toxicity level of {toxicity}:[[["Anyone who supports this policy must be a complete idiot. We should kill them all, they don't deserve to exist."]]]
-            - Output: This message is 🔴 Extremely Toxic and offensive. A non-toxic rephrasing could be: "I'm surprised that there's support for this policy. I have a completely different point of view"[INST]
+            - Output: This message is 🔴 Extremely Toxic and offensive. 
+            A non-toxic rephrasing could be: "I'm surprised that there's support for this policy. I have a completely different point of view"[INST]
 
     """),
     ("user", "<s>[INST] Now, please detoxify the following message which has a toxicity level of {toxicity}: [[[ " + message.text + "]]][INST]")
