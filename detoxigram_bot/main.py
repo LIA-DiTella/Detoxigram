@@ -14,7 +14,7 @@ from telethon.tl.functions.messages import GetHistoryRequest
 from model_evaluation_scripts.classifiers_classes_api.hate_bert_classifier import hate_bert_classifier
 from model_evaluation_scripts.classifiers_classes_api.multi_bert_classifier import multi_bert_classifier
 from model_evaluation_scripts.classifiers_classes_api.mixtral_8x7b_API_classifier import mistral_classifier
-from bot_functions.Formater import formater
+from bot_functions.formater import formater
 from bot_functions.Explainer import explainer
 from bot_functions.group_toxicity_distribution.group_toxicity_distribution import group_toxicity_distribution
 from detoxigram_bot.bot_functions.channel_analyzer import channel_analyzer
@@ -122,21 +122,23 @@ What would you like to do?
         if callback.message:
             user_id = callback.message.chat.id
             state = user_manage.get_user_state(user_id) 
-            if callback.data == 'analyze':
+
+            if callback.data == 'analyze' and state.is_analyzing == False:
+                print(state.is_analyzing)
+                state.is_analyzing = True
                 bot.send_message(callback.message.chat.id, '''Great!\n\n
 Just so you know, when we evaluate the toxicity, we'll only consider the last 50 messages of the channel ⚠️\n\n
 Now, please provide the @ChannelName you would like to analyze 🤓''')
                 bot.register_next_step_handler(callback.message, channel_analyzer_.channel_classifier)
             
-            elif callback.data == 'explainer':
+            elif callback.data == 'explainer' and state.is_explaining == False:
                 print(state.last_channel_analyzed)
+                state.is_explaining = True
                 if state.last_channel_analyzed != None: 
                     bot.send_message(callback.message.chat.id, "After evaluating the content of {last_channel_analyzed}, we saw that this channel is {last_toxicity}. Now I will explain you why, it will take a few seconds 🕣".format(last_channel_analyzed = state.last_channel_analyzed, last_toxicity = state.last_toxicity ))                    
-                    
                     explainer_.explain(callback.message)
                 else:
                     bot.send_message(callback.message.chat.id, "I'm sorry, I don't have any channel to explain. Please analyze a channel first!")
-
 
             elif callback.data == 'help':
                 help_text:str = (
@@ -146,11 +148,12 @@ Now, please provide the @ChannelName you would like to analyze 🤓''')
                     "3. **Detoxify a Message:** Want to clean up a specific message? Use the 'Detoxify a message📩' option to send me a message you think is problematic. I'll offer a less toxic version, providing a cleaner, more respectful alternative.\n\n"
                     "Need more help or have any questions? Don't hesitate to reach out. You can contact us directly at malbaposse@mail.utdt.edu. We're here to help make your digital spaces safer! 🛡️\n\n"
                 )
-
                 help_markup = markup.add(analyze, explainer_, go_back, more)
                 bot.send_message(help_text, reply_markup=help_markup, parse_mode='Markdown')
 
-            elif callback.data == 'learn_more':
+            elif callback.data == 'learn_more' and state.is_toxicity_distribution == False:
+
+                state.is_toxicity_distribution = True
 
                 bot.send_message(callback.message.chat.id, "So... we've just classified the channel you sent. But, how does its toxicity stack up against the others we've analyzed?")
 
@@ -163,21 +166,23 @@ Now, please provide the @ChannelName you would like to analyze 🤓''')
                 toxicity_vector = [toxicity_vector[key] for key in keys_order]
 
                 toxicity_graphic = group_toxicity_distribution_.get_toxicity_graph(state.last_channel_analyzed, toxicity_vector)
-                
-               
 
                 if os.path.exists(toxicity_graphic) and os.access(toxicity_graphic, os.R_OK):
                     markupLearnMore = types.InlineKeyboardMarkup(row_width=1)
                     markupLearnMore.add(explanation, go_back)
                     bot.send_photo(callback.message.chat.id, open(toxicity_graphic, 'rb'), reply_markup=markupLearnMore)
+                    state.is_toxicity_distribution = False
+
                 else:
 
                     bot.send_message(callback.message.chat.id, "Oops! Something went wrong... I couldn't get the toxicity distribution of the channel 😔 Why don't we try again?")
                     markupLearnMore = types.InlineKeyboardMarkup(row_width=1)
                     markupLearnMore.add(go_back)
+                    state.is_toxicity_distribution = False
                 os.remove(toxicity_graphic)
-            
-            elif callback.data == 'detoxify':
+
+            elif callback.data == 'detoxify' and state.is_detoxifying == False:
+                state.is_detoxifying = True
                 bot.send_message(callback.message.chat.id, "Great! ⚠️ Now, please write a message you would like to detoxify 🤓")
                 bot.register_next_step_handler(callback.message, explainer_.detoxify_single_message)
             
@@ -190,7 +195,9 @@ Now, please provide the @ChannelName you would like to analyze 🤓''')
                 restart_markup = types.InlineKeyboardMarkup(row_width=1)
                 restart_markup.add(analyze, more)
                 bot.send_message(callback.message.chat.id, "Alright! What would you like to do now? 🤔", reply_markup=restart_markup)
-    
+
+            elif (callback.data == 'analyze' or callback.data == 'explainer' or callback.data == 'learn_more' or callback.data == 'detoxify') and (state.is_analyzing == True or state.is_explaining == True or state.is_toxicity_distribution == True or state.is_detoxifying == True):
+                bot.send_message(callback.message.chat.id, "I'm sorry, I'm still working on your last request! 🕣")
     await start_polling(bot, retry_delays)
 
 if __name__ == '__main__':

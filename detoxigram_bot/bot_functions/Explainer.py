@@ -151,9 +151,12 @@ class explainer:
                 self.bot.reply_to(message, "Failed! Try with another channel!")
         else:
             self.bot.reply_to(message, "Please provide a channel name!")
+        state.is_explaining = False
 
     def detoxify_single_message(self, message):
         self.bot.reply_to(message, "Let's see... 👀")
+        user_id = message.chat.id
+        state = self.user_management.get_user_state(user_id)
         markup = types.InlineKeyboardMarkup(row_width=1)
         detoxify_new = types.InlineKeyboardButton('Detoxify another message 📩', callback_data='detoxify')
         go_back = types.InlineKeyboardButton('Restart 🔄', callback_data='restart')
@@ -212,6 +215,6 @@ class explainer:
         print(output)
         markup.add(detoxify_new, go_back)
         self.bot.reply_to(message, f'{output[0]}', reply_markup=markup, parse_mode='Markdown')
-
+        state.is_detoxifying = False
         
     

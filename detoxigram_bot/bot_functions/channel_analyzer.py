@@ -4,6 +4,7 @@ from telebot import types
 from urllib.parse import parse_qs, urlparse
 import json 
 import os
+
 class channel_analyzer:
 
     def __init__(self, bot, loop, formatter, hatebert, mistral, user_management):
@@ -87,6 +88,8 @@ class channel_analyzer:
         except Exception as e:
             self.bot.reply_to(message, "Oops! Something went wrong 😞 Let's start over!", reply_markup=markup_2)
             print(e)
+        state.is_analyzing = False
+
     
     def _analyze_channel_messages(self, message, channel_name, state, markup):
         

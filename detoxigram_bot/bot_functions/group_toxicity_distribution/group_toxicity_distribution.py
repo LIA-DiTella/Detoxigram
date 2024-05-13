@@ -58,3 +58,4 @@ class group_toxicity_distribution:
             print(f"Error opening image files: {e}")
         except Exception as e:
             print(f"An unexpected error occurred while creating the toxicity distribution: {e}")
+
