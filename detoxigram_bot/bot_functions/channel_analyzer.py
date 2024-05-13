@@ -4,6 +4,7 @@ from telebot import types
 from urllib.parse import parse_qs, urlparse
 import json 
 import os
+
 class channel_analyzer:
 
     def __init__(self, bot, loop, formatter, hatebert, mistral, user_management):
@@ -87,19 +88,20 @@ class channel_analyzer:
         except Exception as e:
             self.bot.reply_to(message, "Oops! Something went wrong 😞 Let's start over!", reply_markup=markup_2)
             print(e)
+        state.is_analyzing = False
+
     
     def _analyze_channel_messages(self, message, channel_name, state, markup):
         
         self.bot.reply_to(message, f"Got it! I will analyze {channel_name}... Please wait a moment 🙏")
         messages, response_time = self._fetch_and_process_messages(channel_name, state)
         state.update_channel_analysis(channel_name, messages)
-        print(messages)
-        self._reply_based_on_response_time(message, response_time)
 
         if(state.is_testing): 
             self.bot.reply_to(message, f"It took {response_time} seconds to acces 50 messages via Telegram API")
 
         if messages: 
+            self._reply_based_on_response_time(message, response_time)
             self._classify_messages(messages, state, message, channel_name, markup)
         else:
             self.bot.reply_to(message, "No messages found in the specified channel! Why don't we start again?", reply_markup=markup)
@@ -115,11 +117,11 @@ class channel_analyzer:
 
     def _reply_based_on_response_time(self, message, response_time):
 
-        if response_time > 10:
-            self.bot.reply_to(message, "It took a while to get the messages, but I've got them! Now give me a second to check for toxicity in the channel 🕣")
+        if response_time > 50:
+            self.bot.reply_to(message, "That took longer than expected... Now give me a second to check for toxicity in the channel 🕣")
         else:
-            self.bot.reply_to(message, "I've got the messages! Now give me a few seconds to check for toxicity in the channel... 🕵️‍♂️")
-
+            return
+        
     def _classify_messages(self, messages, state, message, channel_name, markup):
         filtered_messages = self.hatebert.get_most_toxic_messages(messages)
         average_toxicity_score = self.mistral.predict_average_toxicity_score(filtered_messages)
