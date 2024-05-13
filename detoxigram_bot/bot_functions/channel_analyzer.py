@@ -96,6 +96,9 @@ class channel_analyzer:
         print(messages)
         self._reply_based_on_response_time(message, response_time)
 
+        if(self.user_management.get_user_state.is_testing)_: 
+            self.bot.reply_to(message, f"It took {response_time} seconds to acces 50 messages via Telegram API")
+
         if messages: 
             self._classify_messages(messages, state, message, channel_name, markup)
         else:
@@ -125,7 +128,6 @@ class channel_analyzer:
         self._send_toxicity_response(message, channel_name, average_toxicity_score, markup)
         self.write_cache(message.chat.id, channel_name, average_toxicity_score)
         
-
 
     def _send_toxicity_response(self, message, channel_name, toxicity_score, markup):
         print('The toxicity score for', channel_name,' is:', toxicity_score)

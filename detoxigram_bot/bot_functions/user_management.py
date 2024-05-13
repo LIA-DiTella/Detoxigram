@@ -1,6 +1,7 @@
 class user_state:
     def __init__(self):
         self.is_detoxifying = False
+        self.is_testing = False
         self.last_analyzed_toxicity = 0
         self.last_channel_analyzed = None
         self.last_chunk_of_messages = None

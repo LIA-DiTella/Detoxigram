@@ -102,8 +102,15 @@ async def main():
 
     channel_analyzer_:channel_analyzer = channel_analyzer(bot, loop, formatter, hatebert=hatebert, mistral=mistral, user_management=user_manage)
     explainer_:explainer = explainer(bot, loop, formatter, mistral, hatebert,  StrOutputParser(), user_management = user_manage)
+    
+    @bot.message_handler(command="\testing")
+    def activate_testing(message):
+        user_id = message.chat.id
+        state = user_management.get_user_state(user_id)
+        state.is_testing = True
 
     @bot.message_handler(func=lambda message: message.text is not None and (re.search(r'ho+la+', message.text.lower()) or any(greeting in message.text.lower() for greeting in greetings) or (re.search(r'he+llo+', message.text.lower())) or (re.search(r'he+y+', message.text.lower())) or message.text.startswith('/start')))
+    
     def handle_greeting(message):
         username = message.from_user.first_name
         markup_start_hello = types.InlineKeyboardMarkup(row_width=1)
