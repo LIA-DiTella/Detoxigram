@@ -96,7 +96,7 @@ class channel_analyzer:
         print(messages)
         self._reply_based_on_response_time(message, response_time)
 
-        if(self.user_management.get_user_state.is_testing)_: 
+        if(state.is_testing): 
             self.bot.reply_to(message, f"It took {response_time} seconds to acces 50 messages via Telegram API")
 
         if messages: 
