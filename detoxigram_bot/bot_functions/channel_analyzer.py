@@ -98,7 +98,7 @@ class channel_analyzer:
         state.update_channel_analysis(channel_name, messages)
 
         if(state.is_testing): 
-            self.bot.reply_to(message, f"It took {response_time} seconds to acces 50 messages via Telegram API")
+            self.bot.reply_to(message, f"It took {response_time} seconds to access 50 messages via Telegram API.")
 
         if messages: 
             self._reply_based_on_response_time(message, response_time)
@@ -109,11 +109,17 @@ class channel_analyzer:
     def _fetch_and_process_messages(self, channel_name, state):
 
         start = time.time()
-        messages = self.formatter.process_messages(self.loop.run_until_complete(self.formatter.fetch(channel_name)))
+        if state.is_testing and False:
+            f = open(f"../dataset/new_dataset/{channel_name}_processed.json")
+            pre_processed_messages = json.load(f)
+            messages = [m["message"] for message in pre_processed_messages]
+        else:
+            messages = self.formatter.process_messages(self.loop.run_until_complete(self.formatter.fetch(channel_name)))
+
 
         end = time.time()
         state.last_chunk_of_messages = messages
-        return messages, end - start
+        return messages, round((end - start), 2)
 
     def _reply_based_on_response_time(self, message, response_time):
 
@@ -123,8 +129,16 @@ class channel_analyzer:
             return
         
     def _classify_messages(self, messages, state, message, channel_name, markup):
+        start_time = time.time()
         filtered_messages = self.hatebert.get_most_toxic_messages(messages)
+        filter_messages_time = time.time()
+
         average_toxicity_score = self.mistral.predict_average_toxicity_score(filtered_messages)
+        predict_toxicity_time = time.time()
+
+        if(state.is_testing):
+             self.bot.reply_to(message, f"It took {round(filter_messages_time - start_time, 2)} seconds to get the 10 most toxic messages and {round(predict_toxicity_time - filter_messages_time, 2)} seconds to check how toxic they are.")
+
         state.last_analyzed_toxicity = average_toxicity_score
         print("average toxicity:", average_toxicity_score)
         self._send_toxicity_response(message, channel_name, average_toxicity_score, markup)

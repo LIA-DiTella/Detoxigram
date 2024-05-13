@@ -113,7 +113,7 @@ class mistral_classifier(Classifier):
 		for i in range(0, len(messages)):
 			threads[i] = threading.Thread(target=self.concurrent_predict_toxicity, args=( messages[i], i, res, lock))
 			threads[i].start()
-			if (i == 5): time.sleep(0.5)
+			if (i == 4): time.sleep(0.5)
 		
 		for i in range(0, len(messages)): threads[i].join()
 

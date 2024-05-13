@@ -15,7 +15,7 @@ class formater:
         channel_entity = await self.client.get_entity(channel_name)
         posts = await self.client(GetHistoryRequest(
             peer=channel_entity,
-            limit=100,
+            limit=50,
             offset_date=None,
             offset_id=0,
             max_id=0,
