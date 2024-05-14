@@ -24,6 +24,8 @@ from langchain_core.output_parsers import StrOutputParser
 import numpy as np
 from requests.exceptions import ReadTimeout, ConnectionError
 import json
+
+
 main.load_dotenv()
 print(os.getcwd())
 
@@ -118,14 +120,18 @@ async def main():
         username = message.from_user.first_name
         markup_start_hello = types.InlineKeyboardMarkup(row_width=1)
         markup_start_hello.add(analyze, detoxify, help)
-        bot.reply_to(message, '''Hello {username} and welcome to Detoxigram! 👋
-I'm here to help you to identify toxicity in your telegram channels, so you can make an informed choice in the content you consume and share 🤖
+        bot.reply_to(message, '''Hello {username} and welcome to Detoxigram! 👋\n
+I'm here to help you to identify toxicity in your telegram channels, so you can make an informed choice in the content you consume and share 🤖\n
 What would you like to do?
 '''.format(username = username), reply_markup=markup_start_hello)
     
     @bot.message_handler(func=lambda message: (message.text is not None and message.text.startswith('/end')) or (message.text is not None and message.text.lower() == 'goodbye') or (message.text is not None and message.text.lower() == 'bye') or (message.text is not None and message.text.lower() == 'exit') or (message.text is not None and message.text.lower() == 'quit') or (message.text is not None and message.text.lower() == 'stop') or (message.text is not None and message.text.lower() == 'end'))
     def handle_goodbye(message):
         bot.reply_to(message, "Goodbye! 👋 If you need anything else, just say hi!")
+    
+    @bot.message_handler(func=lambda message: message.text)
+    def handle_random_message(message):
+        bot.send_message(message.chat.id, "Please select one of the options to continue!", reply_markup=markup)
     
     @bot.callback_query_handler(func=lambda call: True)
     def answer(callback:CallbackQuery) -> None:
@@ -139,8 +145,8 @@ What would you like to do?
                 else:
                     state.is_analyzing = True
                     bot.send_message(callback.message.chat.id, '''Great!\n\n
-    Just so you know, when we evaluate the toxicity, we'll only consider the last 50 messages of the channel ⚠️\n\n
-    Now, please provide the @ChannelName you would like to analyze 🤓''')
+Just so you know, when we evaluate the toxicity, we'll only consider the last 50 messages of the channel ⚠️\n\n
+Now, please provide the @ChannelName you would like to analyze 🤓''')
                     bot.register_next_step_handler(callback.message, channel_analyzer_.channel_classifier)
                 
             elif callback.data == 'explainer' and state.is_explaining == False:
@@ -171,7 +177,7 @@ What would you like to do?
                     else: 
                         state.is_toxicity_distribution = True
 
-                        bot.send_message(callback.message.chat.id, "So... we've just classified the channel you sent. But, how does its toxicity stack up against the others we've analyzed?")
+                        bot.send_message(callback.message.chat.id, "We've just classified the channel you sent, now I will show you which are the most common toxic behaviors in this channel 📊 Give me some seconds...")
 
                         toxicity_vector = multibert.get_group_toxicity_distribution(state.last_chunk_of_messages)
                         
@@ -211,10 +217,14 @@ What would you like to do?
                 bot.send_message(callback.message.chat.id, "Here are some more options! 🤓", reply_markup=more_markup)
             
             elif callback.data == 'restart':
+                state.is_analyzing = False
+                state.is_explaining = False
+                state.is_toxicity_distribution = False
+                state.is_detoxifying = False
+
                 restart_markup = types.InlineKeyboardMarkup(row_width=1)
                 restart_markup.add(analyze, more)
                 bot.send_message(callback.message.chat.id, "Alright! What would you like to do now? 🤔", reply_markup=restart_markup)
-
             elif (callback.data == 'analyze' or callback.data == 'explainer' or callback.data == 'learn_more' or callback.data == 'detoxify') and (state.is_analyzing == True or state.is_explaining == True or state.is_toxicity_distribution == True or state.is_detoxifying == True):
                 bot.send_message(callback.message.chat.id, "I'm sorry, I'm still working on your last request! 🕣")
     await start_polling(bot, retry_delays)

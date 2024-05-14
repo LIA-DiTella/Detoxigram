@@ -72,9 +72,10 @@ class channel_analyzer:
         self.bot.register_next_step_handler(message, self.handle_next_channel_name)
 
     def channel_classifier(self, message):
-
         user_id = message.chat.id
         state = self.user_management.get_user_state(user_id)
+        if not state.is_analyzing:
+            return
         markup = self._get_base_markup('basic')
         markup_2 = self._get_base_markup('exception')
 
