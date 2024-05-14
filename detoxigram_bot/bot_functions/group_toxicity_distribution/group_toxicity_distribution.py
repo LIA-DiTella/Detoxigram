@@ -90,10 +90,3 @@ class group_toxicity_distribution:
         except Exception as e:
             print(f"Error generating image: {e}")
 
-
-# # ejemplo
-gtd = group_toxicity_distribution()
-channel_name = 'channel_name'
-toxicity_vector = [0.2, 0.9, 0.8, 0.8]
-gtd.get_toxicity_graph(channel_name, toxicity_vector)
-
