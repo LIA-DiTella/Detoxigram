@@ -83,6 +83,21 @@ class Test_hate_bert_Methods(unittest.TestCase):
         most_toxic_messages = self.hatebert.get_most_toxic_messages(messages)
         self.assertTrue("I am a black deaf woman" not in most_toxic_messages)
 
+    def test_batching_and_none_batch_is_the_same(self):
+        toxic_messages = ["i do not like deaf black woman" for i in range(0, 10)]
+        messages = ["I am a black deaf woman"] + toxic_messages
+        most_toxic_messages_batch = self.hatebert.get_most_toxic_messages(messages)
+        most_toxic_messages_none_batch = self.hatebert.get_most_toxic_messages_none_batch(messages)
+
+        self.assertTrue(most_toxic_messages_batch == most_toxic_messages_none_batch)
+
+    def test_batching_and_none_batch_is_the_same_II(self):
+        messages = [''.join(random.choices(string.ascii_uppercase + string.digits, k=15)) for i in range(0, 15)]
+        most_toxic_messages_batch = self.hatebert.get_most_toxic_messages(messages)
+        most_toxic_messages_none_batch = self.hatebert.get_most_toxic_messages_none_batch(messages)
+        print(most_toxic_messages_batch)
+        self.assertTrue(most_toxic_messages_batch == most_toxic_messages_none_batch)
+
     def test_predict_average_toxicity_scores(self):
         toxic_messages = ["I hate u", "i love u"]
         a = self.hatebert.predictToxicity(toxic_messages[0])[1]
