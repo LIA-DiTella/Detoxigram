@@ -84,17 +84,20 @@ class mistral_classifier(Classifier):
 
 		chain = prompt | llm | output_parser
 		
-		output = chain.batch([{"message": input_message}])[0]
+		#este catch es para salvarnos de un rate exceeded en mistral
+		try:
+			output = chain.batch([{"message": input_message}])[0]
+		except:
+			time.sleep(1)
+			output = chain.batch([{"message": input_message}])[0]
+
 		toxicity_score = None 
 		match = re.search(r'\d+', output)
-		try:
-			if match and match.group(0).isdigit: # Agregué el isdigit porque a veces el match no es un número
-				toxicity_score = int(match.group(0))
-			print(toxicity_score)
-		except Exception as e:
+		if not (match and match.group(0).isdigit): # Agregué el isdigit porque a veces el match no es un número
 			time.sleep(5)
-			print(e)
 			return self.predictToxicity(input_message)
+					
+		toxicity_score = int(match.group(0))
 		
 		isToxic = False
 		if toxicity_score is not None and toxicity_score >= 2:
