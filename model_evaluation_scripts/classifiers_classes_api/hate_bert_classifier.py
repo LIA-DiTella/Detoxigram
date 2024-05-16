@@ -1,5 +1,5 @@
 from datasets import load_dataset
-from transformers import BertTokenizer, BertModel, BertForSequenceClassification
+from transformers import BertTokenizer, BertModel, BertForSequenceClassification, BertTokenizerFast
 import torch
 import torch.nn.functional as F
 import json
@@ -11,7 +11,7 @@ from .generic_classifier import Classifier
 class hate_bert_classifier(Classifier):
 	def __init__(self, model_path, verbosity = False):
 		self.model = BertForSequenceClassification.from_pretrained(model_path)
-		self.tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
+		self.tokenizer = BertTokenizerFast.from_pretrained("bert-base-uncased")
 		self.verbosity = verbosity
 
 	def predictToxicity(self, input_message):
@@ -46,6 +46,25 @@ class hate_bert_classifier(Classifier):
 		for i in range(0, len(probas)):
 			if torch.argmax(probas[i]).item() == 1: res.append(self.tokenizer.decode(input_ids["input_ids"][i][1:-1], skip_special_tokens = True))
 		return res
+
+	def get_most_toxic_messages(self, messages):
+		toxicity_levels = []
+		tokenized_messages = self.tokenizer(messages, return_tensors='pt', padding = True)
+		outputs = self.model(**tokenized_messages)
+		logits = outputs.logits
+		probabilities = F.softmax(logits, dim=1)
+
+		for i in range(0 ,len(messages)):
+			toxicity_levels.append((messages[i], probabilities[i, 1].item()))
+
+		#sort list of tuples by second element of tuple
+		sorted_messages = sorted(toxicity_levels, key = lambda d : d[1])[-10:]
+		 #me quedo solo con los mensajes
+		message_list = list(map(lambda x: x[0], sorted_messages))
+		return message_list
+	
+	def get_most_toxic_messages_none_batch(self, messages):
+		return super().get_most_toxic_messages(messages)
 		
 #bert_classifier = hate_bert_classificator("toxigen_hatebert", verbosity = True)
 #bert_classifier.predictToxicityFile('Benjaminnorton_processed.json')
