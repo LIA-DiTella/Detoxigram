@@ -87,8 +87,14 @@ class mistral_classifier(Classifier):
 		output = chain.batch([{"message": input_message}])[0]
 		toxicity_score = None 
 		match = re.search(r'\d+', output)
-		if match:
-			toxicity_score = int(match.group(0))
+		try:
+			if match and match.group(0).isdigit: # Agregué el isdigit porque a veces el match no es un número
+				toxicity_score = int(match.group(0))
+			print(toxicity_score)
+		except Exception as e:
+			time.sleep(5)
+			print(e)
+			return self.predictToxicity(input_message)
 		
 		isToxic = False
 		if toxicity_score is not None and toxicity_score >= 2:
@@ -102,7 +108,9 @@ class mistral_classifier(Classifier):
 		#solo para ser usada por la fución posterior
 		toxicity = self.predictToxicity(message)[1]
 		with lock:
-			res[i] = toxicity
+				res[i] = toxicity
+
+
 
 	def predict_average_toxicity_score(self, messages):
 	
@@ -111,7 +119,7 @@ class mistral_classifier(Classifier):
 		lock = threading.Lock()
 
 		for i in range(0, len(messages)):
-			threads[i] = threading.Thread(target=self.concurrent_predict_toxicity, args=( messages[i], i, res, lock))
+			threads[i] = threading.Thread(target=self.concurrent_predict_toxicity, args=(messages[i], i, res, lock))
 			threads[i].start()
 			if (i == 4): time.sleep(0.5)
 		

@@ -149,15 +149,19 @@ class channel_analyzer:
     def _send_toxicity_response(self, message, channel_name, toxicity_score, markup):
         print('The toxicity score for', channel_name,' is:', toxicity_score)
         if toxicity_score < 1:
-            self._send_response_message(message, '🟢', channel_name, "isn't toxic at all!\n\nDo you want to learn more about our analysis? Click on the buttons below!", markup)
-        elif 1 <= toxicity_score < 2.5:
-            self._send_response_message(message, '🟡', channel_name, "has quite toxic content!\n\nDo you want to learn more about our analysis? Click on the buttons below!", markup)
-        elif 2.5 <= toxicity_score:
-            self._send_response_message(message, '🔴', channel_name, "has really toxic content!\n\nDo you want to learn more about our analysis? Click on the buttons below!", markup)
+            self._send_response_message(message, '🟢', channel_name, "__Non-toxic__",markup)
+        elif 1 <= toxicity_score < 1.75:
+            self._send_response_message(message, '🟡', channel_name,"__Slightly toxic__" ,markup)
+        elif 1.75 <= toxicity_score < 2.5:
+            self._send_response_message(message, '🟠', channel_name, "__Moderately toxic__",markup)
+        elif 2.5 <= toxicity_score < 3.5:
+            self._send_response_message(message, '🔴', channel_name, "__Highly toxic__", markup)
+        else:
+            self._send_response_message(message, '🔴', channel_name, "__Extremely toxic__", markup)
 
-    def _send_response_message(self, message, emoji, channel_name, assessment, markup):
-        response_text = f"{emoji} Well, {channel_name} {assessment}"
-        self.bot.send_message(message.chat.id, response_text, reply_markup=markup)
+    def _send_response_message(self, message, emoji, channel_name, answer, markup): 
+        response_text = f"{channel_name} is: {emoji} {answer} \n\nDo you want to learn more about our analysis? Click on the buttons below! 👀"
+        self.bot.send_message(message.chat.id, response_text, reply_markup=markup, parse_mode='markdown')
 
     def _get_base_markup(self, marktype):
         if marktype == 'basic':

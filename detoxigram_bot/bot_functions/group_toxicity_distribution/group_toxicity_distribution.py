@@ -35,7 +35,7 @@ class group_toxicity_distribution:
         }
 
     def get_toxicity_image(self, toxicity_level, dimension):
-        if toxicity_level < 0.25:
+        if toxicity_level < 0.15:
             return self.gauge_images[f'ok_{dimension}']
         elif toxicity_level < 0.50:
             return self.gauge_images[f'moderately_{dimension}']
@@ -44,21 +44,20 @@ class group_toxicity_distribution:
         else:
             return self.gauge_images[f'highly_{dimension}']
 
-    def get_robot_image(self, toxicity_vector):
-        ok_count = sum(1 for level in toxicity_vector if level < 0.25)
-        moderately_count = sum(1 for level in toxicity_vector if 0.25 <= level < 0.75)
-        highly_count = sum(1 for level in toxicity_vector if level >= 0.75)
-        
-        if ok_count == 4 or (ok_count == 3 and moderately_count == 1) or (ok_count == 2 and moderately_count == 2):
+    def get_robot_image(self, toxicity_vector, toxicity):
+
+        if toxicity < 1:
             return self.robot_images['green']
-        elif (ok_count == 3 and highly_count == 1) or (ok_count == 2 and moderately_count == 1 and highly_count == 1) or (moderately_count == 3 and ok_count == 1):
+        elif 1 <= toxicity < 1.75:
             return self.robot_images['yellow']
-        elif (moderately_count == 4) or (moderately_count == 3 and highly_count == 1) or (ok_count == 2 and highly_count == 2) or (ok_count == 1 and moderately_count == 2 and highly_count == 1):
+        elif 1.75 <= toxicity < 2.5:
             return self.robot_images['orange']
+        elif 2.5 <= toxicity < 3.5:
+            return self.robot_images['red']
         else:
             return self.robot_images['red']
 
-    def get_toxicity_graph(self, channel_name, toxicity_vector):
+    def get_toxicity_graph(self, channel_name, toxicity_vector,toxicity):
         try:
             with Image.open(self.template_path) as img:
                 draw = ImageDraw.Draw(img)
@@ -77,7 +76,7 @@ class group_toxicity_distribution:
                     img.paste(toxicity_image, (x, y), toxicity_image)
 
                 # Add robot image
-                robot_image_path = self.get_robot_image(toxicity_vector)
+                robot_image_path = self.get_robot_image(toxicity_vector, toxicity)
                 robot_image = Image.open(os.path.join(self.base_dir, robot_image_path))
                 img.paste(robot_image, (65, 100), robot_image)
 
@@ -89,11 +88,3 @@ class group_toxicity_distribution:
 
         except Exception as e:
             print(f"Error generating image: {e}")
-
-
-# # ejemplo
-gtd = group_toxicity_distribution()
-channel_name = 'channel_name'
-toxicity_vector = [0.2, 0.9, 0.8, 0.8]
-gtd.get_toxicity_graph(channel_name, toxicity_vector)
-

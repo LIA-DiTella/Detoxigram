@@ -23,6 +23,7 @@ from langchain_openai import ChatOpenAI
 from langchain_core.output_parsers import StrOutputParser
 import numpy as np
 from requests.exceptions import ReadTimeout, ConnectionError
+from transformers import pipeline
 import json
 
 
@@ -50,7 +51,12 @@ bot:telebot = telebot.TeleBot(BOT_TOKEN)
 if bot:  # Check if the bot is running
     print('Bot token loaded, Detoxigram is live 🚀')
 
-greetings = ['holis', 'holaaaa', 'hey', 'hi', 'hello', 'good morning', 'hellooo', 'good afternoon', 'good evening', 'good night', 'good day', r'ho+la+', r'he+llo+', r'he+y+', r'a+lo+', r'ho+li+', r'ho+lo+', r'ho+li+']
+classifier = pipeline("text-classification", model="Falconsai/intent_classification")
+
+def is_greeting(message):
+    greetings = ['holis', 'hola', 'hey', r'ho+la+', r'he+llo+', r'he+y+', r'a+lo+', r'ho+li+', r'ho+li+']
+    result = classifier(message)
+    return (result[0]['label'] == 'speak to person' or any(greeting in message.lower() for greeting in greetings))
 
 markup:types = types.InlineKeyboardMarkup(row_width=1)
 explanation:types = types.InlineKeyboardButton('Explain me 👀', callback_data='explainer')
@@ -74,7 +80,6 @@ def write_cache(user_id, channel_name, toxicity_vector, cache_dir=os.path.dirnam
         with open(cache_file_path, 'w') as cache_file:
             json.dump(cache, cache_file)
             print("Cache updated successfully!")
-
 
 async def start_polling(bot, retry_delays):
     attempt = 0
@@ -114,8 +119,7 @@ async def main():
         if (state.is_testing): bot.reply_to(message, f"Entering testing mode. I will now output some internal information, and i will now work on downloaded channels.")
         else: bot.reply_to(message, f"Leaving testing mode.")
 
-    @bot.message_handler(func=lambda message: message.text is not None and (re.search(r'ho+la+', message.text.lower()) or any(greeting in message.text.lower() for greeting in greetings) or (re.search(r'he+llo+', message.text.lower())) or (re.search(r'he+y+', message.text.lower())) or message.text.startswith('/start')))
-    
+    @bot.message_handler(func=lambda message: is_greeting(message.text) is True)
     def handle_greeting(message):
         username = message.from_user.first_name
         markup_start_hello = types.InlineKeyboardMarkup(row_width=1)
@@ -125,13 +129,21 @@ I'm here to help you to identify toxicity in your telegram channels, so you can 
 What would you like to do?
 '''.format(username = username), reply_markup=markup_start_hello)
     
-    @bot.message_handler(func=lambda message: (message.text is not None and message.text.startswith('/end')) or (message.text is not None and message.text.lower() == 'goodbye') or (message.text is not None and message.text.lower() == 'bye') or (message.text is not None and message.text.lower() == 'exit') or (message.text is not None and message.text.lower() == 'quit') or (message.text is not None and message.text.lower() == 'stop') or (message.text is not None and message.text.lower() == 'end'))
+    @bot.message_handler(func=lambda message: (message.text is not None and message.text.startswith('/end')) or (message.text in r'bye+'))
     def handle_goodbye(message):
+        state = user_manage.get_user_state(message.chat.id)
+        state.is_analyzing = False
+        state.is_explaining = False
+        state.is_toxicity_distribution = False
+        state.is_detoxifying = False
         bot.reply_to(message, "Goodbye! 👋 If you need anything else, just say hi!")
     
     @bot.message_handler(func=lambda message: message.text)
     def handle_random_message(message):
-        bot.send_message(message.chat.id, "Please select one of the options to continue!", reply_markup=markup)
+        username = message.from_user.first_name
+        markup = types.InlineKeyboardMarkup(row_width=1)
+        markup.add(analyze, detoxify, help)
+        bot.send_message(message.chat.id, "Mmm... I'm not sure what that means, {username}. Would any of these options be helpful? 😁".format(username = username), reply_markup=markup)
     
     @bot.callback_query_handler(func=lambda call: True)
     def answer(callback:CallbackQuery) -> None:
@@ -177,7 +189,7 @@ Now, please provide the @ChannelName you would like to analyze 🤓''')
                     else: 
                         state.is_toxicity_distribution = True
 
-                        bot.send_message(callback.message.chat.id, "We've just classified the channel you sent, now I will show you which are the most common toxic behaviors in this channel 📊 Give me some seconds...")
+                        bot.send_message(callback.message.chat.id, "We've just classified the channel you sent, now I will show the way in which this channel is toxic 📊 Give me a second...")
 
                         toxicity_vector = multibert.get_group_toxicity_distribution(state.last_chunk_of_messages)
                         
@@ -187,7 +199,7 @@ Now, please provide the @ChannelName you would like to analyze 🤓''')
 
                         toxicity_vector = [toxicity_vector[key] for key in keys_order]
 
-                        toxicity_graphic = group_toxicity_distribution_.get_toxicity_graph(state.last_channel_analyzed, toxicity_vector)
+                        toxicity_graphic = group_toxicity_distribution_.get_toxicity_graph(state.last_channel_analyzed, toxicity_vector, state.last_analyzed_toxicity)
 
                         if os.path.exists(toxicity_graphic) and os.access(toxicity_graphic, os.R_OK):
                             markupLearnMore = types.InlineKeyboardMarkup(row_width=1)
