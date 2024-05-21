@@ -165,8 +165,17 @@ class explainer:
         detoxify_new = types.InlineKeyboardButton('Detoxify another message 📩', callback_data='detoxify')
         go_back = types.InlineKeyboardButton('Restart 🔄', callback_data='restart')
         toxicity_result = self.mistral.predictToxicity(message.text)
-        _, toxicity_score = toxicity_result
-        toxicity_score = str(toxicity_score)
+        _, toxicity = toxicity_result
+        if 0 <= toxicity < 1:
+            toxicity = "🟢 Non-toxic"
+        elif toxicity >= 1 and toxicity < 1.75:
+            toxicity = "🟡 Slightly toxic"
+        elif 1.75 <= toxicity < 2.5:
+            toxicity = "🟡 Moderately toxic"
+        elif 2.5 <= toxicity < 3.5:
+            toxicity = "🔴 Highly toxic"
+        else:
+            toxicity = "🔴 Extremely toxic"
         prompt_template = ChatPromptTemplate.from_messages([
     ("system", """<s>[INST] You are a moderator of online content, your task is to detoxify and provide non-toxic alternatives for messages, if they are found to be toxic. If the message only contains instuls, say: "This message has no informative content and is simply an insult, therefore, there's no relevant information here to detoxify." Keep your rephrasing as close to the original message as possible.
 
@@ -179,43 +188,43 @@ class explainer:
             4. **Extremely Toxic:** Messages are aggressively disrespectful, with threats or calls to violent action.
 
             **Task:**
-            Revise the provided message. If the message is 🟡 Slightly Toxic, 🟡 Moderately Toxic,  🔴 Highly Toxic, or 🔴 Extremely Toxic, suggest a rephrased non-toxic version that conveys the meaning of the original message in a more respectful and positive manner. Maintain the intention of the original message DO NOT add phrases like "I'd be interested in discussing this further" if the user didn't say that. 
+            Revise the provided message. If the message is 🟡 Slightly Toxic, 🟡 Moderately Toxic,  🔴 Highly Toxic, or 🔴 Extremely Toxic, suggest a rephrased non-toxic version that conveys the meaning of the original message in a more respectful and positive manner. Maintain the intention of the original message DO NOT add phrases like "I'd be interested in discussing this further" if the user didn't say that. Always answer in 2 paragraphs.
 
             **Examples of detoxification:**
 
             1. **Non-toxic:**
-            - Original Message: Now, please detoxify the following message which has a toxicity level of {toxicity}: [[["I appreciate your perspective and would like to discuss this further."]]]
-            - Output: This message is 🟢 Non-toxic. It promotes a respectful and open dialogue.
+                - User Message: '''Now, please detoxify the following message which has a toxicity level of 🟢 Non-toxic: [[["I appreciate your perspective and would like to discuss this further."]]]'''
+                - Output: '''This message is 🟢 Non-toxic. It promotes a respectful and open dialogue.'''
                 
             2. **Slightly Toxic:**
-            - Original Message: Now, please detoxify the following message which has a toxicity level of {toxicity}:[[["That's a naive way of looking at things, don't you think?"]]]
-            - Output: This message is 🟡 Slightly Toxic due to its patronizing tone. 
-     
-            A more respectful phrasing could be: "Could there be a more comprehensive way of looking at it?"
+                - User Message: '''Now, please detoxify the following message which has a toxicity level of 🟡 Slightly Toxic: [[["That's a naive way of looking at things, don't you think?"]]]'''
+                - Output: '''This message is 🟡 Slightly Toxic due to its patronizing tone. 
+        
+                A more respectful phrasing could be: "Could there be a more comprehensive way of looking at it?"'''
 
             3. **Moderately Toxic:**
-            - Original Message: Now, please detoxify the following message which has a toxicity level of {toxicity}:[[["People who believe that are living in a fantasy world."]]]
-            - Output: This message is 🟡 Moderately Toxic because it dismisses others' beliefs. 
-            
-            A less toxic version could be: "I find it hard to agree with that perspective, I think it's unrealistic."
+                - User Message: '''Now, please detoxify the following message which has a toxicity level of 🟡 Moderately toxic: [[["People who believe that are living in a fantasy world."]]]'''
+                - Output: '''This message is 🟡 Moderately Toxic because it dismisses others' beliefs.
+                
+                A less toxic version could be: "I find it hard to agree with that perspective, I think it's unrealistic."'''
 
             4. **Highly Toxic:**
-            - Original Message: Now, please detoxify the following message which has a toxicity level of {toxicity}:[[["This is the dumbest idea I've ever heard."]]]
-            - Output: The message is 🔴 Highly Toxic due to its derogatory language. 
-            
-            A constructive alternative might be: "I don't think that idea is the best approach at all."
+                - User Message: '''Now, please detoxify the following message which has a toxicity level of 🔴 Highly Toxic: [[["This is the dumbest idea I've ever heard."]]]'''
+                - Output: '''The message is 🔴 Highly Toxic due to its derogatory language.
+        
+                A constructive alternative might be: "I don't think that idea is the best approach at all."'''
 
             5. **Extremely Toxic:**
-            - Original Message: Now, please detoxify the following message which has a toxicity level of {toxicity}:[[["Anyone who supports this policy must be a complete idiot. We should kill them all, they don't deserve to exist."]]]
-            - Output: This message is 🔴 Extremely Toxic and offensive. 
-            
-            A non-toxic rephrasing could be: "I'm surprised that there's support for this policy. I have a completely different point of view"[INST]
+                - User Message: '''Now, please detoxify the following message which has a toxicity level of 🔴 Extremely Toxic: [[["Anyone who supports this policy must be a complete idiot. We should kill them all, they don't deserve to exist."]]]'''
+                - Output: '''This message is 🔴 Extremely Toxic and offensive.
+        
+                A non-toxic rephrasing could be: "I'm surprised that there's support for this policy. I have a completely different point of view"'''[INST]
 
     """),
     ("user", "<s>[INST] Now, please detoxify the following message which has a toxicity level of {toxicity}: [[[ " + message.text + "]]][INST]")
 ])
         chain = prompt_template | self.llm | self.output_parser
-        output = chain.batch([{toxicity_score}])
+        output = chain.batch([{'toxicity': toxicity}])
         print(output)
         markup.add(detoxify_new, go_back)
         self.bot.reply_to(message, f'{output[0]}', reply_markup=markup, parse_mode='Markdown')

@@ -24,7 +24,7 @@ from langchain_mistralai.chat_models import ChatMistralAI
 class mistral_large_classifier(Classifier):
     def __init__(self, templatetype, verbosity = False):
         self.mistral_api_key= os.getenv('MISTRAL_API_KEY')
-        self.chat = ChatMistralAI(model= "mistral-large-latest", mistral_api_key= self.mistral_api_key)
+        self.chat = ChatMistralAI(model= "mistral-large-latest", mistral_api_key= self.mistral_api_key, temperature= 0)
         self.verbosity = verbosity
         self.templatetype = templatetype
         

@@ -119,7 +119,7 @@ async def main():
         if (state.is_testing): bot.reply_to(message, f"Entering testing mode. I will now output some internal information, and i will now work on downloaded channels.")
         else: bot.reply_to(message, f"Leaving testing mode.")
 
-    @bot.message_handler(func=lambda message: is_greeting(message.text) is True)
+    @bot.message_handler(func=lambda message: (is_greeting(message.text) is True) or message.text == '/start') 
     def handle_greeting(message):
         username = message.from_user.first_name
         markup_start_hello = types.InlineKeyboardMarkup(row_width=1)
@@ -189,7 +189,7 @@ Now, please provide the @ChannelName you would like to analyze 🤓''')
                     else: 
                         state.is_toxicity_distribution = True
 
-                        bot.send_message(callback.message.chat.id, "We've just classified the channel you sent, now I will show the way in which this channel is toxic 📊 Give me a second...")
+                        bot.send_message(callback.message.chat.id, "We've just classified the channel you sent. I will send you a more detailed analysis of the channel shortly 📊")
 
                         toxicity_vector = multibert.get_group_toxicity_distribution(state.last_chunk_of_messages)
                         

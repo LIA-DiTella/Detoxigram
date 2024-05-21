@@ -27,7 +27,7 @@ class mistral_classifier(Classifier):
 
 	def __init__(self, mistral_api_key, templatetype, toxicity_distribution_path, calculate_toxicity_distribution = False, verbosity = False):
 		self.mistral_api_key= mistral_api_key
-		self.chat = ChatMistralAI(model= "open-mixtral-8x7b", mistral_api_key= self.mistral_api_key)
+		self.chat = ChatMistralAI(model= "open-mixtral-8x7b", mistral_api_key= self.mistral_api_key, temperature= 0)
 		self.verbosity = verbosity
 		self.templatetype = templatetype
 		self.toxicity_distribution_path = toxicity_distribution_path
