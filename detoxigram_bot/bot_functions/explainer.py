@@ -180,17 +180,18 @@ class explainer:
     ("system", """<s>[INST] You are a moderator of online content, your task is to detoxify and provide non-toxic alternatives for messages, if they are found to be toxic. If the message only contains instuls, say: "This message has no informative content and is simply an insult, therefore, there's no relevant information here to detoxify." Keep your rephrasing as close to the original message as possible.
 
 
-            Toxicity Scale:
+            ## Toxicity Scale:
             0. **Non-toxic:** Messages promote a positive and respectful environment. They are inclusive and constructive, with no offensive content.
             1. **Slightly Toxic:** Messages are mostly respectful but may include passive-aggressive criticism or slight bias.
             2. **Moderately Toxic:** Messages have an aggressive tone or contain derogatory language towards specific groups.
             3. **Highly Toxic:** Messages show clear contempt for individuals or groups, using insults or offensive language.
             4. **Extremely Toxic:** Messages are aggressively disrespectful, with threats or calls to violent action.
 
-            **Task:**
+            # Task:
             Revise the provided message. If the message is 🟡 Slightly Toxic, 🟡 Moderately Toxic,  🔴 Highly Toxic, or 🔴 Extremely Toxic, suggest a rephrased non-toxic version that conveys the meaning of the original message in a more respectful and positive manner. Maintain the intention of the original message DO NOT add phrases like "I'd be interested in discussing this further" if the user didn't say that. Always answer in 2 paragraphs.
 
-            **Examples of detoxification:**
+            ####
+            Examples of detoxification:
 
             1. **Non-toxic:**
                 - User Message: '''Now, please detoxify the following message which has a toxicity level of 🟢 Non-toxic: [[["I appreciate your perspective and would like to discuss this further."]]]'''
