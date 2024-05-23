@@ -52,7 +52,7 @@ class explainer:
         elif toxicity >= 1 and toxicity < 1.75:
             toxicity = "🟡 Slightly toxic"
         elif 1.75 <= toxicity < 2.5:
-            toxicity = "🟡 Moderately toxic"
+            toxicity = "🟠 Moderately toxic"
         elif 2.5 <= toxicity < 3.5:
             toxicity = "🔴 Highly toxic"
         else:
@@ -100,8 +100,8 @@ class explainer:
                      
                     🗣 While the discussions involve political and legal events, there is a notable presence of aggressive language and negative portrayals of individuals and groups. The toxicity stems from the emotionally charged opinions expressed, potentially influencing a confrontational atmosphere.'''
 
-                    3. 🟡 Moderately toxic example:
-                    '''🟡 The channel is Moderately Toxic due to frequent use of harsh language and occasional derogatory remarks towards specific groups or individuals. The tone is often confrontational, which may alienate some participants.
+                    3. 🟠 Moderately toxic example:
+                    '''🟠 The channel is Moderately Toxic due to frequent use of harsh language and occasional derogatory remarks towards specific groups or individuals. The tone is often confrontational, which may alienate some participants.
                     
                     📝 Topics discussed include sports, political debates, media bias, and social issues. Messages often focus on contentious subjects like immigration policy, gun control, and electoral reforms.
 
@@ -123,7 +123,7 @@ class explainer:
                      
                     ###
                     FORMAT EXAMPLE
-                    🟢 Non-toxic / 🟡 Slightly or Moderately toxic / 🔴 Highly or Extemely toxic + [Classification reason]
+                    🟢 Non-toxic / 🟡 Slightly toxic / 🟠 Moderately toxic / 🔴 Highly or Extemely toxic + [Classification reason]
                      
                     📝 [Main topics discussed]
                      
@@ -171,7 +171,7 @@ class explainer:
         elif toxicity >= 1 and toxicity < 1.75:
             toxicity = "🟡 Slightly toxic"
         elif 1.75 <= toxicity < 2.5:
-            toxicity = "🟡 Moderately toxic"
+            toxicity = "🟠 Moderately toxic"
         elif 2.5 <= toxicity < 3.5:
             toxicity = "🔴 Highly toxic"
         else:
@@ -205,7 +205,7 @@ class explainer:
 
             3. **Moderately Toxic:**
                 - User Message: '''Now, please detoxify the following message which has a toxicity level of 🟡 Moderately toxic: [[["People who believe that are living in a fantasy world."]]]'''
-                - Output: '''This message is 🟡 Moderately Toxic because it dismisses others' beliefs.
+                - Output: '''This message is 🟠 Moderately Toxic because it dismisses others' beliefs.
                 
                 A less toxic version could be: "I find it hard to agree with that perspective, I think it's unrealistic."'''
 
@@ -220,7 +220,7 @@ class explainer:
                 - Output: '''This message is 🔴 Extremely Toxic and offensive.
         
                 A non-toxic rephrasing could be: "I'm surprised that there's support for this policy. I have a completely different point of view"'''[INST]
-
+                
     """),
     ("user", "<s>[INST] Now, please detoxify the following message which has a toxicity level of {toxicity}: [[[ " + message.text + "]]][INST]")
 ])
