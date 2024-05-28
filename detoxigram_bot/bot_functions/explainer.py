@@ -123,7 +123,7 @@ class explainer:
                      
                     ###
                     FORMAT EXAMPLE
-                    🟢 Non-toxic / 🟡 Slightly toxic / 🟠 Moderately toxic / 🔴 Highly or Extemely toxic + [Classification reason]
+                    {toxicity} + [Classification reason]
                      
                     📝 [Main topics discussed]
                      
