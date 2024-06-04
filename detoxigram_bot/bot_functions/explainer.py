@@ -123,7 +123,7 @@ class explainer:
                      
                     ###
                     FORMAT EXAMPLE
-                    {toxicity} + [Classification reason]
+                    {toxicity}: [Classification reason]
                      
                     📝 [Main topics discussed]
                      
