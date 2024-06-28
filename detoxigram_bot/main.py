@@ -33,8 +33,6 @@ print(os.getcwd())
 BOT_TOKEN:str = os.environ.get('BOT_TOKEN')
 API_ID_TELEGRAM:str = os.environ.get('API_ID')
 API_HASH_TELEGRAM:str = os.environ.get('API_HASH')
-OPENAI_API_KEY:str = os.environ['OPENAI_API_KEY']
-GOOGLE_CLOUD_API_KEY:str = os.environ['GOOGLE_CLOUD_API_KEY']
 MISTRAL_API_KEY:str = os.environ['MISTRAL_API_KEY']
 
 hatebert:hate_bert_classifier = hate_bert_classifier('../model_evaluation_scripts/classifiers_classes_api/toxigen_hatebert', verbosity=True)
