@@ -6,7 +6,7 @@ flask_app = flask.Flask(__name__)
 
 wa = WhatsApp(
     phone_id='388552330998694',
-    token='EAAGRBKRIRZCsBOyDNlxXOs7sJkf8MnYRVIdVuC4laEng4eIy2A3Ui6gNNFO2ZBYSNGx6nuZC4JRd5tNZASQlZBLldVZCZAfpt8XqXBr9iduZAlxxOflrxf4638WZAwDQXA4ntPhaVWGQ5OQgeQL1KL7U6U1anM5vWTo548Kp67SQnJBqH1bo0S5zZBo6ZBR8FOQ70bYZBGblVcprbHE6gDZAHIn4ZD',
+    token='...',
     server=flask_app,
     verify_token='xyzxyz',
 )
