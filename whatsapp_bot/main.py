@@ -5,7 +5,7 @@ from pywa.types import Message
 flask_app = flask.Flask(__name__)
 
 wa = WhatsApp(
-    phone_id='388552330998694',
+    phone_id='...',
     token='...',
     server=flask_app,
     verify_token='xyzxyz',
