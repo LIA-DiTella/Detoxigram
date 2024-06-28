@@ -27,7 +27,7 @@ class mistral_classifier(Classifier):
 
 	def __init__(self, mistral_api_key, templatetype, toxicity_distribution_path, calculate_toxicity_distribution = False, verbosity = False):
 		self.mistral_api_key= mistral_api_key
-		self.chat = ChatMistralAI(model= "open-mixtral-8x7b", mistral_api_key= self.mistral_api_key, temperature= 0)
+		self.chat = ChatMistralAI(model= "open-mixtral-8x7b", mistral_api_key= self.mistral_api_key, temperature= 0, timeout = 30)
 		self.verbosity = verbosity
 		self.templatetype = templatetype
 		self.toxicity_distribution_path = toxicity_distribution_path
@@ -61,7 +61,7 @@ class mistral_classifier(Classifier):
 			average_toxicity = self.predict_average_toxicity_score(most_toxic_messages) #promedio segun mixtral	
 			print(average_toxicity)
 			detected_toxicity.append(average_toxicity)
-		print(detected_toxicity)
+		print(detected_toxicity["message"])
 		detected_toxicity.sort()
 		return detected_toxicity
 	
@@ -83,14 +83,17 @@ class mistral_classifier(Classifier):
 		prompt = self.createPrompt((self.templatetype))
 
 		chain = prompt | llm | output_parser
-		
 		#este catch es para salvarnos de un rate exceeded en mistral
 		try:
 			output = chain.batch([{"message": input_message}])[0]
-		except:
-			time.sleep(1)
-			output = chain.batch([{"message": input_message}])[0]
-
+		except Exception as e:
+			if e == ("ReadTimeout"):
+				print("Mistral has detected high level of toxicity in this message")
+				output = "4"
+			else:
+				##TODO handelear esta excepcion mejor
+				output = "4"
+	
 		toxicity_score = None 
 		match = re.search(r'\d+', output)
 		if not (match and match.group(0).isdigit): # Agregué el isdigit porque a veces el match no es un número
