@@ -35,6 +35,19 @@ class Classifier:
 		message_list = list(map(lambda x: x[0], sorted_messages))
 		return message_list
 	
+	def get_most_toxic_messages_and_average_score(self, messages):
+		toxicity_levels = []
+		for message in messages:
+			toxicity_levels.append((message, self.predictToxicity(message)[1]))
+		
+		#sort list of tuples by second element of tuple
+		sorted_messages = sorted(toxicity_levels, key = lambda d : d[1])[-10:]
+		 #me quedo solo con los mensajes
+		message_list = list(map(lambda x: x[0], sorted_messages))
+		average_scores = sum(list(map(lambda x: x[1], sorted_messages))) / len(list(map(lambda x: x[1], sorted_messages)))
+
+		return message_list, average_scores
+	
 	def get_most_toxic_messages_file(self, file):
 		script_dir = os.path.dirname(os.path.realpath(__file__))
 		relative_path = os.path.join('..', '..', 'dataset/new_dataset', file)

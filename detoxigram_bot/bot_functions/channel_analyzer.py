@@ -132,10 +132,10 @@ class channel_analyzer:
     def _classify_messages(self, messages, state, message, channel_name, markup):
         start_time = time.time()
         print(f"Estamos analizando {len(messages)} mensajes")
-        filtered_messages = self.hatebert.get_most_toxic_messages_none_batch(messages)
+        filtered_messages, average_toxicity_score = self.mistral.get_most_toxic_messages_and_average_score(messages)
         filter_messages_time = time.time()
 
-        average_toxicity_score = self.mistral.predict_average_toxicity_score(filtered_messages)
+        #average_toxicity_score = self.mistral.predict_average_toxicity_score(filtered_messages)
         predict_toxicity_time = time.time()
 
         if(state.is_testing):
