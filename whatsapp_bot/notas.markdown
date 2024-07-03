@@ -30,7 +30,7 @@ The key's randomart image is:
 bla bla
 
 
-y despues corres: ssh -i ~/.ssh/id_rsa -R detoxigram.serveo.net:80:localhost:8080 serveo.net
+y despues corres: ssh -i /.ssh/id_rsa -R detoxigram.serveo.net:80:localhost:8080 serveo.net
 
 ahi te va a pedir q te registres  con google y te va a dar un link para verificar tu cuenta.
 
