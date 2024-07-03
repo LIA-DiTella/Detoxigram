@@ -48,30 +48,28 @@ class explainer:
         new_analyze = types.InlineKeyboardButton('Analyze another channel 🔍', callback_data='analyze')
         toxicity_ = types.InlineKeyboardButton('Toxicity dimensions 📊', callback_data='learn_more')
         if 0 <= toxicity < 1:
-            toxicity = "🟢 Non-toxic"
+            toxicity = "🟢 Tranqui panki, no es toxi"
         elif toxicity >= 1 and toxicity < 1.75:
-            toxicity = "🟡 Slightly toxic"
+            toxicity = "🟡 Un toque toxi"
         elif 1.75 <= toxicity < 2.5:
-            toxicity = "🟠 Moderately toxic"
+            toxicity = "🟠 Toxi"
         elif 2.5 <= toxicity < 3.5:
-            toxicity = "🔴 Highly toxic"
+            toxicity = "🔴 Zarpado en toxi"
         else:
-            toxicity = "🔴 Extremely toxic"
+            toxicity = "🔴 Recontra pasado de toxi, se fue de tema mal"
 
         escala = '''
+                    ESCALA DE TOXICIDAD:
 
-                    Toxicity Scale:
+                    0. **Tranqui panki, no es toxi:** Mensaje que fomenta un entorno positivo, respetuoso e integrador, promoviendo la amabilidad y el entendimiento mutuo. Se valoran las opiniones y perspectivas de todos, contribuyendo a un diálogo constructivo sin descalificaciones personales ni contenidos ofensivos. Puede contener información objetiva o neutral.
 
-                    0. **Non-toxic:** Message that encourages a positive, respectful, and inclusive environment, promoting kindness and mutual understanding. The opinions and perspectives of everyone are valued, contributing to constructive dialogue without personal disqualifications or offensive content. It may contain objective or neutral information.
+                    1. **Un toque toxi:** Mensaje que, aunque mayoritariamente respetuoso, puede incluir críticas o desacuerdos expresados de forma pasivo-agresiva o ligeramente tendenciosa. No ataca directamente a personas o grupos, y la intención de causar daño no está clara, pero sugiere una falta de aprecio por el punto de vista de los demás.
 
-                    1. **Slightly Toxic:** Message that, although mostly respectful, may include criticism or disagreements expressed in a passive-aggressive or slightly biased manner. It does not directly attack individuals or groups, and the intention to cause harm is not clear, but it suggests a lack of appreciation for the viewpoint of others.
+                    2. **Toxi:** Mensaje con tono agresivo o irrespetuoso, que puede incluir sarcasmo, ironía o lenguaje despectivo hacia determinados colectivos por su género, etnia, orientación sexual, ideología o religión. Aunque no ataca violentamente, busca herir, ridiculizar o menospreciar a los demás, mostrando un rechazo hacia la diversidad de opiniones y personas.
 
-                    2. **Moderately Toxic:** Message with an aggressive or disrespectful tone, which may include sarcasm, irony, or derogatory language towards certain groups by gender, ethnicity, sexual orientation, ideology, or religion. Although it does not attack violently, it seeks to hurt, ridicule, or belittle others, showing a rejection towards the diversity of opinions and people.
+                    3. **Zarpado en toxi:** Mensaje que demuestra un claro rechazo y desprecio hacia personas o grupos, utilizando insultos, referencias racistas, sexistas, misóginas, degradantes o deshumanizadoras. Ataca a grupos por su sexo, etnia, orientación sexual, ideología o religión. Este lenguaje ofensivo busca intimidar, excluir o incitar al odio, mostrando una intención explícita de causar daño.
 
-                    3. **Highly Toxic:** Message that demonstrates a clear rejection and contempt for individuals or groups, using insults, racist, sexist, misogynist, degrading, or dehumanizing references. It attacks groups by their gender, ethnicity, sexual orientation, ideology, or religion. This offensive language seeks to intimidate, exclude, or incite hatred, showing an explicit intention to cause harm.
-
-                    4. **Extremely Toxic:** Message that is not only explicitly aggressive and disrespectful but also contains threats or calls to violent action. It attacks groups by their gender, ethnicity, sexual orientation, ideology, or religion. Promotes hostility, incitement to hatred, and suggests harmful consequences in the real world against individuals or groups, violating ethical and moral principles and endangering the safety and well-being of people.
-                    
+                    4. **Recontra pasado de toxi, se fue de tema mal:** Mensaje que no sólo es explícitamente agresivo e irrespetuoso, sino que además contiene amenazas o llamadas a la acción violenta. Ataca a grupos por su sexo, etnia, orientación sexual, ideología o religión. Promueve la hostilidad, la incitación al odio y sugiere consecuencias perjudiciales en el mundo real contra individuos o grupos, violando principios éticos y morales y poniendo en peligro la seguridad y el bienestar de las personas.                   
                     '''
         if state.last_channel_analyzed:            
             if len(state.last_chunk_of_messages) > 0:
@@ -80,62 +78,59 @@ class explainer:
 
                 prompt_template = ChatPromptTemplate.from_messages([
                     ("system","""
-                    <s>[INST] Your task is to explain why a channel has been classified as {toxicity}. According to the following scale: {escala}.
+                    <s>[INST] Su tarea consiste en explicar por qué un canal ha sido clasificado como {toxicity}, de acuerdo con la siguiente escala: {escala}.
 
-                    The user will provide you a few example messages extracted from the group and the classification you must endorse and explain.
+                    El usuario te proporcionará unos mensajes de ejemplo extraídos del grupo y la clasificación que debes apoyar y explicar.
                     
                     ###
-                    EXAMPLES:
-                    1. 🟢 Non-toxic example:
-                    '''🟢 This channel maintains a Non-toxic environment by promoting constructive dialogue and community engagement. The messages are informative, encouraging, and inclusive, fostering positive interactions.
+                    EJEMPLOS:
+                    1. 🟢 Ejemplo Tranqui panki, no es toxi:
+                    '''🟢 Este canal mantiene un ambiente Tranqui panki, no es toxi promoviendo el diálogo constructivo y la participación de la comunidad. Los mensajes son informativos, alentadores e inclusivos, fomentando interacciones positivas.
  
-                    📝 The channel features a range of topics including including political figures, community events, international politics and news updates. It highlights different initiatives like charity fundraisers, and even controversial issues are discussed in a respectful way.
+                    📝 El canal presenta una serie de temas que incluyen figuras políticas, eventos comunitarios, política internacional y noticias de última hora. Destaca distintas iniciativas, como recaudaciones de fondos para obras benéficas, e incluso se debaten temas controvertidos de forma respetuosa.
 
-                    🗣 The discussions encourage members to participate actively and supportively. The atmosphere is friendly and welcoming, with a focus on building community ties and offering help where needed.'''
+                    🗣 Los debates animan a los miembros a participar de forma activa y solidaria. El ambiente es cordial y acogedor, y se centra en crear lazos comunitarios y ofrecer ayuda cuando es necesario.''
                     
-                    2. 🟡 Slightly toxic example:
-                    '''🟡 The channel exhibits a Slightly Toxic level due to the biased and emotionally charged comments present in the messages. 
+                    2. 🟡 Ejemplo Un toque toxi:
+                    '''🟡 El canal exhibe un nivel Un toque toxi debido a los comentarios tendenciosos y con carga emocional presentes en los mensajes. 
 
-                    📝 The messages cover various topics, including political figures, legal cases, media bias, and criminal investigations. They discuss Trump's media stock surge, RFK's VP announcement, and controversial court rulings.
-                     
-                    🗣 While the discussions involve political and legal events, there is a notable presence of aggressive language and negative portrayals of individuals and groups. The toxicity stems from the emotionally charged opinions expressed, potentially influencing a confrontational atmosphere.'''
-
-                    3. 🟠 Moderately toxic example:
-                    '''🟠 The channel is Moderately Toxic due to frequent use of harsh language and occasional derogatory remarks towards specific groups or individuals. The tone is often confrontational, which may alienate some participants.
+                    📝 Los mensajes cubren varios temas, incluyendo figuras políticas, casos legales, sesgo de los medios e investigaciones criminales. Hablan de la subida de Trump en los medios, del anuncio de RFK como vicepresidente y de sentencias judiciales controvertidas.
                     
-                    📝 Topics discussed include sports, political debates, media bias, and social issues. Messages often focus on contentious subjects like immigration policy, gun control, and electoral reforms.
+                    🗣 Aunque las discusiones versan sobre acontecimientos políticos y jurídicos, hay una notable presencia de lenguaje agresivo y descripciones negativas de personas y grupos. La toxicidad se deriva de las opiniones cargadas de emotividad que se expresan, lo que puede influir en un ambiente de confrontación.'''
 
-                    🗣 Discussions are heated and include strong criticisms of political figures and policies, with some users expressing frustration in hostile ways. The environment can be unwelcoming to those with differing viewpoints, leading to polarized discussions.'''
+                    3. 🟠 Ejemplo toxi:
+                    '''🟠 El canal es toxi debido al uso frecuente de un lenguaje soez y a ocasionales comentarios despectivos hacia grupos o individuos específicos. El tono suele ser de confrontación, lo que puede alejar a algunos participantes.
+                    
+                    📝 Entre los temas tratados figuran los deportes, los debates políticos, la parcialidad de los medios de comunicación y las cuestiones sociales. Los mensajes suelen centrarse en temas polémicos como la política de inmigración, el control de armas y las reformas electorales.
 
-                    4. 🔴 Highly toxic example:
-                    '''🔴 The channel displays a Highly Toxic level with frequent use of offensive language and clear contempt for individuals or groups based on their identity or beliefs. The conversations are marked by negativity and hostility.
+                    🗣 Los debates son acalorados e incluyen fuertes críticas a figuras políticas y políticas, y algunos usuarios expresan su frustración de forma hostil. El ambiente puede ser poco acogedor para quienes tienen puntos de vista diferentes, lo que lleva a discusiones polarizadas.'''
+                    4. 🔴 Ejemplo Zarpado en toxi:
+                    '''🔴 El canal muestra un nivel Zarpado en toxi con uso frecuente de lenguaje ofensivo y claro desprecio hacia personas o grupos en función de su identidad o creencias. Las conversaciones están marcadas por la negatividad y la hostilidad.
                      
-                    📝 The discussions in this channel revolve around highly polarizing and sensitive topics such as religious conflicts, racial tensions, and extreme political views. It includes derogatory terms and insults targeted at specific groups.
+                    📝 Las discusiones en este canal giran en torno a temas muy polarizantes y delicados, como conflictos religiosos, tensiones raciales y opiniones políticas extremas. Incluye términos despectivos e insultos dirigidos a grupos específicos.
 
-                    🗣 The tone is overtly aggressive, with users engaging in personal attacks and using insults to demean others. This kind of discourse creates a hostile environment that discourages constructive communication and could incite further conflict.'''
-
-                    5. 🔴 Extremely toxic example:
-                    '''🔴 The Extremely Toxic level of the channel is evident through the aggressive disrespect and threats made in the messages. There is a clear intent to harm or intimidate others based on their background or beliefs.
-
-                    📝 This channel contains discussions that often escalate into threats and calls for violence against specific groups or individuals. It deals with extreme ideologies and conspiracy theories that promote divisiveness.
-
-                    🗣 Conversations are dominated by hate speech and incitement to violence. Users not only express severe animosity but also encourage harmful actions, creating a dangerous and unlawful online environment.'''
+                    🗣 El tono es abiertamente agresivo, con usuarios que realizan ataques personales y utilizan insultos para degradar a los demás. Este tipo de discurso crea un ambiente hostil que desalienta la comunicación constructiva y podría incitar a más conflictos.'''
+                    5. 🔴 Ejemplo Recontra pasado de toxi, se fue de tema mal:
+                    '''🔴 El nivel Recontra pasado de toxi, se fue de tema mal es evidente a través de las agresivas faltas de respeto y amenazas vertidas en los mensajes. Hay una clara intención de dañar o intimidar a otros por su procedencia o creencias.
                      
+                    📝 Este canal contiene debates que a menudo desembocan en amenazas y llamamientos a la violencia contra grupos o individuos concretos. Trata de ideologías extremas y teorías de la conspiración que fomentan la división.
+
+                    🗣 Las conversaciones están dominadas por el discurso del odio y la incitación a la violencia. Los usuarios no solo expresan una grave animadversión, sino que también fomentan acciones dañinas, creando un entorno potencialmente peligroso e ilegal.'''                     
                     ###
-                    FORMAT EXAMPLE
-                    {toxicity}: [Classification reason]
+                    EJEMPLO DE FORMATO
+                    {toxicity}: [razón para la clasificación]
                      
-                    📝 [Main topics discussed]
+                    📝 [Principales temas tratados]
                      
-                    🗣 [Consequences for the user]
+                    🗣 [Consecuencias para el usuario]
                      
                     [INST]"""),
 
                     ("user", """
 
-                    <s>[INST]These are some of the channel messages: {filtered_messages}
+                    <s>[INST]Estos son algunos de los mensajes del canal: {filtered_messages}
 
-                    1- Mention the classification {toxicity} and explain the reason for that classification. 2- 📝 Mention the main topics discussed in the channel. 3- 🗣 Finally explain the consequences for the user. Use 2 sentences for each paragraph. Remember to follow the format examples provided in the system prompt. Do your best, this is very important for my career. Be straightforward and concise. No yapping.[INST] 
+                    1- Menciona la clasificación {toxicity} y explica el porqué de dicha clasificación. 2- 📝 Menciona los principales temas tratados en el canal. 3- 🗣 Por último, explica las consecuencias para el usuario. Utiliza solo 2 frases para cada párrafo. Recuerda seguir los ejemplos de formato proporcionados en el prompt del sistema. Esfuérzate, esto es muy importante para mi carrera. No yapping, nada de cháchara. Sé directo y conciso. 
 
                     """), 
                 ])
@@ -167,62 +162,68 @@ class explainer:
         toxicity_result = self.mistral.predictToxicity(message.text)
         _, toxicity = toxicity_result
         if 0 <= toxicity < 1:
-            toxicity = "🟢 Non-toxic"
+            toxicity = "🟢 Tranqui panki, no es toxi"
         elif toxicity >= 1 and toxicity < 1.75:
-            toxicity = "🟡 Slightly toxic"
+            toxicity = "🟡 Un toque toxi"
         elif 1.75 <= toxicity < 2.5:
-            toxicity = "🟠 Moderately toxic"
+            toxicity = "🟠 Toxi"
         elif 2.5 <= toxicity < 3.5:
-            toxicity = "🔴 Highly toxic"
+            toxicity = "🔴 Zarpado en toxi"
         else:
-            toxicity = "🔴 Extremely toxic"
+            toxicity = "🔴 Recontra pasado de toxi, se fue de tema mal"
         prompt_template = ChatPromptTemplate.from_messages([
-    ("system", """<s>[INST] You are a moderator of online content, your task is to detoxify and provide non-toxic alternatives for messages, if they are found to be toxic. If the message only contains instuls, say: "This message has no informative content and is simply an insult, therefore, there's no relevant information here to detoxify." Keep your rephrasing as close to the original message as possible.
+    ("system", """<s>[INST] Sos un moderador de contenidos online en español rioplatense. Tu tarea es detoxificar y proporcionar alternativas no-tóxicas para los mensajes, si es que el mensaje tiene contenido informativo y fue clasificados como Si el mensaje es "🟡 Un toque toxi", "🟠 Toxi", "🔴 Zarpado en toxi" o "🔴 Recontra pasado de toxi, se fue de tema mal". Si el mensaje sólo contiene insultos, di: "Este mensaje no tiene contenido informativo y es simplemente un insulto, por lo tanto, no hay información relevante aquí para detoxificar". Mantené tu reformulación lo más cerca posible del mensaje original, sin cambiar su intención.
 
 
-            ## Toxicity Scale:
-            0. **Non-toxic:** Messages promote a positive and respectful environment. They are inclusive and constructive, with no offensive content.
-            1. **Slightly Toxic:** Messages are mostly respectful but may include passive-aggressive criticism or slight bias.
-            2. **Moderately Toxic:** Messages have an aggressive tone or contain derogatory language towards specific groups.
-            3. **Highly Toxic:** Messages show clear contempt for individuals or groups, using insults or offensive language.
-            4. **Extremely Toxic:** Messages are aggressively disrespectful, with threats or calls to violent action.
+           ## ESCALA DE TOXICIDAD:
 
-            # Task:
-            Revise the provided message. If the message is 🟡 Slightly Toxic, 🟡 Moderately Toxic,  🔴 Highly Toxic, or 🔴 Extremely Toxic, suggest a rephrased non-toxic version that conveys the meaning of the original message in a more respectful and positive manner. Maintain the intention of the original message DO NOT add phrases like "I'd be interested in discussing this further" if the user didn't say that. Always answer in 2 paragraphs.
+                    0. **Tranqui panki, no es toxi:** Mensaje que fomenta un entorno positivo, respetuoso e integrador, promoviendo la amabilidad y el entendimiento mutuo. Se valoran las opiniones y perspectivas de todos, contribuyendo a un diálogo constructivo sin descalificaciones personales ni contenidos ofensivos. Puede contener información objetiva o neutral.
+
+                    1. **Un toque toxi:** Mensaje que, aunque mayoritariamente respetuoso, puede incluir críticas o desacuerdos expresados de forma pasivo-agresiva o ligeramente tendenciosa. No ataca directamente a personas o grupos, y la intención de causar daño no está clara, pero sugiere una falta de aprecio por el punto de vista de los demás.
+
+                    2. **Toxi:** Mensaje con tono agresivo o irrespetuoso, que puede incluir sarcasmo, ironía o lenguaje despectivo hacia determinados colectivos por su género, etnia, orientación sexual, ideología o religión. Aunque no ataca violentamente, busca herir, ridiculizar o menospreciar a los demás, mostrando un rechazo hacia la diversidad de opiniones y personas.
+
+                    3. **Zarpado en toxi:** Mensaje que demuestra un claro rechazo y desprecio hacia personas o grupos, utilizando insultos, referencias racistas, sexistas, misóginas, degradantes o deshumanizadoras. Ataca a grupos por su sexo, etnia, orientación sexual, ideología o religión. Este lenguaje ofensivo busca intimidar, excluir o incitar al odio, mostrando una intención explícita de causar daño.
+
+                    4. **Recontra pasado de toxi, se fue de tema mal:** Mensaje que no sólo es explícitamente agresivo e irrespetuoso, sino que además contiene amenazas o llamadas a la acción violenta. Ataca a grupos por su sexo, etnia, orientación sexual, ideología o religión. Promueve la hostilidad, la incitación al odio y sugiere consecuencias perjudiciales en el mundo real contra individuos o grupos, violando principios éticos y morales y poniendo en peligro la seguridad y el bienestar de las personas.                   
+                    '''
+
+             # Tarea:
+            Revisa el mensaje recibido. Si el mensaje es "🟡 Un toque toxi", "🟠 Toxi", "🔴 Zarpado en toxi" o "🔴 Recontra pasado de toxi, se fue de tema mal", sugerí una reformulación no-tóxica que transmita el significado del mensaje original de una manera más respetuosa y positiva. Manténé la intención del mensaje original NO añadas frases como "Me interesaría discutir esto más a fondo" si el usuario no dijo eso. Respondé siempre en 2 párrafos.
 
             ####
-            Examples of detoxification:
+            Ejemplos de detoxificación:
 
-            1. **Non-toxic:**
-                - User Message: '''Now, please detoxify the following message which has a toxicity level of 🟢 Non-toxic: [[["I appreciate your perspective and would like to discuss this further."]]]'''
-                - Output: '''This message is 🟢 Non-toxic. It promotes a respectful and open dialogue.'''
+            1. **Tranqui panki, no es toxi:**
+                - Input: '''Ahora, por favor, detoxificá el siguiente mensaje que tiene un nivel de toxicidad de 🟢 Tranqui panki, no es toxi: [[["Aprecio su perspectiva y me gustaría discutir esto más a fondo"]]]]'''
+                - Output: '''Este mensaje es 🟢 Tranqui panki, no es toxi. Promueve un diálogo respetuoso y abierto.'''
                 
-            2. **Slightly Toxic:**
-                - User Message: '''Now, please detoxify the following message which has a toxicity level of 🟡 Slightly Toxic: [[["That's a naive way of looking at things, don't you think?"]]]'''
-                - Output: '''This message is 🟡 Slightly Toxic due to its patronizing tone. 
+            2. **Un toque toxi:**
+                - Input: '''Ahora, por favor, detoxificá el siguiente mensaje que tiene un nivel de toxicidad de 🟡 Un toque toxi: [[["Esa es una forma ingenua de ver las cosas, ¿no crees?"]]]'''
+                - Output: '''Este mensaje es 🟡 Un toque toxi, debido a su tono condescendiente. 
         
-                A more respectful phrasing could be: "Could there be a more comprehensive way of looking at it?"'''
+                Una opción más constructiva podría ser: "¿Podría haber una forma más completa de verlo?"'''
 
-            3. **Moderately Toxic:**
-                - User Message: '''Now, please detoxify the following message which has a toxicity level of 🟡 Moderately toxic: [[["People who believe that are living in a fantasy world."]]]'''
-                - Output: '''This message is 🟠 Moderately Toxic because it dismisses others' beliefs.
+            3. **Moderadamente Tóxico:**
+                - Input: '''Ahora, por favor, detoxificá el siguiente mensaje que tiene un nivel de toxicidad de 🟠 Toxi: [[["La gente que cree eso vive en un mundo de fantasía"]]]]'''
+                - Output: '''Este mensaje es 🟠 Toxi, porque desestima las creencias de los demás.
                 
-                A less toxic version could be: "I find it hard to agree with that perspective, I think it's unrealistic."'''
+                Una opción más constructiva podría ser: "Me cuesta estar de acuerdo con esa perspectiva, creo que no es realista."'''
 
-            4. **Highly Toxic:**
-                - User Message: '''Now, please detoxify the following message which has a toxicity level of 🔴 Highly Toxic: [[["This is the dumbest idea I've ever heard."]]]'''
-                - Output: '''The message is 🔴 Highly Toxic due to its derogatory language.
+             4. **Altamente Tóxico:**
+                - Input: '''Ahora, por favor, detoxificá el siguiente mensaje que tiene un nivel de toxicidad de 🔴 Zarpado en toxi debido a su lenguaje despectivo: [[["Esta es la idea más pelotuda que escuché"]]]]'''
+                - Output: '''El mensaje es 🔴 Zarpado en toxi, debido a su lenguaje despectivo.
         
-                A constructive alternative might be: "I don't think that idea is the best approach at all."'''
+                Una opción más constructiva podría ser: "No creo que esa idea sea el mejor enfoque en absoluto"'''
 
-            5. **Extremely Toxic:**
-                - User Message: '''Now, please detoxify the following message which has a toxicity level of 🔴 Extremely Toxic: [[["Anyone who supports this policy must be a complete idiot. We should kill them all, they don't deserve to exist."]]]'''
-                - Output: '''This message is 🔴 Extremely Toxic and offensive.
+            5. **Extremadamente Tóxico:**
+                - Input: '''Ahora, por favor, detoxificá el siguiente mensaje que tiene un nivel de toxicidad de 🔴 Recontra pasado de toxi, se fue de tema mal: [[["Cualquiera que apoye esta política debe ser un tarado de la concha de su madre. Deberíamos cagarlos a tiros para que se dejen de joder"]]]'''
+                - Output: '''Este mensaje es 🔴 Recontra pasado de toxi, se fue de tema mal.
         
-                A non-toxic rephrasing could be: "I'm surprised that there's support for this policy. I have a completely different point of view"'''[INST]
+                Una opción más constructiva podría ser: "Me sorprende que haya apoyo a esta política. Yo tengo un punto de vista completamente diferente y me enoja mucho que esta diferencia nos impida avanzar"'''[INST]
                 
     """),
-    ("user", "<s>[INST] Now, please detoxify the following message which has a toxicity level of {toxicity}: [[[ " + message.text + "]]][INST]")
+    ("user", "<s>[INST] Ahora, por favor, detoxificá el siguiente mensaje que tiene un nivel de toxicidad de {toxicity}: [[[ " + message.text + "]]][INST]")
 ])
         chain = prompt_template | self.llm | self.output_parser
         output = chain.batch([{'toxicity': toxicity}])
