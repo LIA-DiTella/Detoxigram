@@ -1,6 +1,7 @@
 # Detoxigram
 
 Detoxigram is a tool designed to analyze and reduce toxicity in different contexts, combining the strengths of BERT classifiers and generative Language Models (LLMs) to promote healthier online interactions.
+You can learn more about us and our proyect on our website https://www.detoxigram.com/
 
 ## Table of Contents
 - [Overview](#overview)
@@ -12,11 +13,15 @@ Detoxigram is a tool designed to analyze and reduce toxicity in different contex
 
 ## Overview
 Inspired by literature (Zhixue et al., 2021; Ousidhoum et al., 2021; Fortuna et al., 2021), Detoxigram identifies and classifies toxic content using a five-level toxicity scale. It leverages BERT models for initial classification and generative LLMs for detailed analysis and detoxification suggestions.
+The generative LLM we are currently using for the bot is LLaMA 2. 
+We are currently working on a spanish version of Detoxigram which will be deployed using LLaMA 3!
+
+
 
 ## Project Structure
 - `dataset`: Contains datasets for training and evaluation.
 - `detoxigram_bot`: The implementation of the bot for toxicity analysis.
-- `model_evaluation_scripts`: Scripts for evaluating machine learning models.
+- `classifiers`: Contains the classes and files used for text classification
 - `script-download-channels`: Scripts to download data from various channels.
 - `requirements.txt`: Python dependencies for the project.
 
