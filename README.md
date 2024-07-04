@@ -16,7 +16,7 @@ Inspired by literature (Zhixue et al., 2021; Ousidhoum et al., 2021; Fortuna et 
 ## Project Structure
 - `dataset`: Contains datasets for training and evaluation.
 - `detoxigram_bot`: The implementation of the bot for toxicity analysis.
-- `model_evaluation_scripts`: Scripts for evaluating machine learning models.
+- `classifiers`: Contains the classes and files used for text classification
 - `script-download-channels`: Scripts to download data from various channels.
 - `requirements.txt`: Python dependencies for the project.
 
