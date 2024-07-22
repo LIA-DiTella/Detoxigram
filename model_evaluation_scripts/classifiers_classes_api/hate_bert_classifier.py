@@ -66,5 +66,3 @@ class hate_bert_classifier(Classifier):
 	def get_most_toxic_messages_none_batch(self, messages):
 		return super().get_most_toxic_messages(messages)
 		
-#bert_classifier = hate_bert_classificator("toxigen_hatebert", verbosity = True)
-#bert_classifier.predictToxicityFile('Benjaminnorton_processed.json')

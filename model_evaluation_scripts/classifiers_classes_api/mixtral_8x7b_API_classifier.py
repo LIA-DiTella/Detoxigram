@@ -43,8 +43,6 @@ class mistral_classifier(Classifier):
 				toxicity_distribution = json.load(f)
 		return toxicity_distribution
 	
-	# Para que sea más directo con como funciona el pipeline, en esta función debo llamar a BERT.
- 	# Horrible pero lo más rápido en esta instancia
 	def predict_toxicity_distribution(self):
 		relative_path = os.path.join( '..', 'dataset/new_dataset/')
 		files = os.listdir(relative_path)
@@ -83,7 +81,7 @@ class mistral_classifier(Classifier):
 		prompt = self.createPrompt((self.templatetype))
 
 		chain = prompt | llm | output_parser
-		#este catch es para salvarnos de un rate exceeded en mistral
+
 		try:
 			output = chain.batch([{"message": input_message}])[0]
 		except Exception as e:
@@ -109,14 +107,11 @@ class mistral_classifier(Classifier):
 		#print(input_message, "toxicity_score:", toxicity_score, "\n\n\n\n")
 		return isToxic, toxicity_score,
 
-
 	def concurrent_predict_toxicity(self, message, i, res, lock):
 		#solo para ser usada por la fución posterior
 		toxicity = self.predictToxicity(message)[1]
 		with lock:
 				res[i] = toxicity
-
-
 
 	def predict_average_toxicity_score(self, messages):
 	
@@ -133,10 +128,6 @@ class mistral_classifier(Classifier):
 
 		average_toxicity = sum(res) / len(res)
 		return average_toxicity
-
-
-
-
 
 	def createPrompt(self, template_type):
 			"""

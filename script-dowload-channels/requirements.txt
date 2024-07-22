@@ -1,7 +1,0 @@
-telethon
-pandas
-openpyxl
-tqdm
-networkx
-matplotlib
-python-louvain
