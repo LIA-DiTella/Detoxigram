@@ -41,6 +41,7 @@ class Detoxigramer:
         self.status : Literal['DETOX', 'ANALYZE', 'EXPLAIN', 'DISTRIBUTION', 'NONE']
         self.conversation_classification : Optional[Tuple[str, str]]
         self.messages_per_conversation : Optional[Dict[str, List[str]]]
+        self.explanation : Optional[str]
         self.testing : bool
         self.platform : Literal['TELEGRAM', 'WHATSAPP'] # Telegram / WhatsApp
     
