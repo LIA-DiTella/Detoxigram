@@ -6,8 +6,6 @@ from user_management.ManagementDetoxigramers import ManagementDetoxigramers
 from model_evaluation_scripts.classifiers_classes_api.hate_bert_classifier import hate_bert_classifier
 from model_evaluation_scripts.classifiers_classes_api.mixtral_8x7b_API_classifier import mistral_classifier
 from user_management.Detoxigramer import Detoxigramer
-import json
-import os
 
 class Explainer:
     """
@@ -23,11 +21,13 @@ class Explainer:
         self.mistral = mistral
         self.output_parser = output_parser
         self.detoxigramer = detoxigramer
+        self.llm = mistral.chat
 
     def explain(self, messages:List[str],conversation_id:str):
-        if self.detoxigramer.status != 'NONE':
+        if self.detoxigramer.get_status() != 'NONE':
             return
         
+        self.detoxigramer._set_status('EXPLAIN')
         toxicity = self.detoxigramer.conversation_classification[1]
 
         escala = '''
@@ -119,4 +119,4 @@ class Explainer:
                         'toxicity': toxicity
                     }])
                 self.detoxigramer.explanation = output
-            self.detoxigramer.status = 'NONE'
+            self.detoxigramer._set_status('NONE')

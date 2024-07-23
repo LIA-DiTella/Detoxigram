@@ -6,7 +6,6 @@ from typing import Literal, Tuple, Dict, List, Optional
 class Detoxigramer:
     def __init__(self):
         '''
-        
         Variables:
         - id: identificador de cada usuario.
         - status: dado un momento del programa, determina qué feature está usando el usuario.
@@ -14,7 +13,6 @@ class Detoxigramer:
         - messages_per_conversation: contiene los mensajes de los canales analizados
         - testing: activar o desactivar el modo de testing. No lo debería poder activar cualquier usuario.
         - platform: determina en qué plataforma está operando el usuario.
-
 
         Invariante de Representación:
         - self.id: str y self.id ≠ "" (cadena no vacía). Todo ID es único.
