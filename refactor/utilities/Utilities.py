@@ -5,9 +5,14 @@ from typing import Dict, List, Optional, Literal, Tuple
 import re
 from urllib.parse import parse_qs, urlparse
 from collections import defaultdict
+from huggingface_hub import hf_hub_download
+import fasttext
 
-class Processor:
+class Utilities:
+
     def __init__(self, client):
+        self.model_path = fasttext.load_model(hf_hub_download("facebook/fasttext-language-identification", "model.bin"))
+        self.model = fasttext.load_model(self.model_path)
         self.client = client
 
     async def fetch_telegram_messages(self, channel_name) -> List[str]:
@@ -30,7 +35,7 @@ class Processor:
         transformed_data = [("user", item["message"]) for item in data]
         return transformed_data
 
-    def process_messages(self, messages) -> list:
+    def process_messages(self, messages:str) -> list:
         processed_messages = []
         for msg in messages:
             if msg.message:
@@ -62,7 +67,7 @@ class Processor:
         
         return messages
     
-    def _parse_channel_from_url(self, url) -> str:
+    def _parse_channel_from_url(self, url:str) -> str:
         try:
             parsed_url = urlparse(url)
             if parsed_url.netloc in ['t.me', 'telegram.me']:
@@ -74,7 +79,7 @@ class Processor:
             print('Had the error:', e)
             return None
 
-    def obtain_channel_name(self, message) -> str:
+    def obtain_channel_name(self, message:str) -> str:
 
         channel_name = message.strip()
 
@@ -93,3 +98,10 @@ class Processor:
             self._ask_for_new_channel_name(message)
             return None
         
+    def language_detection(self, message: str) -> Literal['EN', 'ES']:
+        prediction = self.model.predict(message)
+        label = prediction[0][0]
+        if label == "__label__en":
+            return 'EN'
+        elif label == "__label__es":
+            return 'ES'

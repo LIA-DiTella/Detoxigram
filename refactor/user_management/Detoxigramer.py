@@ -43,21 +43,33 @@ class Detoxigramer:
         self.testing : bool
         self.platform : Literal['TELEGRAM', 'WHATSAPP'] # Telegram / WhatsApp
     
-    def _last_toxicity(self, classification : int):
-        if classification < 1:
-                return "🟢 Non-toxic"
-        elif 1 <= classification < 1.75:
-                return "🟡 Slightly toxic"
-        elif 1.75 <= classification < 2.5:
-                return "🟠 Moderately toxic"
-        elif 2.5 <= classification < 3.5:
-                return "🔴 Highly toxic"
-        else:
-                return "🔴 Extremely toxic"
+    def _last_toxicity(self, classification : int, language:Literal['EN','ES']):
+        if language == 'EN':
+            if classification < 1:
+                    return "🟢 Non-toxic"
+            elif 1 <= classification < 1.75:
+                    return "🟡 Slightly toxic"
+            elif 1.75 <= classification < 2.5:
+                    return "🟠 Moderately toxic"
+            elif 2.5 <= classification < 3.5:
+                    return "🔴 Highly toxic"
+            else:
+                    return "🔴 Extremely toxic"
+        elif language == 'ES':
+            if 0 <= toxicity < 1:
+                toxicity = "🟢 Tranqui panki, no es toxi"
+            elif toxicity >= 1 and toxicity < 1.75:
+                toxicity = "🟡 Un toque toxi"
+            elif 1.75 <= toxicity < 2.5:
+                toxicity = "🟠 Toxi"
+            elif 2.5 <= toxicity < 3.5:
+                toxicity = "🔴 Zarpado en toxi"
+            else:
+                toxicity = "🔴 Recontra pasado de toxi, se fue de tema mal"
         
-    def _update_channel(self, channel_name:str, classification:int, messages:List[str]):
-        self.conversation_classification = [channel_name, self._last_toxicity(classification)]
-        self.messages_per_conversation = {channel_name : messages }
+    def _update_channel(self, conversation_id:str, classification:int, messages:List[str], language:Literal['EN','ES']):
+        self.conversation_classification = [conversation_id, self._last_toxicity(classification, language)]
+        self.messages_per_conversation = {conversation_id : messages }
     
     def _set_platform(self, platform : str):
         if platform == 'TELEGRAM' and self.platform[0] != 1:
@@ -79,6 +91,6 @@ class Detoxigramer:
     def get_conversation_classification(self) -> Tuple[str,str]:
           return self.conversation_classification
     
-    def get_messages_channel(self, channel_name : str) -> List[str]:
-        if channel_name in self.messages_per_conversation:
-              return self.messages_per_conversation[channel_name] 
+    def get_messages_conversation(self, conversation_id : str) -> List[str]:
+        if conversation_id in self.messages_per_conversation:
+              return self.messages_per_conversation[conversation_id] 

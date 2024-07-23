@@ -23,11 +23,12 @@ class Explainer:
         self.detoxigramer = detoxigramer
         self.llm = mistral.chat
 
-    def explain(self, messages:List[str],conversation_id:str):
+    def explain_en(self, messages:List[str],conversation_id:str):
         if self.detoxigramer.get_status() != 'NONE':
             return
         
         self.detoxigramer._set_status('EXPLAIN')
+        
         toxicity = self.detoxigramer.conversation_classification[1]
 
         escala = '''
@@ -48,9 +49,7 @@ class Explainer:
         
         if self.detoxigramer.conversation_classification:            
             if len(self.detoxigramer.messages_per_conversation[conversation_id]) > 0:
-
                 messages_ = self.detoxigramer.messages_per_conversation[conversation_id][:15]
-
                 prompt_template = ChatPromptTemplate.from_messages([
                     ("system","""
                     <s>[INST] Your task is to explain why a channel has been classified as {toxicity}. According to the following scale: {escala}.
@@ -120,3 +119,97 @@ class Explainer:
                     }])
                 self.detoxigramer.explanation = output
             self.detoxigramer._set_status('NONE')
+
+    def explain_es(self, messages:List[str],conversation_id:str):
+        if self.detoxigramer.get_status() != 'NONE':
+            return
+        
+        self.detoxigramer._set_status('EXPLAIN')
+        
+        toxicity = self.detoxigramer.conversation_classification[1]
+
+        escala = '''
+                    ESCALA DE TOXICIDAD:
+
+                    0. **Tranqui panki, no es toxi:** Mensaje que fomenta un entorno positivo, respetuoso e integrador, promoviendo la amabilidad y el entendimiento mutuo. Se valoran las opiniones y perspectivas de todos, contribuyendo a un diálogo constructivo sin descalificaciones personales ni contenidos ofensivos. Puede contener información objetiva o neutral.
+
+                    1. **Un toque toxi:** Mensaje que, aunque mayoritariamente respetuoso, puede incluir críticas o desacuerdos expresados de forma pasivo-agresiva o ligeramente tendenciosa. No ataca directamente a personas o grupos, y la intención de causar daño no está clara, pero sugiere una falta de aprecio por el punto de vista de los demás.
+
+                    2. **Toxi:** Mensaje con tono agresivo o irrespetuoso, que puede incluir sarcasmo, ironía o lenguaje despectivo hacia determinados colectivos por su género, etnia, orientación sexual, ideología o religión. Aunque no ataca violentamente, busca herir, ridiculizar o menospreciar a los demás, mostrando un rechazo hacia la diversidad de opiniones y personas.
+
+                    3. **Zarpado en toxi:** Mensaje que demuestra un claro rechazo y desprecio hacia personas o grupos, utilizando insultos, referencias racistas, sexistas, misóginas, degradantes o deshumanizadoras. Ataca a grupos por su sexo, etnia, orientación sexual, ideología o religión. Este lenguaje ofensivo busca intimidar, excluir o incitar al odio, mostrando una intención explícita de causar daño.
+
+                    4. **Recontra pasado de toxi, se fue de tema mal:** Mensaje que no sólo es explícitamente agresivo e irrespetuoso, sino que además contiene amenazas o llamadas a la acción violenta. Ataca a grupos por su sexo, etnia, orientación sexual, ideología o religión. Promueve la hostilidad, la incitación al odio y sugiere consecuencias perjudiciales en el mundo real contra individuos o grupos, violando principios éticos y morales y poniendo en peligro la seguridad y el bienestar de las personas.                   
+                           
+                    '''
+        
+        if self.detoxigramer.conversation_classification:            
+            if len(self.detoxigramer.messages_per_conversation[conversation_id]) > 0:
+                messages_ = self.detoxigramer.messages_per_conversation[conversation_id][:15]
+                prompt_template = ChatPromptTemplate.from_messages([
+                    ("system","""
+                    <s>[INST] Su tarea consiste en explicar por qué un canal ha sido clasificado como {toxicity}, de acuerdo con la siguiente escala: {escala}.
+
+                    El usuario te proporcionará unos mensajes de ejemplo extraídos del grupo y la clasificación que debes apoyar y explicar.
+                    
+                    ###
+                    EJEMPLOS:
+                    1. 🟢 Ejemplo Tranqui panki, no es toxi:
+                    '''🟢 Este canal mantiene un ambiente Tranqui panki, no es toxi promoviendo el diálogo constructivo y la participación de la comunidad. Los mensajes son informativos, alentadores e inclusivos, fomentando interacciones positivas.
+ 
+                    📝 El canal presenta una serie de temas que incluyen figuras políticas, eventos comunitarios, política internacional y noticias de última hora. Destaca distintas iniciativas, como recaudaciones de fondos para obras benéficas, e incluso se debaten temas controvertidos de forma respetuosa.
+
+                    🗣 Los debates animan a los miembros a participar de forma activa y solidaria. El ambiente es cordial y acogedor, y se centra en crear lazos comunitarios y ofrecer ayuda cuando es necesario.''
+                    
+                    2. 🟡 Ejemplo Un toque toxi:
+                    '''🟡 El canal exhibe un nivel Un toque toxi debido a los comentarios tendenciosos y con carga emocional presentes en los mensajes. 
+
+                    📝 Los mensajes cubren varios temas, incluyendo figuras políticas, casos legales, sesgo de los medios e investigaciones criminales. Hablan de la subida de Trump en los medios, del anuncio de RFK como vicepresidente y de sentencias judiciales controvertidas.
+                    
+                    🗣 Aunque las discusiones versan sobre acontecimientos políticos y jurídicos, hay una notable presencia de lenguaje agresivo y descripciones negativas de personas y grupos. La toxicidad se deriva de las opiniones cargadas de emotividad que se expresan, lo que puede influir en un ambiente de confrontación.'''
+
+                    3. 🟠 Ejemplo toxi:
+                    '''🟠 El canal es toxi debido al uso frecuente de un lenguaje soez y a ocasionales comentarios despectivos hacia grupos o individuos específicos. El tono suele ser de confrontación, lo que puede alejar a algunos participantes.
+                    
+                    📝 Entre los temas tratados figuran los deportes, los debates políticos, la parcialidad de los medios de comunicación y las cuestiones sociales. Los mensajes suelen centrarse en temas polémicos como la política de inmigración, el control de armas y las reformas electorales.
+
+                    🗣 Los debates son acalorados e incluyen fuertes críticas a figuras políticas y políticas, y algunos usuarios expresan su frustración de forma hostil. El ambiente puede ser poco acogedor para quienes tienen puntos de vista diferentes, lo que lleva a discusiones polarizadas.'''
+                    4. 🔴 Ejemplo Zarpado en toxi:
+                    '''🔴 El canal muestra un nivel Zarpado en toxi con uso frecuente de lenguaje ofensivo y claro desprecio hacia personas o grupos en función de su identidad o creencias. Las conversaciones están marcadas por la negatividad y la hostilidad.
+                     
+                    📝 Las discusiones en este canal giran en torno a temas muy polarizantes y delicados, como conflictos religiosos, tensiones raciales y opiniones políticas extremas. Incluye términos despectivos e insultos dirigidos a grupos específicos.
+
+                    🗣 El tono es abiertamente agresivo, con usuarios que realizan ataques personales y utilizan insultos para degradar a los demás. Este tipo de discurso crea un ambiente hostil que desalienta la comunicación constructiva y podría incitar a más conflictos.'''
+                    5. 🔴 Ejemplo Recontra pasado de toxi, se fue de tema mal:
+                    '''🔴 El nivel Recontra pasado de toxi, se fue de tema mal es evidente a través de las agresivas faltas de respeto y amenazas vertidas en los mensajes. Hay una clara intención de dañar o intimidar a otros por su procedencia o creencias.
+                     
+                    📝 Este canal contiene debates que a menudo desembocan en amenazas y llamamientos a la violencia contra grupos o individuos concretos. Trata de ideologías extremas y teorías de la conspiración que fomentan la división.
+
+                    🗣 Las conversaciones están dominadas por el discurso del odio y la incitación a la violencia. Los usuarios no solo expresan una grave animadversión, sino que también fomentan acciones dañinas, creando un entorno potencialmente peligroso e ilegal.'''                     
+                    ###
+                    EJEMPLO DE FORMATO
+                    {toxicity}: [razón para la clasificación]
+                     
+                    📝 [Principales temas tratados]
+                     
+                    🗣 [Consecuencias para el usuario]
+                     
+                    [INST]"""),
+
+                    ("user", """
+
+                    <s>[INST]Estos son algunos de los mensajes del canal: {filtered_messages}
+
+                    1- Menciona la clasificación {toxicity} y explica el porqué de dicha clasificación. 2- 📝 Menciona los principales temas tratados en el canal. 3- 🗣 Por último, explica las consecuencias para el usuario. Utiliza solo 2 frases para cada párrafo. Recuerda seguir los ejemplos de formato proporcionados en el prompt del sistema. Esfuérzate, esto es muy importante para mi carrera. No yapping, nada de cháchara. Sé directo y conciso. 
+                    """), 
+                ])
+                chain = prompt_template | self.llm | self.output_parser
+                output = chain.batch([{
+                        'messages_': messages_,
+                        'escala': escala,
+                        'toxicity': toxicity
+                    }])
+                self.detoxigramer.explanation = output
+            self.detoxigramer._set_status('NONE')
+
+
