@@ -1,9 +1,10 @@
 from PIL import Image, ImageDraw, ImageFont
 import os
+from model_evaluation_scripts.classifiers_classes_api.multi_bert_classifier import multi_bert_classifier
 
 class ToxicityDataviz:
     
-    def __init__(self):
+    def __init__(self, multibert : multi_bert_classifier):
         self.base_dir = os.path.dirname(__file__)
         self.gauge_images = {
             'ok_sarcastic': 'ok_sarcastic.png',
@@ -19,7 +20,6 @@ class ToxicityDataviz:
             'moderately_dismissive': 'moderately_dismissive.png',
             'highly_dismissive': 'highly_dismissive.png',
         }
-        
         self.positions = [
             (527, 291),  # Sarcastic
             (1008, 419), # Antagonize
@@ -34,6 +34,12 @@ class ToxicityDataviz:
             'orange': 'robot_orange.png',
             'red': 'robot_red.png'
         }
+        self.multibert = multibert
+    def get_toxicity_dimensions(self, conversation:str, conversation_name:str, toxicity:int):
+        toxicity_vector = self.multibert.get_group_toxicity_distribution(conversation)
+        keys_order = ['sarcastic', 'antagonize', 'generalisation', 'dismissive']
+        toxicity_vector = [toxicity_vector[key] for key in keys_order]
+        return self.get_toxicity_graph(conversation_name, toxicity_vector,toxicity)
 
     def get_toxicity_image(self, toxicity_level, dimension):
         if toxicity_level < 0.15:
