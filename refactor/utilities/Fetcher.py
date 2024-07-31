@@ -6,13 +6,14 @@ import zipfile
 import os
 from urllib.parse import urlparse
 from collections import defaultdict
-from huggingface_hub import hf_hub_download
-from transformers import pipeline
+import shutil
+from telethon import TelegramClient, sessions
+import asyncio
 
 
 class Telegram_Fetcher:
-    def __init__(self, client: TelegramClient):
-        self.telegram = TelegramClient
+    def __init__(self, client: TelegramClient): 
+        self.client = client
 
     async def fetch(self, channel_name: str) -> List[str]:
         """
@@ -48,63 +49,58 @@ class Telegram_Fetcher:
 
     # def process_messages(self, messages: List[str]) -> List[str]:
     #     return [msg for msg in messages if msg]
-
 class WhatsApp_Fetcher:
+    def extract_txt_from_zip(self, zip_path: str, extract_to: str) -> str:
+        os.makedirs(extract_to, exist_ok=True)
+        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+            for file in zip_ref.namelist():
+                if file.endswith('.txt'):
+                    zip_ref.extract(file, extract_to)
+                    return os.path.join(extract_to, file)
+        return None
 
-    def __init__(self):
-        return
-        
-    def zip_extract(self, archivo:str, output:str):
-            os.makedirs(output, exist_ok=True)
-
-            with zipfile.ZipFile(archivo, 'r') as zip_ref:
-                for file in zip_ref.namelist():
-                    if file.endswith('.txt'):
-                        zip_ref.extract(file, output)
-
-            
     def txt_to_list(self, archivo: str) -> List[str]:
-            """
-            Convierte un archivo de texto en una lista de mensajes, eliminando números de teléfono y fechas,
-            y reemplazando nombres de usuario.
+        messages = []
 
-            Parámetros:
-            - archivo: Ruta del archivo de texto.
+        message_pattern = re.compile(r'^\[\d{1,2}/\d{1,2}/\d{2,4},\s*\d{1,2}:\d{2}:\d{2}\s*[ap]\.\s*m\.\]\s*(.*?):\s*(.*)$')
+        phone_pattern = re.compile(r'@\d{10,15}')
 
-            Retorna:
-            - Lista de mensajes procesados.
-            """
-            archivo = self.zip_extract(archivo, './output')
-            messages = []
-            phone_number_pattern = re.compile(r'\+?\d[\d -]{8,}\d')
-            user_pattern = re.compile(r'\[.?\] (.?):')
-            date_pattern = re.compile(r'^\[.*?\]')
-            user_map = defaultdict(lambda: f'usuario {len(user_map) + 1}')
-            
-            with open(archivo, 'r', encoding='utf-8') as file:
-                for line in file:
-                    # Eliminar fechas
-                    line = date_pattern.sub('', line)
-                    # Reemplazar números de teléfono
-                    line = phone_number_pattern.sub('[PHONE NUMBER]', line)
-                    # Reemplazar nombres de usuario
-                    match = user_pattern.search(line)
-                    if match:
-                        user = match.group(1)
-                        if user not in user_map:
-                            user_map[user] = f'usuario {len(user_map) + 1}'
-                        line = user_pattern.sub(f'{user_map[user]}:', line)
-                    messages.append(line.strip())
-            
-            return messages    
+        with open(archivo, 'r', encoding='utf-8') as file:
+            for line in file:
+                match = message_pattern.match(line)
+                if match:
+                    user = match.group(1).strip()
+                    message = match.group(2).strip()
+                    # Eliminar números de teléfono en el formato @549...
+                    message = phone_pattern.sub('@', message)
+                    formatted_message = f'{user}: {message}'
+                    messages.append(formatted_message)
+                else:
+                    print(f"No match for line: {line.strip()}")  # Línea de depuración
+        
+        return messages  
+   
 
-    def fetch(self, archivo:str):
-        conversacion:List[str] = self.txt_to_list(archivo)
-        return conversacion
+    def fetch(self, archivo: str) -> List[str]:
+        extract_to = './extracted_files'
+        txt_file = self.extract_txt_from_zip(archivo, extract_to)
+        if txt_file:
+            conversacion = self.txt_to_list(txt_file)
+            # Eliminar el archivo ZIP, el archivo .txt y la carpeta de salida
+            os.remove(archivo)
+            os.remove(txt_file)
+            shutil.rmtree(extract_to)
+            return conversacion
+        else:
+            raise FileNotFoundError("No .txt file found in the ZIP archive")
 
 
 
+API_HASH_TELEGRAM:str = "b6f8fbecc6568cf05834f9419582e8ca"
+API_ID_TELEGRAM:str = "27486167"
+client:TelegramClient = TelegramClient(sessions.MemorySession(), API_ID_TELEGRAM, API_HASH_TELEGRAM)  
 
-wpp = WhatsApp_Fetcher()
-mensajes = wpp.fetch('./test.zip')
-print(mensajes)
+telegram = Telegram_Fetcher(client)
+messages = asyncio.run(telegram.fetch('@TrumpJr'))
+print(messages)
+
