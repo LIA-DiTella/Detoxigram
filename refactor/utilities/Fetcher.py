@@ -95,9 +95,6 @@ class WhatsApp_Fetcher:
             raise FileNotFoundError("No .txt file found in the ZIP archive")
 
 
-
-API_HASH_TELEGRAM:str = "b6f8fbecc6568cf05834f9419582e8ca"
-API_ID_TELEGRAM:str = "27486167"
 client:TelegramClient = TelegramClient(sessions.MemorySession(), API_ID_TELEGRAM, API_HASH_TELEGRAM)  
 
 telegram = Telegram_Fetcher(client)
