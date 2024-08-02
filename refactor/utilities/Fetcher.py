@@ -94,3 +94,10 @@ class WhatsApp_Fetcher:
         else:
             raise FileNotFoundError("No .txt file found in the ZIP archive")
 
+
+client:TelegramClient = TelegramClient(sessions.MemorySession(), API_ID_TELEGRAM, API_HASH_TELEGRAM)  
+
+telegram = Telegram_Fetcher(client)
+messages = asyncio.run(telegram.fetch('@TrumpJr'))
+print(messages)
+
