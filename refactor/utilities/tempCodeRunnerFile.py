@@ -1,5 +1,5 @@
-# from telethon import TelegramClient
-# from telethon.tl.functions.messages import GetHistoryRequest
+#from telethon import TelegramClient
+#from telethon.tl.functions.messages import GetHistoryRequest
 from typing import Dict, List, Optional, Literal, Tuple, Any
 import re
 import zipfile
@@ -7,7 +7,7 @@ import os
 from urllib.parse import urlparse
 from collections import defaultdict
 import shutil
-# from telethon import TelegramClient, sessions
+#from telethon import TelegramClient, sessions
 import asyncio
 
 
@@ -49,8 +49,6 @@ import asyncio
 
 #     # def process_messages(self, messages: List[str]) -> List[str]:
 #     #     return [msg for msg in messages if msg]
-
-
 class WhatsApp_Fetcher:
     def extract_txt_from_zip(self, zip_path: str, extract_to: str) -> str:
         os.makedirs(extract_to, exist_ok=True)
@@ -64,7 +62,7 @@ class WhatsApp_Fetcher:
     def txt_to_list(self, archivo: str) -> List[str]:
         messages = []
 
-        message_pattern = re.compile(r'^\[\d{1,2}/\d{1,2}/\d{2,4},\s*\d{1,2}:\d{2}:\d{2}\s*[APap]\.?[Mm]\.?\]\s*(.*?):\s*(.*)$')
+        message_pattern = re.compile(r'^\[\d{1,2}/\d{1,2}/\d{2,4},\s*\d{1,2}:\d{2}:\d{2}\s*[ap]\.\s*m\.\]\s*(.*?):\s*(.*)$')
         phone_pattern = re.compile(r'@\d{10,15}')
 
         with open(archivo, 'r', encoding='utf-8') as file:
@@ -87,9 +85,7 @@ class WhatsApp_Fetcher:
         extract_to = './extracted_files'
         txt_file = self.extract_txt_from_zip(archivo, extract_to)
         if txt_file:
-            print(txt_file)
             conversacion = self.txt_to_list(txt_file)
-            print(conversacion)
             # Eliminar el archivo ZIP, el archivo .txt y la carpeta de salida
             os.remove(archivo)
             os.remove(txt_file)
@@ -97,3 +93,7 @@ class WhatsApp_Fetcher:
             return conversacion
         else:
             raise FileNotFoundError("No .txt file found in the ZIP archive")
+
+fetcher = WhatsApp_Fetcher()
+out = fetcher.fetch('test.zip')
+print(out)

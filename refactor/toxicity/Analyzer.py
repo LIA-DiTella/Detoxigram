@@ -33,7 +33,7 @@ class Analyzer:
             most_toxic_messages:List[str] = self.hatebert.get_most_toxic_messages_none_batch(messages)
             toxicity : Tuple[bool, int] = self.mistral.predict_average_toxicity_score(most_toxic_messages)
             self.detoxigramer._update_channel(conversation_id, toxicity[1], most_toxic_messages)
-            return self.detoxigramer.conversation_classification[1]
+            return self.detoxigramer.get_conversation_classification()[1]
         else:
             return None
 
