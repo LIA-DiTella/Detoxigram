@@ -65,24 +65,23 @@ wa = WhatsApp(
 # Incializamos clase para mandar mensajes más facil
 messager = WhatsApp_Messager(wa)
 
-# Primero detectamos el idioma en el que nos estan hablando.
 @wa.on_message()
 def greeting(client: WhatsApp, msg: Message):
-
+    user_id = msg.from_user.wa_id
     detoxigramer = WhatsApp_Detoxigramer()
-    detoxigramer.set_id(msg.from_user.wa_id)
-    management_detoxigramers.set_detoxigramer(detoxigramer.get_id())
-    user = management_detoxigramers.get_detoxigramer(detoxigramer.get_id())
+    management_detoxigramers.set_detoxigramer(user_id, detoxigramer)
+    user = management_detoxigramers.get_detoxigramer(user_id)
+
     Greet = utils.greeting_detection(msg.text)
     
-    # Lo saludamos en el idioma en el que este
+    # Send greeting based on the user's language
     if user.global_language == "ES":
         if Greet != "GREETING":
             messager.send_message(MESSAGES['NO_GREETING_SP'])
         else: 
             messager.send_message_with_buttons(MESSAGES['GREETING_SP'].format(name=msg.from_user.name), TESTING_NUMBER, BUTTONS['GREETING_ES'])
 
-    if user.global_language == "EN":
+    elif user.global_language == "EN":
         if Greet != "GREETING":
             messager.send_message(MESSAGES['NO_GREETING_EN'])
         else: 
@@ -90,8 +89,8 @@ def greeting(client: WhatsApp, msg: Message):
 
 @wa.on_callback_button(filters.startswith("id"))
 def click_me(client: WhatsApp, clb: CallbackButton):
-
-    user = management_detoxigramers.get_detoxigramer()
+    user_id = clb.from_user.wa_id
+    user = management_detoxigramers.get(user_id)
 
     if user.global_language == "ES":
         if clb.data == "id:000":
@@ -108,11 +107,10 @@ def click_me(client: WhatsApp, clb: CallbackButton):
             messager.send_message(MESSAGES["WAITING_FOR_FILE_EN"])
             user.set_status('ANALIZE')
 
-@wa.on_callback_button(filters.startswith("id"))
-
-
 @wa.on_message(filters.regex(".*")) 
 def handle_user_response(client: WhatsApp, msg: Message):
+    user_id = msg.from_user.wa_id
+    user = management_detoxigramers.get(user_id)
 
     if user.status == ['DETOX', 'WHATSAPP']:
         if utils.language_detection(msg.text) == "ES":
@@ -124,18 +122,21 @@ def handle_user_response(client: WhatsApp, msg: Message):
 
 @wa.on_message(filters.document)  
 def handle_user_file(client: WhatsApp, msg: Message):
+    user_id = msg.from_user.wa_id
+    user = management_detoxigramers.get(user_id)
+    
     if user.status == 'ANALIZE':
         document_url = msg.document.get_media_url()
-        conversation =  WhatsApp_Fetcher(document_url)
+        conversation = fetcher.fetch(document_url)
         analisis = analyzer.conversation_classifier(str(randint()), conversation)
+        
         if user.global_language == 'ES':
             resp = "La conversacion que enviaste resulto ser " + analisis + "."
-            messager.send_message(analisis)
+            messager.send_message(resp)
             messager.send_message_with_buttons(MESSAGES['POST_ANALISIS_ES'], BUTTONS['POST_ANALISIS_ES'])
         elif user.global_language == 'EN':
             resp = "The conversation you sent appears to be " + analisis + "."
-            messager.send_message(analisis)
-            messager.send_message_with_buttons()
+            messager.send_message(resp)
             messager.send_message_with_buttons(MESSAGES['POST_ANALISIS_EN'], BUTTONS['POST_ANALISIS_EN'])
 
 @fastapi_app.get("/")
