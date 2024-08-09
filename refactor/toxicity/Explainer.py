@@ -23,7 +23,7 @@ class Explainer:
         self.detoxigramer = detoxigramer
         self.llm = mistral.chat
 
-    def explain_en(self, messages:List[str],conversation_id:str):
+    def explain_en(self, messages:List[str], conversation_id:str):
         if self.detoxigramer.get_status() != 'NONE':
             return
         

@@ -89,6 +89,7 @@ def greeting(client: WhatsApp, msg: Message):
 
 @wa.on_callback_button(filters.startswith("id"))
 def click_me(client: WhatsApp, clb: CallbackButton):
+    conversation_id = 0
     user_id = clb.from_user.wa_id
     user = management_detoxigramers.get(user_id)
 
@@ -99,6 +100,12 @@ def click_me(client: WhatsApp, clb: CallbackButton):
         elif clb.data == "id:001":
             messager.send_message(MESSAGES["WAITING_FOR_FILE_ES"])
             user.set_status('ANALIZE')
+        elif clb.data == "id:002":
+            output = Explainer.explain_es(user.store_conversation, conversation_id)
+            user.send_message(output)
+        elif clb.data == "id:003":
+            user.send_message("distribución!!")
+        
     else:
         if clb.data == "id:000":
             messager.send_message(MESSAGES["WAITING_FOR_MSG_EN"])
@@ -106,13 +113,18 @@ def click_me(client: WhatsApp, clb: CallbackButton):
         elif clb.data == "id:001":
             messager.send_message(MESSAGES["WAITING_FOR_FILE_EN"])
             user.set_status('ANALIZE')
+        elif clb.data == "id:002":
+            output = Explainer.explain_en(user.store_conversation, conversation_id)
+            user.send_message(output)
+        elif clb.data == "id:003":
+            user.send_message("distribución!!")
 
 @wa.on_message(filters.regex(".*")) 
 def handle_user_response(client: WhatsApp, msg: Message):
     user_id = msg.from_user.wa_id
     user = management_detoxigramers.get(user_id)
 
-    if user.status == ['DETOX', 'WHATSAPP']:
+    if user.status == 'DETOX':
         if utils.language_detection(msg.text) == "ES":
             msg_detoxified = detoxifier.detoxify_single_message_es(msg.text)
             messager.send_message(msg_detoxified)
@@ -129,6 +141,7 @@ def handle_user_file(client: WhatsApp, msg: Message):
         document_url = msg.document.get_media_url()
         conversation = fetcher.fetch(document_url)
         analisis = analyzer.conversation_classifier(str(randint()), conversation)
+        user.store_conversation(conversation)
         
         if user.global_language == 'ES':
             resp = "La conversacion que enviaste resulto ser " + analisis + "."
@@ -138,6 +151,7 @@ def handle_user_file(client: WhatsApp, msg: Message):
             resp = "The conversation you sent appears to be " + analisis + "."
             messager.send_message(resp)
             messager.send_message_with_buttons(MESSAGES['POST_ANALISIS_EN'], BUTTONS['POST_ANALISIS_EN'])
+
 
 @fastapi_app.get("/")
 async def verify_webhook(request: Request):

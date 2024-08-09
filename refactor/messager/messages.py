@@ -14,8 +14,10 @@ MESSAGES = {
 }
 
 BOTONES = {
-    'GREETING_ES': [['Detoxificar un mensaje 📧','id:000'], ['Analizar una conversación 💬', 'id:001']],
     'GREETING_EN': [['Detoxify a message 📧','id:000'], ['Analize a conversation 💬', 'id:001']],
+    'GREETING_ES': [['Detoxificar un mensaje 📧','id:000'], ['Analizar una conversación 💬', 'id:001']],
     'POST_ANALISIS_EN': [['Explain the classification', 'id:002'],['Toxicity distribution', 'id:003']],
-    'POST_ANALISIS_ES': [['Explicar la clasificación', 'id:002'],['Distribución de toxicidad', 'id:003']]
+    'POST_ANALISIS_ES': [['Explicar la clasificación', 'id:002'],['Distribución de toxicidad', 'id:003']],
+    'FINAL_MSG_EN' : [['End conversation', 'id:004']],
+    'FINAL_MSG_ES' : [['Terminar conversación', 'id:004']]
 }
