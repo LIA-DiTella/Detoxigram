@@ -114,7 +114,7 @@ def click_me(client: WhatsApp, clb: CallbackButton):
             messager.send_message(MESSAGES["WAITING_FOR_FILE_EN"])
             user.set_status('ANALIZE')
         elif clb.data == "id:002":
-            output = Explainer.explain_en(user.store_conversation, conversation_id)
+            output = Explainer.explain_en(user.store_conversation,user.id*(len(user.store_conversation[0])+len(user.store_conversation[1])+len(user.store_conversation[2])))
             user.send_message(output)
         elif clb.data == "id:003":
             user.send_message("distribución!!")
@@ -141,8 +141,9 @@ def handle_user_file(client: WhatsApp, msg: Message):
         document_url = msg.document.get_media_url()
         conversation = fetcher.fetch(document_url)
         analisis = analyzer.conversation_classifier(str(randint()), conversation)
-        user.store_conversation(conversation)
-        
+        user.messages_per_conversation[user.id * (len(conversation[0]) + len(conversation[1]) + len(conversation[2]))] = conversation
+        user.store_conversation = conversation
+
         if user.global_language == 'ES':
             resp = "La conversacion que enviaste resulto ser " + analisis + "."
             messager.send_message(resp)
