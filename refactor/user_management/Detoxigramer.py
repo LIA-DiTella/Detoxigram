@@ -35,23 +35,19 @@ class WhatsApp_Detoxigramer:
         - _set_status: establece el estado del usuario.
         
         '''
-
         self.id: str
         self.status : Literal['DETOX', 'ANALYZE', 'EXPLAIN', 'DISTRIBUTION', 'NONE']
         self.conversation_classification : Optional[Tuple[str, str]]
         self.messages_per_conversation : Optional[Dict[str, List[str]]]
         self.explanation : Optional[str]
         self.testing : bool
-        self.global_language: Literal["EN", "ES"]
-        
-        self.store_conversation : List[str]
     
     def set_id(self, number:int):
         self.id : str = hashlib.shake_256(str(number).encode())
         self.id : str = id.hexdigest(15)
          
-    def _last_toxicity(self, classification : int):
-        if self.global_language == 'EN':
+    def _last_toxicity(self, classification : int, language:Literal['EN','ES']):
+        if language == 'EN':
             if classification < 1:
                     return "🟢 Non-toxic"
             elif 1 <= classification < 1.75:
@@ -62,7 +58,7 @@ class WhatsApp_Detoxigramer:
                     return "🔴 Highly toxic"
             else:
                     return "🔴 Extremely toxic"
-        elif self.global_language == 'ES':
+        elif language == 'ES':
             if 0 <= toxicity < 1:
                 toxicity = "🟢 Tranqui panki, no es toxi"
             elif toxicity >= 1 and toxicity < 1.75:
@@ -102,7 +98,6 @@ class WhatsApp_Detoxigramer:
         if conversation_id in self.messages_per_conversation:
               return self.messages_per_conversation[conversation_id] 
 
-
 class Telegram_Detoxigramer:
     def __init__(self):
         '''
@@ -136,7 +131,7 @@ class Telegram_Detoxigramer:
         '''
 
         self.id: str
-        self.status : Tuple[Literal['DETOX', 'ANALYZE', 'EXPLAIN', 'DISTRIBUTION', 'NONE'], Literal['TELEGRAM', 'WHATSAPP']]
+        self.status : Literal['DETOX', 'ANALYZE', 'EXPLAIN', 'DISTRIBUTION', 'NONE']
         self.conversation_classification : Optional[Tuple[str, str]]
         self.messages_per_conversation : Optional[Dict[str, List[str]]]
         self.explanation : Optional[str]
