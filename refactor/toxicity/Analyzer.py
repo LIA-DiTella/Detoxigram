@@ -17,7 +17,7 @@ class Analyzer:
     - conversation_classifier: Clasifica la toxicidad promedio de una conversación completa.
     - conversation_classifier: Actualiza el estado del canal y los mensajes en detoxigramer si el estado es 'NONE'.
     """
-    def __init__(self, hatebert : hate_bert_classifier, mistral : mistral_classifier, management_detoxigramers : ManagementDetoxigramers, detoxigramer : Detoxigramer):
+    def __init__(self, hatebert : hate_bert_classifier, mistral : mistral_classifier, management_detoxigramers : ManagementDetoxigramers):
     
         self.hatebert = hatebert
         self.mistral = mistral
@@ -27,15 +27,16 @@ class Analyzer:
         toxicity : Tuple[bool, int] = self.mistral.predictToxicity(message)
         return toxicity[1]
     
-    def conversation_classifier(self, conversation_id:str, messages:List[str]):
-        if self.detoxigramer.status == 'NONE':
-            self.detoxigramer.status = 'ANALYZE'
-            most_toxic_messages:List[str] = self.hatebert.get_most_toxic_messages_none_batch(messages)
-            toxicity : Tuple[bool, int] = self.mistral.predict_average_toxicity_score(most_toxic_messages)
-            self.detoxigramer._update_channel(conversation_id, toxicity[1], most_toxic_messages)
-            return self.detoxigramer.get_conversation_classification()[1]
+    def conversation_classifier(self, user_id:str, conversation_id:str, messages:List[str]):
+        detoxigramer:Detoxigramer = self.management_detoxigramers.get_detoxigramer(user_id)
+        
+        if detoxigramer.status == 'NONE':
+            detoxigramer.status = 'ANALYZE'
+            most_toxic_messages: List[str] = self.hatebert.get_most_toxic_messages_none_batch(messages)
+            toxicity: Tuple[bool, int] = self.mistral.predict_average_toxicity_score(most_toxic_messages)
+            detoxigramer._update_channel(conversation_id, toxicity[1], most_toxic_messages)
+            return detoxigramer.conversation_classification[1]
         else:
             return None
-
     
     
