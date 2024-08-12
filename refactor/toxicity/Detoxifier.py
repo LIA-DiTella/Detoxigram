@@ -8,17 +8,18 @@ from Analyzer import Analyzer
 
 class Detoxifier:
 
-    def __init__(self, mistral : mistral_classifier, output_parser, detoxigramer : Detoxigramer, analyzer : Analyzer):
+    def __init__(self, mistral : mistral_classifier, output_parser, management_detoxigramers : ManagementDetoxigramers, analyzer : Analyzer):
             self.mistral = mistral
             self.output_parser = output_parser
-            self.detoxigramer = detoxigramer
+            self.management_detoxigramers = management_detoxigramers
             self.analyzer = analyzer
             self.llm = mistral.chat
 
-    def detoxify_single_message_en(self, message:str):
-        if self.detoxigramer.get_status() != 'NONE':
+    def detoxify_single_message_en(self, message:str, user_id:str):
+        detoxigramer:Detoxigramer = self.management_detoxigramers.get_detoxigramer(user_id)
+        if detoxigramer.get_status() != 'NONE':
             return
-        self.detoxigramer._set_status('DETOX')
+        detoxigramer._set_status('DETOX')
         toxicity : str = self._set_toxicity(self.analyzer.message_classifier(message), 'EN')
         prompt_template = ChatPromptTemplate.from_messages([
     ("system", """<s>[INST] You are a moderator of online content, your task is to detoxify and provide non-toxic alternatives for messages, if they are found to be toxic. If the message only contains instuls, say: "This message has no informative content and is simply an insult, therefore, there's no relevant information here to detoxify." Keep your rephrasing as close to the original message as possible.
@@ -72,10 +73,11 @@ class Detoxifier:
         output = chain.batch([{'toxicity': toxicity}])
         return output 
 
-    def detoxify_single_message_es(self, message:str):
-        if self.detoxigramer.get_status() != 'NONE':
+    def detoxify_single_message_es(self, message:str, user_id:str):
+        detoxigramer:Detoxigramer = self.management_detoxigramers.get_detoxigramer(user_id)
+        if detoxigramer.get_status() != 'NONE':
             return
-        self.detoxigramer._set_status('DETOX')
+        detoxigramer._set_status('DETOX')
         toxicity : str = self._set_toxicity(self.analyzer.message_classifier(message), 'ES')
         prompt_template = ChatPromptTemplate.from_messages([
         ("system", """<s>[INST] Sos un moderador de contenidos online en español rioplatense. Tu tarea es detoxificar y proporcionar alternativas no-tóxicas para los mensajes, si es que el mensaje tiene contenido informativo y fue clasificados como Si el mensaje es "🟡 Un toque toxi", "🟠 Toxi", "🔴 Zarpado en toxi" o "🔴 Recontra pasado de toxi, se fue de tema mal". Si el mensaje sólo contiene insultos, di: "Este mensaje no tiene contenido informativo y es simplemente un insulto, por lo tanto, no hay información relevante aquí para detoxificar". Mantené tu reformulación lo más cerca posible del mensaje original, sin cambiar su intención.

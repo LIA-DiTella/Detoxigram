@@ -17,19 +17,22 @@ class Explainer:
     Modificadores:
     - explain: Actualiza la explicación de la conversación en detoxigramer si el estado no es 'NONE'. Genera una explicación de la toxicidad de una conversación, actualizando el estado del usuario.
     """
-    def __init__(self, mistral : mistral_classifier, output_parser, detoxigramer : Detoxigramer):
+    def __init__(self, mistral : mistral_classifier, output_parser, management_detoxi:ManagementDetoxigramers):
         self.mistral = mistral
         self.output_parser = output_parser
-        self.detoxigramer = detoxigramer
+        self.management_detoxi = management_detoxi
         self.llm = mistral.chat
 
-    def explain_en(self, messages:List[str],conversation_id:str):
-        if self.detoxigramer.get_status() != 'NONE':
+    def explain_en(self,conversation_id:str,user_id:str):
+        
+        detoxigramer = self.management_detoxi.get_detoxigramer(user_id)
+        
+        if detoxigramer.get_status() != 'NONE':
             return
         
-        self.detoxigramer._set_status('EXPLAIN')
+        detoxigramer._set_status('EXPLAIN')
         
-        toxicity = self.detoxigramer.conversation_classification[1]
+        toxicity = detoxigramer.conversation_classification[1]
 
         escala = '''
 
@@ -47,9 +50,9 @@ class Explainer:
                     
                     '''
         
-        if self.detoxigramer.conversation_classification:            
-            if len(self.detoxigramer.messages_per_conversation[conversation_id]) > 0:
-                messages_ = self.detoxigramer.messages_per_conversation[conversation_id][:15]
+        if detoxigramer.conversation_classification:            
+            if len(detoxigramer.messages_per_conversation[conversation_id]) > 0:
+                messages_ = detoxigramer.messages_per_conversation[conversation_id][:15]
                 prompt_template = ChatPromptTemplate.from_messages([
                     ("system","""
                     <s>[INST] Your task is to explain why a channel has been classified as {toxicity}. According to the following scale: {escala}.
@@ -117,16 +120,18 @@ class Explainer:
                         'escala': escala,
                         'toxicity': toxicity
                     }])
-                self.detoxigramer.explanation = output
-            self.detoxigramer._set_status('NONE')
+                detoxigramer.explanation = output
+            detoxigramer._set_status('NONE')
 
-    def explain_es(self, messages:List[str],conversation_id:str):
-        if self.detoxigramer.get_status() != 'NONE':
+    def explain_es(self,conversation_id:str, user_id:str):
+        detoxigramer = self.management_detoxi.get_all_detoxigramers(user_id)
+        
+        if detoxigramer.get_status() != 'NONE':
             return
         
-        self.detoxigramer._set_status('EXPLAIN')
+        detoxigramer._set_status('EXPLAIN')
         
-        toxicity = self.detoxigramer.conversation_classification[1]
+        toxicity = detoxigramer.conversation_classification[1]
 
         escala = '''
                     ESCALA DE TOXICIDAD:
@@ -143,9 +148,9 @@ class Explainer:
                            
                     '''
         
-        if self.detoxigramer.conversation_classification:            
-            if len(self.detoxigramer.messages_per_conversation[conversation_id]) > 0:
-                messages_ = self.detoxigramer.messages_per_conversation[conversation_id][:15]
+        if detoxigramer.conversation_classification:            
+            if len(detoxigramer.messages_per_conversation[conversation_id]) > 0:
+                messages_ = detoxigramer.messages_per_conversation[conversation_id][:15]
                 prompt_template = ChatPromptTemplate.from_messages([
                     ("system","""
                     <s>[INST] Su tarea consiste en explicar por qué un canal ha sido clasificado como {toxicity}, de acuerdo con la siguiente escala: {escala}.
@@ -209,7 +214,7 @@ class Explainer:
                         'escala': escala,
                         'toxicity': toxicity
                     }])
-                self.detoxigramer.explanation = output
-            self.detoxigramer._set_status('NONE')
+                detoxigramer.explanation = output
+            detoxigramer._set_status('NONE')
 
 
