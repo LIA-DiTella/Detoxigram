@@ -157,10 +157,6 @@ classDiagram
         +get_robot_image()
         +get_toxicity_graph()
     }
-
-    Analyzer --> Detoxifier
-    Detoxifier --> Explainer
-    Detoxifier --> ToxicityDataviz
 ```
 
 #### Analyzer Module
