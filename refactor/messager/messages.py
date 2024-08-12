@@ -1,4 +1,3 @@
-
 MESSAGES = {
     'GREETING_SP': 'Hola {name}, soy Detoxigram! 👋\nMi rol es ayudarte a identificar la toxicidad en tus conversaciones, para que puedas tomar decisiones informadas sobre el contenido que consumís y compartís 🤖\n¿Qué te gustaría hacer?',
     'NO_GREETING_SP': 'Mmm... Que tal si empezamos con un saludo? (Ej. "Hola!")',
@@ -70,3 +69,4 @@ BOTONES = {
     'FINAL_MSG_EN' : [['End conversation', 'id:004']],
     'FINAL_MSG_ES' : [['Terminar conversación', 'id:004']]
 }
+
