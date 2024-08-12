@@ -1,7 +1,6 @@
 # @REFACTOR: Queda pendiente generar Base de Datos -> Conectar a Django
 
 import os
-import hashlib
 import sys
 sys.path.append('..')
 from typing import Dict, List, Optional, Literal, Tuple
@@ -28,17 +27,13 @@ class ManagementDetoxigramers:
         self.detoxigramers: Dict[str, Detoxigramer] = {}
 
     def get_detoxigramer(self, user_id: str) -> Detoxigramer:
-        id_hashed = hashlib.shake_256(str(user_id).encode())
-        id_hashed = id.hexdigest(15)
-        if id_hashed not in self.detoxigramers:
-            self.detoxigramers[id_hashed] = Detoxigramer()
-            self.detoxigramers[id_hashed].id = id_hashed  
-        return self.detoxigramers[id_hashed]
+        if user_id not in self.detoxigramers:
+            self.detoxigramers[user_id] = Detoxigramer()
+            self.detoxigramers[user_id].id = user_id  
+        return self.detoxigramers[user_id]
     
     def set_detoxigramer(self, user_id: str, detoxigramer: Detoxigramer):
-        detoxigramer.id = hashlib.shake_256(str(user_id).encode())
-        detoxigramer.id = id.hexdigest(15)
-        self.detoxigramers[detoxigramer.id] = detoxigramer
+        self.detoxigramers[user_id] = detoxigramer
 
     def reset_detoxigramer(self, user_id: str):
         if user_id in self.detoxigramers:
