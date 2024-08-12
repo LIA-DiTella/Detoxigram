@@ -11,10 +11,9 @@ class WhatsApp_Messager:
     def __init__(self, client:WhatsApp):
         self.client = client
 
-    def send_message(self, text:str, num:str):
-        self.client.send_text(
-        to=num,  
-        text=text
+    def send_message(self, text:str):
+        self.client.reply(
+        text
     )
     
     def send_message_with_buttons(self, text:str, num:str, botones:List[Tuple[str,str]]):

@@ -1,33 +1,56 @@
 #@Make it work, then make it pretty. Pendiente de refactor
 
 import logging
+from typing import Literal
 from fastapi import FastAPI, Request, HTTPException
 from pywa import WhatsApp, filters
 from pywa.types import Message, CallbackButton, Button, Document
 from dotenv import main
+import sys
 import os 
 from toxicity.Analyzer import Analyzer
 from toxicity.Detoxifier import Detoxifier
 from toxicity.Explainer import Explainer
 from toxicity.Dataviz import ToxicityDataviz
-from user_management.Detoxigramer import Detoxigramer
+from user_management.Detoxigramer import WhatsApp_Detoxigramer
 from user_management.ManagementDetoxigramers import ManagementDetoxigramers
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-fastapi_app = FastAPI()
-main.load_dotenv()
+from utilities import Utilities
+from utilities.Fetcher import WhatsApp_Fetcher
+from refactor.messager.messager import WhatsApp_Messager
+from refactor.messager.messages import MESSAGES, BUTTONS
+from model_evaluation_scripts.classifiers_classes_api.hate_bert_classifier import hate_bert_classifier
+from model_evaluation_scripts.classifiers_classes_api.multi_bert_classifier import multi_bert_classifier
+from model_evaluation_scripts.classifiers_classes_api.mixtral_8x7b_API_classifier import mistral_classifier
+from langchain_core.output_parsers import StrOutputParser
+from random import randint
 
 # Variables de Ambiente
-PHONE_ID:str = os.environ.get('PHONE_ID')
-TOKEN_WPP:str = os.environ.get('TOKEN_WPP')
-CALLBACK_URL:str = os.environ.get('CALLBACK_URL')
-VERIFY_TOKEN:str = os.environ['VERIFY_TOKEN']
-APP_ID:str = os.environ['APP_ID']
-APP_SECRET:str = os.environ['APP_SECRET']
-TESTING_NUMBER:str = os.environ['TESTING_NUMBER']
+PHONE_ID = os.environ.get('PHONE_ID')
+TOKEN_WPP = os.environ.get('TOKEN_WPP')
+CALLBACK_URL = os.environ.get('CALLBACK_URL')
+VERIFY_TOKEN = os.environ['VERIFY_TOKEN']
+APP_ID = os.environ['APP_ID']
+APP_SECRET = os.environ['APP_SECRET']
+TESTING_NUMBER = os.environ['TESTING_NUMBER']
+MISTRAL_API_KEY = os.environ['MISTRAL_API_KEY']
 
-# Inicializamos WhatsApp
+
+# Inicializo clases auxiliares
+
+management_detoxigramers = ManagementDetoxigramers()
+hatebert:hate_bert_classifier = hate_bert_classifier('../model_evaluation_scripts/classifiers_classes_api/toxigen_hatebert', verbosity=True)
+multibert:multi_bert_classifier = multi_bert_classifier('../model_evaluation_scripts/classifiers_classes_api/multibert', verbosity=True, toxicity_distribution_path='../model_evaluation_scripts/classifiers_classes_api/toxicity_distribution_cache/multibert_distribution.json',calculate_toxicity_distribution=False)
+mistral:mistral_classifier = mistral_classifier(mistral_api_key=MISTRAL_API_KEY, templatetype='prompt_template_few_shot', verbosity=True, toxicity_distribution_path='../model_evaluation_scripts/classifiers_classes_api/toxicity_distribution_cache/mistral_distribution.json', calculate_toxicity_distribution=False)
+fastapi_app = FastAPI()
+main.load_dotenv()
+utils = Utilities()
+users = management_detoxigramers()
+str_parser = StrOutputParser()
+analyzer = Analyzer(hatebert, mistral, management_detoxigramers, user)
+detoxifier = Detoxifier(mistral,str_parser, user, analyzer)
+fetcher = WhatsApp_Fetcher()
+
+# Inicializamos el client de WhatsApp
 wa = WhatsApp(
     phone_id=PHONE_ID,
     token=TOKEN_WPP,
@@ -38,67 +61,99 @@ wa = WhatsApp(
     app_secret=APP_SECRET
 )
 
-# user_response_content = ""
-# user_state = {}
 
-@wa.on_message(filters.startswith("Hi", "Hello", "Hola", "Holis", "Buenas", ignore_case=True))
-def hello(client: WhatsApp, msg: Message):
-    global user_response_content, user_state
-    logger.info(f"Received message: {msg.text}")
 
-    user_state[msg.from_user] = "waiting_for_selection"
+# Incializamos clase para mandar mensajes más facil
+messager = WhatsApp_Messager(wa)
 
-    wa.send_text(
-        to=TESTING_NUMBER,  
-        text=f'Hola {msg.from_user.name}, soy Detoxigram! 👋\nMi rol es ayudarte a identificar la toxicidad en tus conversaciones, para que puedas tomar decisiones informadas sobre el contenido que consumís y compartís 🤖\n¿Qué te gustaría hacer?',
-        buttons=[
-                Button(title='Deto un mensaje 📧', callback_data='id:000'),
-                Button(title='Analizar una conversación 💬', callback_data='id:001')
-    ])
+@wa.on_message()
+def greeting(client: WhatsApp, msg: Message):
+    user_id = msg.from_user.wa_id
+    detoxigramer = WhatsApp_Detoxigramer()
+    management_detoxigramers.set_detoxigramer(user_id, detoxigramer)
+    user = management_detoxigramers.get_detoxigramer(user_id)
+
+    Greet = utils.greeting_detection(msg.text)
+    
+    # Send greeting based on the user's language
+    if user.global_language == "ES":
+        if Greet != "GREETING":
+            messager.send_message(MESSAGES['NO_GREETING_SP'])
+        else: 
+            messager.send_message_with_buttons(MESSAGES['GREETING_SP'].format(name=msg.from_user.name), TESTING_NUMBER, BUTTONS['GREETING_ES'])
+
+    elif user.global_language == "EN":
+        if Greet != "GREETING":
+            messager.send_message(MESSAGES['NO_GREETING_EN'])
+        else: 
+            messager.send_message_with_buttons(MESSAGES['GREETING_SP'].format(name=msg.from_user.name), TESTING_NUMBER, BUTTONS['GREETING_EN'])
 
 @wa.on_callback_button(filters.startswith("id"))
 def click_me(client: WhatsApp, clb: CallbackButton):
-    global user_response_content, user_state
-    if clb.data == "id:000":
-        client.send_message(
-            to=TESTING_NUMBER,  
-            text="Por favor, envíame el mensaje que deseas detoxificar."
-        )
-    elif clb.data == "id:002":
-        user_state[clb.from_user] = "waiting_for_file"
-        client.send_message(
-            to=TESTING_NUMBER,
-            text="Por favor, envíame el archivo .txt de la conversación que deseas analizar."
-        )
+    conversation_id = 0
+    user_id = clb.from_user.wa_id
+    user = management_detoxigramers.get(user_id)
+
+    if user.global_language == "ES":
+        if clb.data == "id:000":
+            messager.send_message(MESSAGES["WAITING_FOR_MSG_ES"])
+            user.set_status('DETOX')
+        elif clb.data == "id:001":
+            messager.send_message(MESSAGES["WAITING_FOR_FILE_ES"])
+            user.set_status('ANALIZE')
+        elif clb.data == "id:002":
+            output = Explainer.explain_es(user.store_conversation, conversation_id)
+            user.send_message(output)
+        elif clb.data == "id:003":
+            user.send_message("distribución!!")
         
+    else:
+        if clb.data == "id:000":
+            messager.send_message(MESSAGES["WAITING_FOR_MSG_EN"])
+            user.set_status('DETOX')
+        elif clb.data == "id:001":
+            messager.send_message(MESSAGES["WAITING_FOR_FILE_EN"])
+            user.set_status('ANALIZE')
+        elif clb.data == "id:002":
+            output = Explainer.explain_en(user.store_conversation,user.id*(len(user.store_conversation[0])+len(user.store_conversation[1])+len(user.store_conversation[2])))
+            user.send_message(output)
+        elif clb.data == "id:003":
+            user.send_message("distribución!!")
 
 @wa.on_message(filters.regex(".*")) 
 def handle_user_response(client: WhatsApp, msg: Message):
-    global user_response_content, user_state
-    if user_state.get(msg.from_user) == "waiting_for_message":
-        user_response_content = msg.txt  
-        logger.info(f"User response saved: {user_response_content}")
+    user_id = msg.from_user.wa_id
+    user = management_detoxigramers.get(user_id)
 
-        wa.send_text(
-            to=TESTING_NUMBER, 
-            text="Analizando la toxicidad del mensaje..."
-        )
-        user_state[msg.from_user] = "idle"
-
+    if user.status == 'DETOX':
+        if utils.language_detection(msg.text) == "ES":
+            msg_detoxified = detoxifier.detoxify_single_message_es(msg.text)
+            messager.send_message(msg_detoxified)
+        elif utils.language_detection(msg.text) == "EN":
+            msg_detoxified = detoxifier.detoxify_single_message_en(msg.text)
+            messager.send_message(msg_detoxified)
 
 @wa.on_message(filters.document)  
 def handle_user_file(client: WhatsApp, msg: Message):
-    global user_response_content, user_state
-    if user_state.get(msg.from_user) == "waiting_for_file" and msg.document.mime_type == "text/plain":
+    user_id = msg.from_user.wa_id
+    user = management_detoxigramers.get(user_id)
+    
+    if user.status == 'ANALIZE':
         document_url = msg.document.get_media_url()
-        user_response_content = document_url 
-        logger.info(f"User file saved: {user_response_content}")
+        conversation = fetcher.fetch(document_url)
+        analisis = analyzer.conversation_classifier(str(randint()), conversation)
+        user.messages_per_conversation[user.id * (len(conversation[0]) + len(conversation[1]) + len(conversation[2]))] = conversation
+        user.store_conversation = conversation
 
-        wa.send_text(
-            to=TESTING_NUMBER, 
-            text="Analizando la toxicidad de la conversación..."
-        )
-        user_state[msg.from_user] = "idle"
+        if user.global_language == 'ES':
+            resp = "La conversacion que enviaste resulto ser " + analisis + "."
+            messager.send_message(resp)
+            messager.send_message_with_buttons(MESSAGES['POST_ANALISIS_ES'], BUTTONS['POST_ANALISIS_ES'])
+        elif user.global_language == 'EN':
+            resp = "The conversation you sent appears to be " + analisis + "."
+            messager.send_message(resp)
+            messager.send_message_with_buttons(MESSAGES['POST_ANALISIS_EN'], BUTTONS['POST_ANALISIS_EN'])
+
 
 @fastapi_app.get("/")
 async def verify_webhook(request: Request):

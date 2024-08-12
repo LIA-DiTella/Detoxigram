@@ -19,7 +19,6 @@ from bot_functions.explainer import explainer
 from bot_functions.group_toxicity_distribution.group_toxicity_distribution import group_toxicity_distribution
 from detoxigram_bot.bot_functions.channel_analyzer import channel_analyzer
 from detoxigram_bot.bot_functions.user_management import user_management
-from langchain_openai import ChatOpenAI
 from langchain_core.output_parsers import StrOutputParser
 import numpy as np
 from requests.exceptions import ReadTimeout, ConnectionError

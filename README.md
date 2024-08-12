@@ -583,6 +583,65 @@ The `Utilities` class provides several data processing operations, including lan
     - `'GREETING'`: If the message is classified as a greeting.
     - `'NONE'`: If the message is not classified as a greeting.
 
+### How to initialize WhatsApp Bot
+
+Remember to create a local `.env` file with the environment variables!
+
+## Stack
+- PyWa
+- Serveo
+
+## Activating Serveo
+We are using [Serveo](https://serveo.net/) to create the SSH tunnel. To activate the tunnel, run the following command:
+
+```bash
+ssh -R detoxigram.serveo.net:80:localhost:8080 serveo.net
+```
+
+To configure this properly, it was more complicated than just running the command. Here’s what I had to do:
+
+1. **Create an SSH public key:**
+
+```bash
+ssh-keygen -t rsa -b 4096 -C "detoxi_id"
+```
+
+Then, you will see the following in the terminal:
+
+```bash
+Generating public/private rsa key pair.
+Enter file in which to save the key (/Users/luzalbaposse/.ssh/id_rsa): -> press enter here
+Enter passphrase (empty for no passphrase): -> enter a passphrase
+Enter same passphrase again: -> re-enter the passphrase
+Your identification has been saved in /Users/luzalbaposse/.ssh/id_rsa
+Your public key has been saved in /Users/luzalbaposse/.ssh/id_rsa.pub
+The key fingerprint is:
+SHA256:CUgCadkC/zwNlTFM1cFMz5nR6ej7vZLJSWUzhsJ+zl4 detoxi_id
+The key's randomart image is: ...
+```
+
+2. **Run the following command:**
+
+```bash
+ssh -i ~/.ssh/id_rsa -R detoxigram.serveo.net:80:localhost:8080 serveo.net
+```
+
+This will require you to sign in with Google and provide a link to verify your account.
+
+3. **Close the tunnel and restart it:**
+
+If there are errors, check that Uvicorn is running on port 8080 and that the tunnel is configured correctly.
+-> If you see a `Get [...] challenge 200 OK`, it’s working fine. : )
+
+To start the servers:
+
+```bash
+uvicorn wa:fastapi_app --host 0.0.0.0 --port 8080
+ssh -i ~/.ssh/id_rsa -R detoxigram.serveo.net:80:localhost:8080 serveo.net
+```
+
+Run Serveo first, and then Uvicorn.
+
 ### User Management and User ID Handling
 
 The system manages users through the `ManagementDetoxigramers` class, which maintains instances of `Detoxigramer` for each user. The `user_id` is a crucial element used to uniquely identify and manage user states across different interactions.
