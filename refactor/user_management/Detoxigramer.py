@@ -35,9 +35,8 @@ class WhatsApp_Detoxigramer:
         - _set_status: establece el estado del usuario.
         
         '''
-
         self.id: str
-        self.status : Tuple[Literal['DETOX', 'ANALYZE', 'EXPLAIN', 'DISTRIBUTION', 'NONE'], Literal['TELEGRAM', 'WHATSAPP']]
+        self.status : Literal['DETOX', 'ANALYZE', 'EXPLAIN', 'DISTRIBUTION', 'NONE']
         self.conversation_classification : Optional[Tuple[str, str]]
         self.messages_per_conversation : Optional[Dict[str, List[str]]]
         self.explanation : Optional[str]
@@ -99,7 +98,6 @@ class WhatsApp_Detoxigramer:
         if conversation_id in self.messages_per_conversation:
               return self.messages_per_conversation[conversation_id] 
 
-
 class Telegram_Detoxigramer:
     def __init__(self):
         '''
@@ -133,7 +131,7 @@ class Telegram_Detoxigramer:
         '''
 
         self.id: str
-        self.status : Tuple[Literal['DETOX', 'ANALYZE', 'EXPLAIN', 'DISTRIBUTION', 'NONE'], Literal['TELEGRAM', 'WHATSAPP']]
+        self.status : Literal['DETOX', 'ANALYZE', 'EXPLAIN', 'DISTRIBUTION', 'NONE']
         self.conversation_classification : Optional[Tuple[str, str]]
         self.messages_per_conversation : Optional[Dict[str, List[str]]]
         self.explanation : Optional[str]
