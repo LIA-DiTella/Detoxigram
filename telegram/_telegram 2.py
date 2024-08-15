@@ -21,83 +21,34 @@ from toxicity.Explainer import Explainer
 from toxicity.Analyzer import Analyzer
 from toxicity.Detoxifier import Detoxifier
 from toxicity.Dataviz import ToxicityDataviz
-from utilities.Utilities import Utilities
-from utilities.Fetcher import Telegram_Fetcher
-from messager.messager import Telegram_Messager
-from messager.messages import MESSAGES, BUTTONS
-from user_management.ManagementDetoxigramers import ManagementDetoxigramers
 from user_management.Detoxigramer import Telegram_Detoxigramer
-
-main.load_dotenv()
-print(os.getcwd())
 
 # Variables de Ambiente
 
 BOT_TOKEN:str = os.environ.get('BOT_TOKEN')
 API_ID_TELEGRAM:str = os.environ.get('API_ID')
 API_HASH_TELEGRAM:str = os.environ.get('API_HASH')
-MISTRAL_API_KEY:str = os.environ('MISTRAL_API_KEY')
+MISTRAL_API_KEY:str = os.environ['MISTRAL_API_KEY']
 
 # Modelos
 
 hatebert:hate_bert_classifier = hate_bert_classifier('../model_evaluation_scripts/classifiers_classes_api/toxigen_hatebert', verbosity=True)
 multibert:multi_bert_classifier = multi_bert_classifier('../model_evaluation_scripts/classifiers_classes_api/multibert', verbosity=True, toxicity_distribution_path='../model_evaluation_scripts/classifiers_classes_api/toxicity_distribution_cache/multibert_distribution.json',calculate_toxicity_distribution=False)
 mistral:mistral_classifier = mistral_classifier(mistral_api_key=MISTRAL_API_KEY, templatetype='prompt_template_few_shot', verbosity=True, toxicity_distribution_path='../model_evaluation_scripts/classifiers_classes_api/toxicity_distribution_cache/mistral_distribution.json', calculate_toxicity_distribution=False)
-output_parser = StrOutputParser()
 
-# Cliente y Bot
+# Cliente de Telegram
 
 client = TelegramClient(sessions.MemorySession(), API_ID_TELEGRAM, API_HASH_TELEGRAM)  
-bot = telebot.TeleBot(BOT_TOKEN)
+
 
 # Clases
-## User Management
-management_detoxigramers = ManagementDetoxigramers()
 
-##Utilities
-utilities = Utilities()
-
-##Fetcher
-fetcher = Telegram_Fetcher(client)
-
-## Messager
-messager = Telegram_Messager(bot)
-
-## Bot Functions
-
-explainer = Explainer(mistral, output_parser, management_detoxigramers)
-analyzer = Analyzer(hatebert, mistral, management_detoxigramers)
-detoxifier = Detoxifier(mistral, output_parser, management_detoxigramers, analyzer)
+explainer = Explainer(mistral, StrOutputParser(), )
+analyzer = Analyzer()
+detoxifier = Detoxifier()
 dataviz = ToxicityDataviz()
+detoxigramer = Telegram_Detoxigramer()
 
-## Connection Check
-if bot: 
-    print('Bot token loaded succesfully, Detoxigram is live 🚀')
 
-## Start Polling
 
-async def start_polling(bot, retry_delays):
-    attempt = 0
-    while True:
-        try: 
-            await bot.polling(none_stop=True)
-        except ReadTimeout:
-            if attempt < len(retry_delays):
-                time_to_wait = retry_delays[attempt]
-                print(f"Request timed out. Retrying in {time_to_wait} second.")
-                await asyncio.sleep(time_to_wait)
-                attempt +=1
-            else: 
-                print("Request failed after maximum attempts. Retrying again after a delay... Please wait")
-                attempt = 0
-                await asyncio.sleep(retry_delays[-1])
-        except ConnectionError:
-            print("Connection lost... retrying in 5 seconds")
-            await asyncio.sleep(5)
-        except Exception as e:
-            print(f"An unexpected error occurred: {e}.≥ Retrying in 10 seconds...")
-            await asyncio.sleep(10)
 
-## Main Script
-async def main():
-    retry_delays = [10,20,40,80]
