@@ -61,7 +61,7 @@ Need more help or have any questions? Don't hesitate to reach out. You can conta
 
 }
 
-BOTONES = {
+BUTTONS = {
     'GREETING_EN': [['Detoxify a message 📧','id:000'], ['Analize a conversation 💬', 'id:001']],
     'GREETING_ES': [['Detoxificar un mensaje 📧','id:000'], ['Analizar una conversación 💬', 'id:001']],
     'POST_ANALISIS_EN': [['Explain the classification', 'id:002'],['Toxicity distribution', 'id:003']],

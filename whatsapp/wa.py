@@ -8,16 +8,17 @@ from pywa.types import Message, CallbackButton, Button, Document
 from dotenv import main
 import sys
 import os 
-from toxicity.Analyzer import Analyzer
-from toxicity.Detoxifier import Detoxifier
-from toxicity.Explainer import Explainer
+sys.path.append('..')
+from toxicity.Analyzer import WhatsApp_Analyzer
+from toxicity.Detoxifier import Whatsapp_Detoxifier
+from toxicity.Explainer import Whatsapp_Explainer
 from toxicity.Dataviz import ToxicityDataviz
 from user_management.Detoxigramer import WhatsApp_Detoxigramer
-from user_management.ManagementDetoxigramers import ManagementDetoxigramers
+from user_management.ManagementDetoxigramers import ManagementDetoxigramers_Whatsapp
 from utilities import Utilities
 from utilities.Fetcher import WhatsApp_Fetcher
-from refactor.messager.messager import WhatsApp_Messager
-from refactor.messager.messages import MESSAGES, BUTTONS
+from messager.messager import WhatsApp_Messager
+from messager.messages import MESSAGES, BUTTONS
 from model_evaluation_scripts.classifiers_classes_api.hate_bert_classifier import hate_bert_classifier
 from model_evaluation_scripts.classifiers_classes_api.multi_bert_classifier import multi_bert_classifier
 from model_evaluation_scripts.classifiers_classes_api.mixtral_8x7b_API_classifier import mistral_classifier
@@ -28,16 +29,16 @@ from random import randint
 PHONE_ID = os.environ.get('PHONE_ID')
 TOKEN_WPP = os.environ.get('TOKEN_WPP')
 CALLBACK_URL = os.environ.get('CALLBACK_URL')
-VERIFY_TOKEN = os.environ['VERIFY_TOKEN']
-APP_ID = os.environ['APP_ID']
-APP_SECRET = os.environ['APP_SECRET']
-TESTING_NUMBER = os.environ['TESTING_NUMBER']
-MISTRAL_API_KEY = os.environ['MISTRAL_API_KEY']
+VERIFY_TOKEN = os.environ.get('VERIFY_TOKEN')
+APP_ID = os.environ.get('APP_ID')
+APP_SECRET = os.environ.get('APP_SECRET')
+TESTING_NUMBER = os.environ.get('TESTING_NUMBER')
+MISTRAL_API_KEY = os.environ.get('MISTRAL_API_KEY')
 
 
 # Inicializo clases auxiliares
 
-management_detoxigramers = ManagementDetoxigramers()
+management_detoxigramers = ManagementDetoxigramers_Whatsapp()
 hatebert:hate_bert_classifier = hate_bert_classifier('../model_evaluation_scripts/classifiers_classes_api/toxigen_hatebert', verbosity=True)
 multibert:multi_bert_classifier = multi_bert_classifier('../model_evaluation_scripts/classifiers_classes_api/multibert', verbosity=True, toxicity_distribution_path='../model_evaluation_scripts/classifiers_classes_api/toxicity_distribution_cache/multibert_distribution.json',calculate_toxicity_distribution=False)
 mistral:mistral_classifier = mistral_classifier(mistral_api_key=MISTRAL_API_KEY, templatetype='prompt_template_few_shot', verbosity=True, toxicity_distribution_path='../model_evaluation_scripts/classifiers_classes_api/toxicity_distribution_cache/mistral_distribution.json', calculate_toxicity_distribution=False)
@@ -46,8 +47,8 @@ main.load_dotenv()
 utils = Utilities()
 users = management_detoxigramers()
 str_parser = StrOutputParser()
-analyzer = Analyzer(hatebert, mistral, management_detoxigramers, user)
-detoxifier = Detoxifier(mistral,str_parser, user, analyzer)
+analyzer = WhatsApp_Analyzer(hatebert, mistral, management_detoxigramers, users)
+detoxifier = Whatsapp_Detoxifier(mistral,str_parser, users, analyzer)
 fetcher = WhatsApp_Fetcher()
 
 # Inicializamos el client de WhatsApp
@@ -102,7 +103,7 @@ def click_me(client: WhatsApp, clb: CallbackButton):
             messager.send_message(MESSAGES["WAITING_FOR_FILE_ES"])
             user.set_status('ANALIZE')
         elif clb.data == "id:002":
-            output = Explainer.explain_es(user.store_conversation, conversation_id)
+            output = Whatsapp_Explainer.explain_es(user.store_conversation, conversation_id)
             user.send_message(output)
         elif clb.data == "id:003":
             user.send_message("distribución!!")
@@ -115,7 +116,7 @@ def click_me(client: WhatsApp, clb: CallbackButton):
             messager.send_message(MESSAGES["WAITING_FOR_FILE_EN"])
             user.set_status('ANALIZE')
         elif clb.data == "id:002":
-            output = Explainer.explain_en(user.store_conversation,user.id*(len(user.store_conversation[0])+len(user.store_conversation[1])+len(user.store_conversation[2])))
+            output = Whatsapp_Explainer.explain_en(user.store_conversation,user.id*(len(user.store_conversation[0])+len(user.store_conversation[1])+len(user.store_conversation[2])))
             user.send_message(output)
         elif clb.data == "id:003":
             user.send_message("distribución!!")
