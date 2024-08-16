@@ -41,15 +41,15 @@ MISTRAL_API_KEY = os.environ.get('MISTRAL_API_KEY')
 management_detoxigramers = ManagementDetoxigramers_Whatsapp()
 hatebert = hate_bert_classifier('tomh/toxigen_hatebert', verbosity=True)
 multibert = multi_bert_classifier(
-    '/Users/patoperaltaramos/Desktop/Labo.Neuro/Detoxigram/model_evaluation_scripts/classifiers_classes_api/multibert',
+    '../model_evaluation_scripts/classifiers_classes_api/multibert',
     verbosity=True,
-    toxicity_distribution_path='/Users/patoperaltaramos/Desktop/Labo.Neuro/Detoxigram/model_evaluation_scripts/classifiers_classes_api/toxicity_distribution_cache/multibert_distribution.json',
+    toxicity_distribution_path='../model_evaluation_scripts/classifiers_classes_api/toxicity_distribution_cache/multibert_distribution.json',
     calculate_toxicity_distribution=False
 )
 mistral = mistral_classifier(
     mistral_api_key=MISTRAL_API_KEY,
     templatetype='prompt_template_few_shot',
-    toxicity_distribution_path='/Users/patoperaltaramos/Desktop/Labo.Neuro/Detoxigram/model_evaluation_scripts/classifiers_classes_api/toxicity_distribution_cache/mistral_distribution.json',
+    toxicity_distribution_path='../model_evaluation_scripts/classifiers_classes_api/toxicity_distribution_cache/mistral_distribution.json',
     calculate_toxicity_distribution=False,
     verbosity=True
 )
