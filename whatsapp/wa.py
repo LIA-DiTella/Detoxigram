@@ -5,7 +5,8 @@ from typing import Literal
 from fastapi import FastAPI, Request, HTTPException
 from pywa import WhatsApp, filters
 from pywa.types import Message, CallbackButton, Button, Document
-from dotenv import main
+from dotenv import main, load_dotenv
+load_dotenv()
 import sys
 import os 
 sys.path.append('..')
@@ -15,7 +16,7 @@ from toxicity.Explainer import Whatsapp_Explainer
 from toxicity.Dataviz import ToxicityDataviz
 from user_management.Detoxigramer import WhatsApp_Detoxigramer
 from user_management.ManagementDetoxigramers import ManagementDetoxigramers_Whatsapp
-from utilities import Utilities
+from utilities.Utilities import Utilities
 from utilities.Fetcher import WhatsApp_Fetcher
 from messager.messager import WhatsApp_Messager
 from messager.messages import MESSAGES, BUTTONS
@@ -24,7 +25,6 @@ from model_evaluation_scripts.classifiers_classes_api.multi_bert_classifier impo
 from model_evaluation_scripts.classifiers_classes_api.mixtral_8x7b_API_classifier import mistral_classifier
 from langchain_core.output_parsers import StrOutputParser
 from random import randint
-
 # Variables de Ambiente
 PHONE_ID = os.environ.get('PHONE_ID')
 TOKEN_WPP = os.environ.get('TOKEN_WPP')
@@ -39,17 +39,33 @@ MISTRAL_API_KEY = os.environ.get('MISTRAL_API_KEY')
 # Inicializo clases auxiliares
 
 management_detoxigramers = ManagementDetoxigramers_Whatsapp()
-hatebert:hate_bert_classifier = hate_bert_classifier('../model_evaluation_scripts/classifiers_classes_api/toxigen_hatebert', verbosity=True)
-multibert:multi_bert_classifier = multi_bert_classifier('../model_evaluation_scripts/classifiers_classes_api/multibert', verbosity=True, toxicity_distribution_path='../model_evaluation_scripts/classifiers_classes_api/toxicity_distribution_cache/multibert_distribution.json',calculate_toxicity_distribution=False)
-mistral:mistral_classifier = mistral_classifier(mistral_api_key=MISTRAL_API_KEY, templatetype='prompt_template_few_shot', verbosity=True, toxicity_distribution_path='../model_evaluation_scripts/classifiers_classes_api/toxicity_distribution_cache/mistral_distribution.json', calculate_toxicity_distribution=False)
+hatebert = hate_bert_classifier('tomh/toxigen_hatebert', verbosity=True)
+multibert = multi_bert_classifier(
+    '/Users/patoperaltaramos/Desktop/Labo.Neuro/Detoxigram/model_evaluation_scripts/classifiers_classes_api/multibert',
+    verbosity=True,
+    toxicity_distribution_path='/Users/patoperaltaramos/Desktop/Labo.Neuro/Detoxigram/model_evaluation_scripts/classifiers_classes_api/toxicity_distribution_cache/multibert_distribution.json',
+    calculate_toxicity_distribution=False
+)
+mistral = mistral_classifier(
+    mistral_api_key=MISTRAL_API_KEY,
+    templatetype='prompt_template_few_shot',
+    toxicity_distribution_path='/Users/patoperaltaramos/Desktop/Labo.Neuro/Detoxigram/model_evaluation_scripts/classifiers_classes_api/toxicity_distribution_cache/mistral_distribution.json',
+    calculate_toxicity_distribution=False,
+    verbosity=True
+)
+
 fastapi_app = FastAPI()
 main.load_dotenv()
 utils = Utilities()
-users = management_detoxigramers()
 str_parser = StrOutputParser()
-analyzer = WhatsApp_Analyzer(hatebert, mistral, management_detoxigramers, users)
-detoxifier = Whatsapp_Detoxifier(mistral,str_parser, users, analyzer)
+analyzer = WhatsApp_Analyzer(hatebert, mistral, management_detoxigramers)
+detoxifier = Whatsapp_Detoxifier(mistral,str_parser, management_detoxigramers, analyzer)
 fetcher = WhatsApp_Fetcher()
+
+print(f"PHONE_ID: {PHONE_ID}")
+print(f"TOKEN_WPP: {TOKEN_WPP}")
+print(f"CALLBACK_URL: {CALLBACK_URL}")
+print(f"VERIFY_TOKEN: {VERIFY_TOKEN}")
 
 # Inicializamos el client de WhatsApp
 wa = WhatsApp(
