@@ -96,13 +96,13 @@ def greeting(client: WhatsApp, msg: Message):
     Greet = utils.greeting_detection(msg.text)
     
     # Send greeting based on the user's language
-    if user.global_language == "ES":
+    if utils.language_detection(msg.text) == "ES":
         if Greet != "GREETING":
             messager.send_message(MESSAGES['NO_GREETING_SP'])
         else: 
             messager.send_message_with_buttons(MESSAGES['GREETING_SP'].format(name=msg.from_user.name), TESTING_NUMBER, BUTTONS['GREETING_ES'])
 
-    elif user.global_language == "EN":
+    elif utils.language_detection(msg.text) == "EN":
         if Greet != "GREETING":
             messager.send_message(MESSAGES['NO_GREETING_EN'])
         else: 
@@ -112,7 +112,7 @@ def greeting(client: WhatsApp, msg: Message):
 def click_me(client: WhatsApp, clb: CallbackButton):
     conversation_id = 0
     user_id = clb.from_user.wa_id
-    user = management_detoxigramers.get(user_id)
+    user = management_detoxigramers.get_detoxigramer(user_id)
 
     if user.global_language == "ES":
         if clb.data == "id:000":
@@ -144,7 +144,7 @@ def click_me(client: WhatsApp, clb: CallbackButton):
 def handle_user_response(client: WhatsApp, msg: Message):
     print(f"Received message: {msg.text}")
     user_id = msg.from_user.wa_id
-    user = management_detoxigramers.get(user_id)
+    user = management_detoxigramers.get_detoxigramer(user_id)
 
     if user.status == 'DETOX':
         if utils.language_detection(msg.text) == "ES":
@@ -157,7 +157,7 @@ def handle_user_response(client: WhatsApp, msg: Message):
 @wa.on_message(filters.document)  
 def handle_user_file(client: WhatsApp, msg: Message):
     user_id = msg.from_user.wa_id
-    user = management_detoxigramers.get(user_id)
+    user = management_detoxigramers.get_detoxigramer(user_id)
     
     if user.status == 'ANALIZE':
         document_url = msg.document.get_media_url()
