@@ -636,8 +636,8 @@ If there are errors, check that Uvicorn is running on port 8080 and that the tun
 To start the servers:
 
 ```bash
-uvicorn wa:fastapi_app --host 0.0.0.0 --port 8080
 ssh -i ~/.ssh/id_rsa -R detoxigram.serveo.net:80:localhost:8080 serveo.net
+uvicorn wa:fastapi_app --host 0.0.0.0 --port 8080
 ```
 
 Run Serveo first, and then Uvicorn.
