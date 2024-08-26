@@ -83,9 +83,11 @@ wa = WhatsApp(
 # Incializamos clase para mandar mensajes más facil
 messager = WhatsApp_Messager(wa)
 
+
+
+
 @wa.on_message()
 def greeting(client: WhatsApp, msg: Message):
-    print(f"Received message: {msg.text}")
     user_id = msg.from_user.wa_id
     detoxigramer = WhatsApp_Detoxigramer()
     management_detoxigramers.set_detoxigramer(user_id, detoxigramer)
@@ -187,3 +189,4 @@ async def verify_webhook(request: Request):
 
 if __name__ == "__main__":
     wa.run()
+
