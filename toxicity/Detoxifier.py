@@ -17,7 +17,7 @@ class Whatsapp_Detoxifier:
 
     def detoxify_single_message_en(self, message:str, user_id:str):
         detoxigramer:WhatsApp_Detoxigramer = self.management_detoxigramers.get_detoxigramer(user_id)
-        if detoxigramer.get_status() != 'NONE':
+        if detoxigramer.get_status() == 'NONE':
             return
         detoxigramer._set_status('DETOX')
         toxicity : str = self._set_toxicity(self.analyzer.message_classifier(message), 'EN')
@@ -67,7 +67,7 @@ class Whatsapp_Detoxifier:
                 A non-toxic rephrasing could be: "I'm surprised that there's support for this policy. I have a completely different point of view"'''[INST]
                 
     """),
-    ("user", "<s>[INST] Now, please detoxify the following message which has a toxicity level of {toxicity}: [[[ " + message.text + "]]][INST]")
+    ("user", "<s>[INST] Now, please detoxify the following message which has a toxicity level of {toxicity}: [[[ " + message + "]]][INST]")
 ])
         chain = prompt_template | self.llm | self.output_parser
         output = chain.batch([{'toxicity': toxicity}])
@@ -75,7 +75,7 @@ class Whatsapp_Detoxifier:
 
     def detoxify_single_message_es(self, message:str, user_id:str):
         detoxigramer:WhatsApp_Detoxigramer = self.management_detoxigramers.get_detoxigramer(user_id)
-        if detoxigramer.get_status() != 'NONE':
+        if detoxigramer.get_status() == 'NONE':
             return
         detoxigramer._set_status('DETOX')
         toxicity : str = self._set_toxicity(self.analyzer.message_classifier(message), 'ES')

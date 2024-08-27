@@ -41,6 +41,7 @@ class WhatsApp_Detoxigramer:
         self.messages_per_conversation : Optional[Dict[str, List[str]]]
         self.explanation : Optional[str]
         self.testing : bool
+        self.global_language: Literal['EN', 'ES']
     
     def set_id(self, number:int):
         self.id : str = hashlib.shake_256(str(number).encode())

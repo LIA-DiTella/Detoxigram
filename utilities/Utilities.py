@@ -32,14 +32,13 @@ class Utilities:
         - 'EN' si el mensaje está en inglés, 'ES' si está en español.
         """
         prediction = self.model_language.predict(message)
-        print(f"language prediction = {prediction}")
         label = prediction[0][0]
         if label == "__label__eng_Latn":
             return 'EN'
-        elif label == "__label__es_Latn":
+        elif label == "__label__spa_Latn":
             return 'ES'
         else:
-            return 'UNKNOWN'
+            return 'EN'
 
     def greeting_detection(self, message: str) -> Literal['GREETING', 'NONE']:
         """
