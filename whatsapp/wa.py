@@ -19,7 +19,7 @@ from user_management.ManagementDetoxigramers import ManagementDetoxigramers_What
 from utilities.Utilities import Utilities
 from utilities.Fetcher import WhatsApp_Fetcher
 from messager.messager import WhatsApp_Messager
-from messager.messages import MESSAGES, BUTTONS
+from messager.messages import MESSAGES_WPP, BUTTONS_WPP
 from model_evaluation_scripts.classifiers_classes_api.hate_bert_classifier import hate_bert_classifier
 from model_evaluation_scripts.classifiers_classes_api.multi_bert_classifier import multi_bert_classifier
 from model_evaluation_scripts.classifiers_classes_api.mixtral_8x7b_API_classifier import mistral_classifier
@@ -98,19 +98,23 @@ def greeting(client: WhatsApp, msg: Message):
     user.global_language = utils.language_detection(msg.text)
     Greet = utils.greeting_detection(msg.text)
 
-    # Process as a greeting if user status is NONE
-    if user.status == "NONE" or Greet == "GREETING":
+    # Process as a greeting only if user status is NONE or Greet is triggered manually
+    if user.status == "NONE" or (user.status == "WAITING_RESPONSE" and Greet == "GREETING"):
         if user.global_language == "ES":
             if Greet != "GREETING":
-                messager.send_message(MESSAGES['NO_GREETING_ES'], TESTING_NUMBER)
+                messager.send_message(MESSAGES_WPP['NO_GREETING_ES'], TESTING_NUMBER)
             else:
-                messager.send_message_with_buttons(MESSAGES['GREETING_ES'].format(name=msg.from_user.name), TESTING_NUMBER, BUTTONS['GREETING_ES'])
+                messager.send_message_with_buttons(MESSAGES_WPP['GREETING_ES'].format(name=msg.from_user.name), TESTING_NUMBER, BUTTONS_WPP['GREETING_ES'])
+                user._set_status('NONE')  # Reset status after greeting
 
         elif user.global_language == "EN":
             if Greet != "GREETING":
-                messager.send_message(MESSAGES['NO_GREETING_EN'], TESTING_NUMBER)
+                messager.send_message(MESSAGES_WPP['NO_GREETING_EN'], TESTING_NUMBER)
             else:
-                messager.send_message_with_buttons(MESSAGES['GREETING_EN'].format(name=msg.from_user.name), TESTING_NUMBER, BUTTONS['GREETING_EN'])
+                messager.send_message_with_buttons(MESSAGES_WPP['GREETING_EN'].format(name=msg.from_user.name), TESTING_NUMBER, BUTTONS_WPP['GREETING_EN'])
+                user._set_status('NONE')  # Reset status after greeting
+
+                
 @wa.on_callback_button(filters.startswith("id"))
 def click_me(client: WhatsApp, clb: CallbackButton):
     conversation_id = 0
@@ -119,30 +123,42 @@ def click_me(client: WhatsApp, clb: CallbackButton):
 
     if user.global_language == "ES":
         if clb.data == "id:000":
-            messager.send_message(MESSAGES["WAITING_FOR_MSG_ES"],TESTING_NUMBER)
+            messager.send_message(MESSAGES_WPP["WAITING_FOR_MSG_ES"],TESTING_NUMBER)
             user._set_status('DETOX')
         elif clb.data == "id:001":
-            messager.send_message(MESSAGES["WAITING_FOR_FILE_ES"],TESTING_NUMBER)
+            messager.send_message(MESSAGES_WPP["WAITING_FOR_FILE_ES"],TESTING_NUMBER)
             user._set_status('ANALIZE')
         elif clb.data == "id:002":
             output = Whatsapp_Explainer.explain_es(user.store_conversation, conversation_id)
             user.send_message(output)
         elif clb.data == "id:003":
             user.send_message("distribución!!",TESTING_NUMBER)
+        elif clb.data == "id:005":
+            messager.send_message_with_buttons(MESSAGES_WPP["START_AGAIN_ES"], TESTING_NUMBER,BUTTONS_WPP["GREETING_ES"])
+            user._set_status('WAITING_RESPONSE')
+        elif clb.data == "id:006":
+            messager.send_message(MESSAGES_WPP["GOODBYE_ES"], TESTING_NUMBER)
+            user._set_status('NONE')
+            
         
     else:
         if clb.data == "id:000":
-            messager.send_message(MESSAGES["WAITING_FOR_MSG_EN"], TESTING_NUMBER)
+            messager.send_message(MESSAGES_WPP["WAITING_FOR_MSG_EN"], TESTING_NUMBER)
             user._set_status('DETOX')
             print(f"User status: {user.status}")
         elif clb.data == "id:001":
-            messager.send_message(MESSAGES["WAITING_FOR_FILE_EN"], TESTING_NUMBER)
+            messager.send_message(MESSAGES_WPP["WAITING_FOR_FILE_EN"], TESTING_NUMBER)
             user._set_status('ANALIZE')
         elif clb.data == "id:002":
             output = Whatsapp_Explainer.explain_en(user.store_conversation,user.id*(len(user.store_conversation[0])+len(user.store_conversation[1])+len(user.store_conversation[2])))
             user.send_message(output, TESTING_NUMBER)
         elif clb.data == "id:003":
             user.send_message("distribución!!", TESTING_NUMBER)
+        elif clb.data == "id:005":
+            messager.send_message_with_buttons(MESSAGES_WPP["START_AGAIN_EN"], TESTING_NUMBER,BUTTONS_WPP["GREETING_EN"])
+        elif clb.data == "id:006":
+            messager.send_message(MESSAGES_WPP["GOODBYE_EN"], TESTING_NUMBER)
+            user._set_status('NONE')
 
 @wa.on_message(filters.regex(".*"))
 def handle_user_response(client: WhatsApp, msg: Message):
@@ -156,16 +172,16 @@ def handle_user_response(client: WhatsApp, msg: Message):
 
         if utils.language_detection(msg.text) == "ES":
             msg_detoxified = detoxifier.detoxify_single_message_es(msg.text, user_id)
+            messager.send_message(msg_detoxified[0], TESTING_NUMBER)
+            user._set_status('WAITING_RESPONSE')
+            messager.send_message_with_buttons(MESSAGES_WPP['POST_DETOX_ES'],TESTING_NUMBER, BUTTONS_WPP['SI_NO_ES'])
+
         elif utils.language_detection(msg.text) == "EN":
             msg_detoxified = detoxifier.detoxify_single_message_en(msg.text, user_id)
-        
-        # Check if the detoxified message is valid
-        if not msg_detoxified:
-            msg_detoxified2 = "Sorry, I couldn't process the message. Please try again."
-            messager.send_message(msg_detoxified2, TESTING_NUMBER)
+            messager.send_message(msg_detoxified[0], TESTING_NUMBER)
+            user._set_status('WAITING_RESPONSE')
+            messager.send_message_with_buttons(MESSAGES_WPP['POST_DETOX_EN'],TESTING_NUMBER, BUTTONS_WPP['SI_NO_EN'])
 
-        print(f"Detoxified message: {msg_detoxified}")
-        messager.send_message(msg_detoxified[0], TESTING_NUMBER)
 
 @wa.on_message(filters.document)  
 def handle_user_file(client: WhatsApp, msg: Message):
@@ -182,11 +198,11 @@ def handle_user_file(client: WhatsApp, msg: Message):
         if user.global_language == 'ES':
             resp = "La conversacion que enviaste resulto ser " + analisis + "."
             messager.send_message(resp)
-            messager.send_message_with_buttons(MESSAGES['POST_ANALISIS_ES'], BUTTONS['POST_ANALISIS_ES'])
+            messager.send_message_with_buttons(MESSAGES_WPP['POST_ANALISIS_ES'], BUTTONS_WPP['POST_ANALISIS_ES'])
         elif user.global_language == 'EN':
             resp = "The conversation you sent appears to be " + analisis + "."
             messager.send_message(resp)
-            messager.send_message_with_buttons(MESSAGES['POST_ANALISIS_EN'], BUTTONS['POST_ANALISIS_EN'])
+            messager.send_message_with_buttons(MESSAGES_WPP['POST_ANALISIS_EN'], BUTTONS_WPP['POST_ANALISIS_EN'])
 
 
 @fastapi_app.get("/")

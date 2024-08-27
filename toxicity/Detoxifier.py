@@ -131,7 +131,7 @@ class Whatsapp_Detoxifier:
                 Una opción más constructiva podría ser: "Me sorprende que haya apoyo a esta política. Yo tengo un punto de vista completamente diferente y me enoja mucho que esta diferencia nos impida avanzar"'''[INST]
                 
     """),
-    ("user", "<s>[INST] Ahora, por favor, detoxificá el siguiente mensaje que tiene un nivel de toxicidad de {toxicity}: [[[ " + message.text + "]]][INST]")])
+    ("user", "<s>[INST] Ahora, por favor, detoxificá el siguiente mensaje que tiene un nivel de toxicidad de {toxicity}: [[[ " + message + "]]][INST]")])
         chain = prompt_template | self.llm | self.output_parser
         output = chain.batch([{'toxicity': toxicity}])
         return output 
@@ -149,16 +149,16 @@ class Whatsapp_Detoxifier:
             else:
                     return "🔴 Extremely toxic"
         elif language == 'ES':
-            if 0 <= toxicity < 1:
-                toxicity = "🟢 Tranqui panki, no es toxi"
-            elif toxicity >= 1 and toxicity < 1.75:
-                toxicity = "🟡 Un toque toxi"
-            elif 1.75 <= toxicity < 2.5:
-                toxicity = "🟠 Toxi"
-            elif 2.5 <= toxicity < 3.5:
-                toxicity = "🔴 Zarpado en toxi"
+            if 0 <= classification < 1:
+                return "🟢 Tranqui panki, no es toxi"
+            elif 1 <= classification < 1.75:
+                return "🟡 Un toque toxi"
+            elif 1.75 <= classification < 2.5:
+                return "🟠 Toxi"
+            elif 2.5 <= classification < 3.5:
+                return "🔴 Zarpado en toxi"
             else:
-                toxicity = "🔴 Recontra pasado de toxi, se fue de tema mal"
+                return "🔴 Recontra pasado de toxi, se fue de tema mal"
    
 class Telegram_Detoxifier:
 

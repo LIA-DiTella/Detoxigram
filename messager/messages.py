@@ -84,7 +84,6 @@ Need more help or have any questions? Don't hesitate to reach out. You can conta
     'GOODBYE_EN': 'You have become a star Detoxigramer! Give us your (anonymous) feedback here: {url}',
     'GOODBYE_ES': '¡Sos un Detoxigramer estrella! Nos podés dejar feedback anónimo acá: {url}'
 }
-
 BUTTONS = {
     'GREETING_EN': [['Detoxify Msg 📧', 'id:000'], ['Analyze Conv 💬', 'id:001']],
     'GREETING_ES': [['Detoxificar Msg 📧', 'id:000'], ['Analizar Conv 💬', 'id:001']],
@@ -93,4 +92,33 @@ BUTTONS = {
     'FINAL_MSG_EN': [['End', 'id:004']],
     'FINAL_MSG_ES': [['Terminar', 'id:004']]
 }
+MESSAGES_WPP = {
+    'GREETING_ES': 'Hola {name}, soy Detoxigram! 👋\nMi rol es ayudarte a identificar la toxicidad en tus conversaciones, para que puedas tomar decisiones informadas sobre el contenido que consumís y compartís 🤖\n¿Qué te gustaría hacer?',
+    'NO_GREETING_ES': 'Mmm... Qué tal si empezamos con un saludo? (Ej. "Hola!")',
+    'GREETING_EN': 'Hello {name}, I am Detoxigram! 👋\nMy role is to help you identify toxicity in your conversations...',
+    'NO_GREETING_EN': 'Mmm... Try sending a greeting to start the conversation (E.g. "Hello!")',
+    'GOODBYE_EN': 'Goodbye! 👋 If you need anything else, just say hi!',
+    'GOODBYE_ES': '¡Adiós! 👋 Si necesitas algo más, solo saluda.',
+    'WAITING_FOR_MSG_EN': 'Great! Now, please send the message you would like to detoxify 🤓',
+    'WAITING_FOR_MSG_ES': '¡Genial! Ahora, por favor envía el mensaje que te gustaría desintoxicar 🤓',
+    'DETOXIFY_MESSAGE_ES': 'Vamos a ver... 👀',
+    'DETOXIFY_MESSAGE_EN': 'Let\'s see... 👀',
+    'POST_DETOX_EN':'Do you want to continue detoxifying?',
+    'POST_DETOX_ES': '¿Quieres seguir detoxificando?',
+    'START_AGAIN_EN':'Great! What would you like to do now?',
+    'START_AGAIN_ES':'¡Genial! ¿Qué te gustaría hacer ahora?',
+}
+BUTTONS_WPP = {
+    'GREETING_EN': [['Detoxify Msg 📧', 'id:000'], ['Analyze Conv 💬', 'id:001']],
+    'GREETING_ES': [['Detoxificar Msg 📧', 'id:000'], ['Analizar Conv 💬', 'id:001']],
+    'POST_ANALISIS_EN': [['Explain', 'id:002'], ['Toxicity Dist', 'id:003']],
+    'POST_ANALISIS_ES': [['Explicar', 'id:002'], ['Distrib Tox', 'id:003']],
+    'FINAL_MSG_EN': [['End', 'id:004']],
+    'FINAL_MSG_ES': [['Terminar', 'id:004']],
+    'SI_NO_ES': [['Si', 'id:005'], ['No', 'id:006']],
+    'SI_NO_EN': [['Yes', 'id:005'], ['No', 'id:006']],
+    
+}
+
+
 
