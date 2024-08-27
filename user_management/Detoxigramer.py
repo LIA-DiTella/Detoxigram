@@ -36,7 +36,7 @@ class WhatsApp_Detoxigramer:
         
         '''
         self.id: str
-        self.status : Literal['DETOX', 'ANALYZE', 'EXPLAIN', 'DISTRIBUTION', 'NONE']
+        self.status : Literal['DETOX', 'ANALYZE', 'EXPLAIN', 'DISTRIBUTION', 'NONE'] = 'NONE'
         self.conversation_classification : Optional[Tuple[str, str]]
         self.messages_per_conversation : Optional[Dict[str, List[str]]]
         self.explanation : Optional[str]

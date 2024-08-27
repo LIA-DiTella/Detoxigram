@@ -88,13 +88,19 @@ messager = WhatsApp_Messager(wa)
 
 @wa.on_message()
 def greeting(client: WhatsApp, msg: Message):
+    print(f"Handling message: {msg.text}")
     user_id = msg.from_user.wa_id
+    print(f"User ID: {user_id}")
     detoxigramer = WhatsApp_Detoxigramer()
     management_detoxigramers.set_detoxigramer(user_id, detoxigramer)
     user = management_detoxigramers.get_detoxigramer(user_id)
+    print(f"User: {user}")
 
     Greet = utils.greeting_detection(msg.text)
-    
+    print(f"Greeting detected: {Greet}")
+
+    print(f"Language detected = {utils.language_detection(msg.text)}")
+
     # Send greeting based on the user's language
     if utils.language_detection(msg.text) == "ES":
         if Greet != "GREETING":

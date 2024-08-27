@@ -32,10 +32,11 @@ class Utilities:
         - 'EN' si el mensaje está en inglés, 'ES' si está en español.
         """
         prediction = self.model_language.predict(message)
+        print(f"language prediction = {prediction}")
         label = prediction[0][0]
-        if label == "__label__en":
+        if label == "__label__eng_Latn":
             return 'EN'
-        elif label == "__label__es":
+        elif label == "__label__es_Latn":
             return 'ES'
         else:
             return 'UNKNOWN'
@@ -51,7 +52,7 @@ class Utilities:
         - 'GREETING' si el mensaje es un saludo, 'NONE' de lo contrario.
         """
         prediction = self.classifier(message)
-        if prediction[0]['score'] == 'greeting':
+        if prediction[0]['label'] == 'greeting':
             return 'GREETING'
         else:
             return 'NONE'
