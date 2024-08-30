@@ -25,6 +25,8 @@ from model_evaluation_scripts.classifiers_classes_api.multi_bert_classifier impo
 from model_evaluation_scripts.classifiers_classes_api.mixtral_8x7b_API_classifier import mistral_classifier
 from langchain_core.output_parsers import StrOutputParser
 from random import randint
+import requests
+
 # Variables de Ambiente
 PHONE_ID = os.environ.get('PHONE_ID')
 TOKEN_WPP = os.environ.get('TOKEN_WPP')
@@ -86,7 +88,7 @@ messager = WhatsApp_Messager(wa)
 
 
 
-@wa.on_message()
+@wa.on_message(filters.text)
 def greeting(client: WhatsApp, msg: Message):
     user_id = msg.from_user.wa_id
     detoxigramer = management_detoxigramers.get_detoxigramer(user_id)
@@ -98,21 +100,20 @@ def greeting(client: WhatsApp, msg: Message):
     user.global_language = utils.language_detection(msg.text)
     Greet = utils.greeting_detection(msg.text)
 
-    # Process as a greeting only if user status is NONE or Greet is triggered manually
     if user.status == "NONE" or (user.status == "WAITING_RESPONSE" and Greet == "GREETING"):
         if user.global_language == "ES":
             if Greet != "GREETING":
                 messager.send_message(MESSAGES_WPP['NO_GREETING_ES'], TESTING_NUMBER)
             else:
                 messager.send_message_with_buttons(MESSAGES_WPP['GREETING_ES'].format(name=msg.from_user.name), TESTING_NUMBER, BUTTONS_WPP['GREETING_ES'])
-                user._set_status('NONE')  # Reset status after greeting
+                user._set_status('NONE')  
 
         elif user.global_language == "EN":
             if Greet != "GREETING":
                 messager.send_message(MESSAGES_WPP['NO_GREETING_EN'], TESTING_NUMBER)
             else:
                 messager.send_message_with_buttons(MESSAGES_WPP['GREETING_EN'].format(name=msg.from_user.name), TESTING_NUMBER, BUTTONS_WPP['GREETING_EN'])
-                user._set_status('NONE')  # Reset status after greeting
+                user._set_status('NONE')  
 
                 
 @wa.on_callback_button(filters.startswith("id"))
@@ -165,7 +166,7 @@ def handle_user_response(client: WhatsApp, msg: Message):
     print(f"Received message: {msg.text}")
     user_id = msg.from_user.wa_id
     user = management_detoxigramers.get_detoxigramer(user_id)
-    
+    print(f"User status: {user.status}")
     if user.status == 'DETOX':
 
         print(f"User status: {user.status}")
@@ -182,27 +183,66 @@ def handle_user_response(client: WhatsApp, msg: Message):
             user._set_status('WAITING_RESPONSE')
             messager.send_message_with_buttons(MESSAGES_WPP['POST_DETOX_EN'],TESTING_NUMBER, BUTTONS_WPP['SI_NO_EN'])
 
+    elif user.status == 'ANALIZE':
+        if msg.document:
+            handle_user_file(client, msg)
+        else:
+            print("Entra aca 2")
+            if user.global_language == "ES":
+                messager.send_message(MESSAGES_WPP['MSG_NOT_EXPECTED_ES'], TESTING_NUMBER)
+            elif user.global_language == "EN":
+                messager.send_message(MESSAGES_WPP['MSG_NOT_EXPECTED_EN'], TESTING_NUMBER)
 
-@wa.on_message(filters.document)  
+
+@wa.on_message(filters.document)
 def handle_user_file(client: WhatsApp, msg: Message):
+    print("Entra aca 3")
     user_id = msg.from_user.wa_id
     user = management_detoxigramers.get_detoxigramer(user_id)
-    
+
     if user.status == 'ANALIZE':
         document_url = msg.document.get_media_url()
-        conversation = fetcher.fetch(document_url)
-        analisis = analyzer.conversation_classifier(str(randint()), conversation)
-        user.messages_per_conversation[user.id * (len(conversation[0]) + len(conversation[1]) + len(conversation[2]))] = conversation
-        user.store_conversation = conversation
+        print(f"document_url: {document_url}")
+        local_file_path = download_file(document_url)
 
-        if user.global_language == 'ES':
-            resp = "La conversacion que enviaste resulto ser " + analisis + "."
-            messager.send_message(resp)
-            messager.send_message_with_buttons(MESSAGES_WPP['POST_ANALISIS_ES'], BUTTONS_WPP['POST_ANALISIS_ES'])
-        elif user.global_language == 'EN':
-            resp = "The conversation you sent appears to be " + analisis + "."
-            messager.send_message(resp)
-            messager.send_message_with_buttons(MESSAGES_WPP['POST_ANALISIS_EN'], BUTTONS_WPP['POST_ANALISIS_EN'])
+        if local_file_path:
+            conversation = fetcher.fetch(local_file_path)
+            analisis = analyzer.conversation_classifier(str(randint()), conversation)
+            user.messages_per_conversation[user.id * (len(conversation[0]) + len(conversation[1]) + len(conversation[2]))] = conversation
+            user.store_conversation = conversation
+
+            if user.global_language == 'ES':
+                resp = "La conversacion que enviaste resulto ser " + analisis + "."
+                messager.send_message(resp)
+                messager.send_message_with_buttons(MESSAGES_WPP['POST_ANALISIS_ES'], BUTTONS_WPP['POST_ANALISIS_ES'])
+            elif user.global_language == 'EN':
+                resp = "The conversation you sent appears to be " + analisis + "."
+                messager.send_message(resp)
+                messager.send_message_with_buttons(MESSAGES_WPP['POST_ANALISIS_EN'], BUTTONS_WPP['POST_ANALISIS_EN'])
+        else:
+            if user.global_language == 'ES':
+                messager.send_message("Hubo un problema al descargar el archivo. Por favor, intenta de nuevo más tarde.", TESTING_NUMBER)
+            elif user.global_language == 'EN':
+                messager.send_message("There was an issue downloading the file. Please try again later.", TESTING_NUMBER)
+
+
+def download_file(url):
+    local_filename = url.split('/')[-1]
+    try:
+        response = requests.get(url, stream=True)
+        response.raise_for_status()  # Check if the request was successful
+
+        with open(local_filename, 'wb') as f:
+            for chunk in response.iter_content(chunk_size=8192):
+                f.write(chunk)
+        return local_filename
+
+    except requests.exceptions.HTTPError as http_err:
+        print(f"HTTP error occurred: {http_err}")  # Log the HTTP error
+        return None
+    except Exception as err:
+        print(f"An error occurred: {err}")  # Log any other errors
+        return None
 
 
 @fastapi_app.get("/")

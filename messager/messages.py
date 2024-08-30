@@ -93,20 +93,24 @@ BUTTONS = {
     'FINAL_MSG_ES': [['Terminar', 'id:004']]
 }
 MESSAGES_WPP = {
-    'GREETING_ES': 'Hola {name}, soy Detoxigram! 👋\nMi rol es ayudarte a identificar la toxicidad en tus conversaciones, para que puedas tomar decisiones informadas sobre el contenido que consumís y compartís 🤖\n¿Qué te gustaría hacer?',
+    'GREETING_ES': 'Hola {name}, soy Detoxigram! 👋\nMi rol es ayudarte a identificar la toxicidad en tus conversaciones, para que puedas tomar decisiones informadas sobre el contenido que consumís y compartís 🤖 ¿Qué te gustaría hacer?',
     'NO_GREETING_ES': 'Mmm... Qué tal si empezamos con un saludo? (Ej. "Hola!")',
-    'GREETING_EN': 'Hello {name}, I am Detoxigram! 👋\nMy role is to help you identify toxicity in your conversations...',
+    'GREETING_EN': 'Hello {name}, I am Detoxigram! 👋\nMy role is to help you identify toxicity in your conversations, so that you can take informed choices over the content you consume and share 🤖. What would you like to do?',
     'NO_GREETING_EN': 'Mmm... Try sending a greeting to start the conversation (E.g. "Hello!")',
     'GOODBYE_EN': 'Goodbye! 👋 If you need anything else, just say hi!',
     'GOODBYE_ES': '¡Adiós! 👋 Si necesitas algo más, solo saluda.',
     'WAITING_FOR_MSG_EN': 'Great! Now, please send the message you would like to detoxify 🤓',
-    'WAITING_FOR_MSG_ES': '¡Genial! Ahora, por favor envía el mensaje que te gustaría desintoxicar 🤓',
+    'WAITING_FOR_MSG_ES': '¡Genial! Ahora, por favor envía el mensaje que te gustaría detoxificar 🤓',
+    'WAITING_FOR_FILE_EN': 'Great! Now, please send the .txt file of the conversation you would like to detoxify 🤓',
+    'WAITING_FOR_FILE_ES': '¡Genial! Ahora, por favor envía el archivo .txt que te gustaría detoxificar 🤓',
     'DETOXIFY_MESSAGE_ES': 'Vamos a ver... 👀',
     'DETOXIFY_MESSAGE_EN': 'Let\'s see... 👀',
     'POST_DETOX_EN':'Do you want to continue detoxifying?',
     'POST_DETOX_ES': '¿Quieres seguir detoxificando?',
     'START_AGAIN_EN':'Great! What would you like to do now?',
     'START_AGAIN_ES':'¡Genial! ¿Qué te gustaría hacer ahora?',
+    'MSG_NOT_EXPECTED_EN': "Hmm... Seems you sent a message 🤔 Try sending a .txt file!",
+    'MSG_NOT_EXPECTED_ES': "Mmm... Parece que enviaste un mensaje 🤔 Prueba enviando un archivo .txt!",
 }
 BUTTONS_WPP = {
     'GREETING_EN': [['Detoxify Msg 📧', 'id:000'], ['Analyze Conv 💬', 'id:001']],
